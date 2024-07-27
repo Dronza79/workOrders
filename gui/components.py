@@ -4,7 +4,7 @@ from .template_setting import table_setting
 
 
 def get_sector_workers():
-    heads = ['№ п/п', 'Фамилия и инициалы', 'Должность', 'Номер ПР', 'Норматив', 'Срок работы']
+    heads = ['№ п/п', 'Фамилия имя отчество', 'Должность', 'Номер ПР', 'Норматив', 'Срок работы']
     width_cols = [4, 30, 10, 10, 10, 10]
     return [[
         sg.Table(
