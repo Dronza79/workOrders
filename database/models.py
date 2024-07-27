@@ -138,3 +138,5 @@ class Turn(BaseModel):
 #         month = random.randint(1, 12)
 #         day = random.randint(1, 15)
 #         WorkLapse.create(worker=task.master, task=task, term=term, date=f'2024-{month}-{day}')
+
+# WorkTask.select(WorkTask).join(Status).where(Status.name == 'В работе').switch(WorkTask).join(Person, JOIN.LEFT_OUTER).sql()

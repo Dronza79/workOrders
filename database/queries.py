@@ -8,5 +8,7 @@ def get_all_workers():
     return peewee.prefetch(person, tasks)
 
 
-def get_all_tasks():
-    return WorkTask.select(WorkTask, Person).join(Person)
+# def get_all_tasks():
+#     return (WorkTask.select(WorkTask)
+#             .join(Status).where(Status.name == 'В работе')
+#             .switch(WorkTask).join(Person, peewee.JOIN.LEFT_OUTER).sql())

@@ -1,15 +1,16 @@
 import PySimpleGUI as sg
 
 from database.app_logger import add_logger_peewee
-from database.queries import get_all_workers, get_all_tasks
+from database.queries import get_all_workers  # , get_all_tasks
 from .windows import get_main_window
 
 
 class StartMainWindow:
+    workers = []
+    tasks = []
+
     def __init__(self):
         self.window = get_main_window()
-        self.workers = []
-        self.tasks = []
 
     def run(self):
         while True:
@@ -20,21 +21,25 @@ class StartMainWindow:
             self.actualizing()
         self.window.close()
 
-    @add_logger_peewee
     def actualizing(self):
-        self.workers = list(
-            [[i, worker, worker.function, worker.tasks[-1], worker.tasks[-1].duration]
-             for i, worker in enumerate(get_all_workers(), start=1)])
-        self.tasks = get_all_tasks()
-        print(f'{self.workers=}')
+        self.get_format_list_workers()
+        self.window['-WORKER-'].c
         self.window['-WORKER-'].update(values=self.workers)
 
+    @add_logger_peewee
     def get_format_list_workers(self):
-        for i, worker in enumerate(get_all_workers(), start=1):
-            formatted_data = (
-                i,
-                f'{worker.surname} {worker.name} {worker.second_name}',
-                worker.function.title,
-
-            )
+        workers = get_all_workers()
+        if workers:
+            for i, worker in enumerate(workers, start=1):
+                formatted_data = (
+                    i,
+                    f'{worker.surname} {worker.name} {worker.second_name}',
+                    worker.function.title,
+                    worker.tasks[-1].order,
+                    worker.tasks[-1].deadline,
+                    worker.tasks[-1].duration,
+                    worker.id
+                )
+                print(f'{formatted_data=}')
+                self.workers.append(formatted_data)
 

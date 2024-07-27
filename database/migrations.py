@@ -14,7 +14,7 @@ models = (
 
 
 def apply_migrations():
-    db = SqliteDatabase(path.get_path)
+    db = SqliteDatabase(path.get_path, pragmas={'foreign_keys': 1})
     db.create_tables(models)
 
 
