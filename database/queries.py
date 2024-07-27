@@ -1,10 +1,10 @@
 import peewee
-from .models import Person, FuncPosition, WorkTask
+from .models import Person, FuncPosition, WorkTask, Status
 
 
 def get_all_workers():
-    person = Person.select(Person, FuncPosition).join(FuncPosition)
-    tasks = WorkTask.select()
+    person = Person.select(Person, FuncPosition.title).join(FuncPosition)
+    tasks = WorkTask.select(WorkTask, Status).join(Status).where(Status.name == 'В работе')
     return peewee.prefetch(person, tasks)
 
 

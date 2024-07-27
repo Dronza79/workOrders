@@ -6,9 +6,16 @@ from .utils import get_database
 
 
 class BaseModel(Model):
+    create_at = DateTimeField(default=datetime.now, verbose_name='Дата создания')
+    update_at = DateTimeField(default=datetime.now, verbose_name='Дата изменения')
+
     class Meta:
         database = get_database()
         only_save_dirty = True
+
+    def save(self, **kwargs):
+        self.update_at = datetime.now()
+        super().save(**kwargs)
 
 
 class FuncPosition(BaseModel):
@@ -23,10 +30,17 @@ class Person(BaseModel):
     name = CharField(verbose_name='Имя')
     second_name = CharField(null=True, verbose_name='Отчество')
     table_num = CharField(unique=True, verbose_name='Табельный номер')
-    function = ForeignKeyField(FuncPosition, verbose_name='Должность')
+    function = ForeignKeyField(FuncPosition, verbose_name='Должность', on_delete='CASCADE')
 
     def __str__(self):
         return f'{self.surname} {self.name[:1]}.{self.second_name[:1]}. ({self.function})'
+
+
+class Status(BaseModel):
+    name = CharField(verbose_name='Наименование')
+
+    def __str__(self):
+        return self.name
 
 
 class WorkTask(BaseModel):
@@ -35,25 +49,18 @@ class WorkTask(BaseModel):
     article = CharField(verbose_name='Конструктив')
     order = CharField(verbose_name='Производственный заказ')
     deadline = SmallIntegerField(verbose_name='Норматив выполнения')
-    master = ForeignKeyField(Person, backref='tasks', verbose_name='Работник')
-    status = BooleanField(verbose_name='Состояние', default=True)
+    master = ForeignKeyField(Person, backref='tasks', verbose_name='Работник', on_delete='CASCADE')
+    status = ForeignKeyField(Status, backref='tasks', verbose_name='Состояние', default=1, on_delete='CASCADE')
     duration = SmallIntegerField(verbose_name="Общая продолжительность", default=0)
+    comment = TextField(verbose_name='Комментарий', null=True)
 
     def __str__(self):
-        return f'{self.order} ({"в работе" if self.status else "завершен"})'
-
-    @property
-    def get_status(self):
-        return f'{"в работе" if self.status else "завершен"}'
-
-    @get_status.setter
-    def get_status(self, status):
-        self.status = status
+        return f'{self.order} ({self.status})'
 
 
 class WorkLapse(BaseModel):
-    worker = ForeignKeyField(Person, verbose_name='Работник', backref='time_worked')
-    task = ForeignKeyField(WorkTask, backref='time_worked', verbose_name='Задача')
+    worker = ForeignKeyField(Person, verbose_name='Работник', backref='time_worked', on_delete='CASCADE')
+    task = ForeignKeyField(WorkTask, backref='time_worked', verbose_name='Задача', on_delete='CASCADE')
     term = SmallIntegerField(verbose_name="Продолжительность")
     date = DateField(default=datetime.now, verbose_name='Дата')
 
@@ -69,13 +76,13 @@ class WorkLapse(BaseModel):
 
     def save(self, **kwargs):
         super().save(**kwargs)
-        self.task.duration += self.term
+        self.task.duration = sum(self.task.time_worked)
         self.task.save()
 
 
 class Turn(BaseModel):
-    worker = ForeignKeyField(Person, verbose_name='Работник', backref='turns')
-    date = DateField(verbose_name='Дата', default=datetime.now())
+    worker = ForeignKeyField(Person, verbose_name='Работник', backref='turns', on_delete='CASCADE')
+    date = DateField(verbose_name='Дата', default=datetime.now)
     duration = SmallIntegerField(verbose_name="Продолжительность")
 
     def __str__(self):
@@ -89,9 +96,13 @@ class Turn(BaseModel):
         return int(other + self.duration) if isinstance(other, (int, float)) else NotImplemented
 
 
+
 # from database.models import *
 # mont = FuncPosition.create(title='Монтажник')
 # sles = FuncPosition.create(title='Слесарь')
+# in_hand = Status.create(name='В работе')
+# done = Status.create(name='Завершен')
+# suspended = Status.create(name='Приостановлен')
 # vaxa = Person.create(surname='Вахитов', name='Данис', second_name='Римович', table_num='1', function=mont)
 # naid = Person.create(surname='Найденко', name='Георгий', second_name='Владимирович', table_num='2', function=mont)
 # shmir = Person.create(surname='Шмырин', name='Олег', second_name='Афанасьевич', table_num='3', function=mont)
@@ -102,8 +113,8 @@ class Turn(BaseModel):
 # ask = Person.create(surname='Аскеров', name='Гахраман', second_name='Камаладдин Оглы', table_num='8', function=sles)
 # task1 = WorkTask.create(equipment='Ру10кВ', title='Ярино', article='ENF10_637_03_044_00', order='ПР-028108', deadline=42, master=vaxa)
 # task2 = WorkTask.create(equipment='Ру10кВ ЛЭП АБ', title='Ярино', article='ENF10_633_00_000_00-65', order='ПР-028208', deadline=24, master=naid)
-# task3 = WorkTask.create(equipment='Ру10кВ', title='Абакумовка', article='ENF10_633_00_000_00-65', order='ПР-028208', deadline=24, master=prokop)
-# task4 = WorkTask.create(equipment='Ру10кВ ЛЭП АБ', title='Ярино', article='ENF10_633_00_000_00-65', order='ПР-028208', deadline=24, master=vaxa)
+# task3 = WorkTask.create(equipment='Ру10кВ', title='Абакумовка', article='ENF10_633_00_000_00-65', order='ПР-028258', deadline=24, master=prokop)
+# task4 = WorkTask.create(equipment='Ру10кВ ЛЭП АБ', title='Ярино', article='ENF10_633_00_000_00-65', order='ПР-028278', deadline=24, master=vaxa)
 # task5 = WorkTask.create(equipment='Ру20кВ', title='ЗИЛ', article='ENF20_003_00_000_00-03', order='ПР-028103', deadline=24, master=poly)
 # task6 = WorkTask.create(equipment='Ру10кВ', title='Саларьево', article='ENF10_003_00_000_00-03', order='ПР-028103', deadline=24, master=shmir)
 # task7 = WorkTask.create(equipment='Ру10кВ', title='Саянская', article='ENF10_634_03_022_00', order='ПР-027111', deadline=42, master=naid)
@@ -120,9 +131,10 @@ class Turn(BaseModel):
 # task31 = WorkTask.create(equipment='Ру10кВ', title='Саянская', article='637-40 - 2шт 638-11 - 2шт', order='сборка', deadline=54 * 4 // 3, master=puza)
 # task32 = WorkTask.create(equipment='Ру10кВ', title='Саянская', article='637-40 - 2шт 638-11 - 2шт', order='сборка', deadline=54 * 4 // 3, master=ask)
 # import random
-# for _ in range(50):
-#     task = random.choice([task1, task2, task3, task4, task5, task6, task7, task8, task9, task0, task10, task11, task12, task20, task21, task22, task30, task31, task32])
-#     term = random.randint(1, 12)
-#     month = random.randint(1, 12)
-#     day = random.randint(1, 15)
-#     WorkLapse.create(worker=task.master, task=task, term=term, date=f'2024-{month}-{day}')
+# with get_database().atomic():
+#     for _ in range(50):
+#         task = random.choice([task1, task2, task3, task4, task5, task6, task7, task8, task9, task0, task10, task11, task12, task20, task21, task22, task30, task31, task32])
+#         term = random.randint(1, 12)
+#         month = random.randint(1, 12)
+#         day = random.randint(1, 15)
+#         WorkLapse.create(worker=task.master, task=task, term=term, date=f'2024-{month}-{day}')
