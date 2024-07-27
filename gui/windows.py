@@ -11,13 +11,10 @@ def get_main_window():
                    **tab_setting),
             sg.Tab('Список активных работ', get_sector_tasks(), key='-TT-',
                    **tab_setting),
-        ]],
-            enable_events=True, key='-TG-', expand_x=True, expand_y=True,)
+        ]], key='-TG-', expand_x=True, expand_y=True)
     ]]
     return sg.Window('Учет нарядов', layout,
                      resizable=True,
                      finalize=True,
-                     # size=(1000, 700),
-                     # use_custom_titlebar=False, titlebar_background_color='#64778D',
                      sbar_frame_color='#64778D', margins=(10, 10)
                      )

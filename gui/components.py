@@ -27,3 +27,6 @@ def get_sector_tasks():
             col_widths=width_cols,
             **table_setting)
     ]]
+
+# mounter - монтажник
+# fitter - слесарь
