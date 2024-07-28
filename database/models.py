@@ -146,7 +146,7 @@ class Turn(BaseModel):
         # work_lapse_data.append(laps)
     # WorkLapse.insert_many(work_lapse_data).execute()
 
-# tasks = WorkTask.select(WorkTask.order, WorkTask.duration, fn.SUM(WorkLapse.term).alias('summ')).join(WorkLapse, JOIN.LEFT_OUTER)
+# tasks = WorkTask.select(WorkTask.order, WorkTask.duration, fn.SUM(WorkLapse.term).alias('summ')).join(WorkLapse, JOIN.LEFT_OUTER).group_by(WorkTask.order).dicts()
 # tasks = WorkTask.select(WorkTask, Status).join(Status)
 # laps = WorkLapse.select()
 # result = prefetch(tasks, laps)
