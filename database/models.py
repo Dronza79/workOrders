@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 
 from peewee import *
 
@@ -6,15 +6,15 @@ from .utils import get_database
 
 
 class BaseModel(Model):
-    create_at = DateTimeField(default=datetime.now, verbose_name='Дата создания')
-    update_at = DateTimeField(default=datetime.now, verbose_name='Дата изменения')
+    create_at = DateTimeField(default=datetime.datetime.now, verbose_name='Дата создания')
+    update_at = DateTimeField(default=datetime.datetime.now, verbose_name='Дата изменения')
 
     class Meta:
         database = get_database()
         only_save_dirty = True
 
     def save(self, **kwargs):
-        self.update_at = datetime.now()
+        self.update_at = datetime.datetime.now()
         super().save(**kwargs)
 
 
@@ -60,7 +60,7 @@ class WorkTask(BaseModel):
 class WorkLapse(BaseModel):
     worker = ForeignKeyField(Person, verbose_name='Работник', backref='time_worked', on_delete='CASCADE')
     task = ForeignKeyField(WorkTask, backref='time_worked', verbose_name='Задача', on_delete='CASCADE')
-    date = DateField(default=datetime.now, verbose_name='Дата')
+    date = DateField(default=datetime.datetime.now, verbose_name='Дата')
     value = SmallIntegerField(verbose_name="Продолжительность")
 
     def __str__(self):
@@ -76,7 +76,7 @@ class WorkLapse(BaseModel):
 
 class Turn(BaseModel):
     worker = ForeignKeyField(Person, verbose_name='Работник', backref='turns', on_delete='CASCADE')
-    date = DateField(verbose_name='Дата', default=datetime.now)
+    date = DateField(verbose_name='Дата', default=datetime.datetime.now)
     value = SmallIntegerField(verbose_name="Продолжительность")
 
     def __str__(self):
@@ -134,7 +134,7 @@ class Turn(BaseModel):
 #     ]
 #     WorkTask.insert_many(data_task).execute()
 #
-#     import datetime
+#     # import datetime
 #     import random
 #     target_date = datetime.date(2024, 7, 11)
 #     work_lapse_data = []
@@ -148,10 +148,11 @@ class Turn(BaseModel):
 #                 print(f'{task=} {duration=}')
 #                 if sum(task.time_worked) < 1.1 * task.deadline:
 #                     laps = {'worker': worker, 'task': task, 'value': duration, 'date': target_date}
+#                     WorkLapse.create(**laps)
 #                     work_lapse_data.append(laps)
 #         target_date += datetime.timedelta(days=1)
-#     for i in range(0, len(work_lapse_data), 50):
-#         WorkLapse.insert_many(work_lapse_data[i:i + 50]).execute()
+#     # for i in range(0, len(work_lapse_data), 50):
+#     #     WorkLapse.insert_many(work_lapse_data[i:i + 50]).execute()
 
 
 
