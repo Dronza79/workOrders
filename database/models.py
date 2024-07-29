@@ -145,8 +145,7 @@ class Turn(BaseModel):
 #                 print("сработало")
 #                 task = random.choice(worker.tasks)
 #                 duration = random.choice([8, 12])
-#                 print(f'{task=} {duration=}')
-#                 if sum(task.time_worked) < 1.1 * task.deadline:
+#                 if sum(task.time_worked) < task.deadline:
 #                     laps = {'worker': worker, 'task': task, 'value': duration, 'date': target_date}
 #                     WorkLapse.create(**laps)
 #                     work_lapse_data.append(laps)
