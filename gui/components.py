@@ -16,14 +16,14 @@ def get_sector_workers():
     ]]
 
 
-def get_sector_tasks():
+def get_sector_tasks(code=''):
     heads = [
-        '№ п/п', 'Тип оборудования', 'Наименование объекта',
-        'Конструктив', 'Номер ПР', 'Норматив выполнения', 'Время производства', "Работник"]
-    width_cols = [4, 5, 5, 5, 5, 5, 5, 5]
+        '№ п/п', 'Номинал', 'Наименование объекта',
+        'Конструктив', 'Номер ПР', 'Норма', 'Итого', "Работник"]
+    width_cols = [3, 10, 15, 20, 10, 5, 5, 15]
     return [[
         sg.Table(
-            values=[], headings=heads, key='-TASK-',
+            values=[], headings=heads, key=code,
             col_widths=width_cols,
             **table_setting)
     ]]

@@ -7,7 +7,8 @@ from .windows import get_main_window
 
 class StartMainWindow:
     workers = []
-    tasks = []
+    tasks_mounter = []
+    tasks_fitter = []
 
     def __init__(self):
         self.window = get_main_window()
@@ -23,46 +24,50 @@ class StartMainWindow:
 
     def actualizing(self):
         self.get_format_list_workers()
-        self.window['-WORKER-'].update(values=self.workers)
         self.get_format_list_tasks()
-        self.window['-TASK-'].update(values=self.tasks)
+        self.window['-WORKER-'].update(values=self.workers)
+        self.window['-TASK-M-'].update(values=self.tasks_mounter)
+        self.window['-TASK-F-'].update(values=self.tasks_fitter)
 
-    @add_logger_peewee
+    # @add_logger_peewee
     def get_format_list_workers(self):
-        workers = get_all_workers()
+        all_workers = get_all_workers()
         self.workers = []
-        if workers:
-            for i, worker in enumerate(workers, start=1):
+        if all_workers:
+            for i, worker in enumerate(all_workers, start=1):
                 formatted_data = (
                     i,
-                    f'{worker.surname} {worker.name} {worker.second_name}',
-                    worker.function.title,
-                    worker.tasks[-1].order,
-                    worker.tasks[-1].deadline,
-                    worker.tasks[-1].duration,
-                    worker.id
+                    f'{worker["surname"]} {worker["name"]} {worker["second_name"]}',
+                    worker['post'],
+                    worker['order'],
+                    worker['deadline'],
+                    worker['total'],
+                    worker['id']
                 )
-                print(f'{formatted_data=}')
                 self.workers.append(formatted_data)
 
     @add_logger_peewee
     def get_format_list_tasks(self):
         tasks = get_all_tasks()
-        self.tasks = []
+        self.tasks_mounter = []
+        self.tasks_fitter = []
         if tasks:
-            for i, task in enumerate(tasks, start=1):
-                formatted_data = (
-                    i,
-                    task.equipment,
-                    task.title,
-                    task.article,
-                    task.order,
-                    task.deadline,
-                    task.duration,
-                    f'{task.master.surname} {task.master.name[:1]}.{task.master.second_name[:1]}.',
-                    task.status.state,
-                    task.id,
-                )
-                print(f'{formatted_data=}')
-                # print(task)
-                self.tasks.append(formatted_data)
+            for task in tasks:
+                formatted_data = [
+                    task['type_obj'],
+                    task['title'],
+                    task['article'],
+                    task['order'],
+                    task['deadline'],
+                    task['total'],
+                    f'{task["surname"]} {task["name"][:1]}.{task["second_name"][:1]}.',
+                    task["state"],
+                    task['id'],
+                ]
+                print(f'{task=}')
+                if task['post'] == 'Слесарь':
+                    formatted_data.insert(0, len(self.tasks_fitter) + 1)
+                    self.tasks_fitter.append(formatted_data)
+                else:
+                    formatted_data.insert(0, len(self.tasks_mounter) + 1)
+                    self.tasks_mounter.append(formatted_data)

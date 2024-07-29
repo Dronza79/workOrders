@@ -9,7 +9,9 @@ def get_main_window():
         sg.TabGroup([[
             sg.Tab('Список работников', get_sector_workers(), key='-TW-',
                    **tab_setting),
-            sg.Tab('Список активных работ', get_sector_tasks(), key='-TT-',
+            sg.Tab('Список монтажных работ', get_sector_tasks(code='-TASK-M-'), key='-TTM-',
+                   **tab_setting),
+            sg.Tab('Список слесарных работ', get_sector_tasks(code='-TASK-F-'), key='-TTF-',
                    **tab_setting),
         ]], key='-TG-', expand_x=True, expand_y=True)
     ]]
