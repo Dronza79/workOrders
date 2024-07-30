@@ -13,6 +13,8 @@ def get_main_window():
                    **tab_setting),
             sg.Tab('Список слесарных работ', get_sector_tasks(code='-TASK-F-'), key='-TTF-',
                    **tab_setting),
+            sg.Tab('Архив выполненых работ', get_sector_tasks(code='-CLOSE-'), key='-TTF-',
+                   **tab_setting),
         ]], key='-TG-', expand_x=True, expand_y=True)
     ]]
     return sg.Window('Учет нарядов', layout,
