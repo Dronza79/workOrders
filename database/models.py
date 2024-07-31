@@ -5,6 +5,20 @@ from peewee import *
 from .utils import get_database
 
 
+STATUS_VARIABLES = {
+    1: 'В работе',
+    2: 'Завершен',
+    3: 'Приостановлен',
+}
+
+FUNC_VARIABLES = {
+    1: 'Старший монтажник',
+    2: 'Монтажник',
+    3: 'Старший слесарь',
+    4: 'Слесарь',
+}
+
+
 class BaseModel(Model):
     create_at = DateTimeField(default=datetime.datetime.now, verbose_name='Дата создания')
     update_at = DateTimeField(default=datetime.datetime.now, verbose_name='Дата изменения')
@@ -19,7 +33,7 @@ class BaseModel(Model):
 
 
 class FuncPosition(BaseModel):
-    title = CharField(verbose_name='Должность')
+    job_name = CharField(verbose_name='Должность')
 
     def __str__(self):
         return self.title
@@ -33,7 +47,7 @@ class Person(BaseModel):
     function = ForeignKeyField(FuncPosition, verbose_name='Должность', on_delete='CASCADE')
 
     def __str__(self):
-        return f'{self.surname} {self.name[:1]}.{self.second_name[:1]}. ({self.function.title})'
+        return f'{self.surname} {self.name[:1]}.{self.second_name[:1]}. ({self.function.job_name})'
 
 
 class Status(BaseModel):
@@ -90,72 +104,12 @@ class Turn(BaseModel):
         return int(other + self.value) if isinstance(other, (int, float)) else NotImplemented
 
 
-# from database.models import *
-# with get_database().atomic():
-#     FuncPosition.insert_many([['Монтажник'], ['Слесарь']], fields=['title']).execute()
-#     Status.insert_many([['В работе'], ['Завершен'], ['Приостановлен']], ['state']).execute()
-#     data_person = [
-#         {'surname': 'Вахитов', 'name': 'Данис', 'second_name': 'Римович', 'table_num': '1', 'function': 1},
-#         {'surname': 'Найденко', 'name': 'Георгий', 'second_name': 'Владимирович', 'table_num': '2', 'function': 1},
-#         {'surname': 'Шмырин', 'name': 'Олег', 'second_name': 'Афанасьевич', 'table_num': '3', 'function': 1},
-#         {'surname': 'Прокопенко', 'name': 'Юрий', 'second_name': 'Валерьевич', 'table_num': '4', 'function': 1},
-#         {'surname': 'Полякова', 'name': 'Мирина', 'second_name': 'Ивановна', 'table_num': '5', 'function': 1},
-#         {'surname': 'Коробка', 'name': 'Алексей', 'second_name': 'Викторович', 'table_num': '6', 'function': 2},
-#         {'surname': 'Пузанков', 'name': 'Максим', 'second_name': 'Витальевич', 'table_num': '7', 'function': 2},
-#         {'surname': 'Аскеров', 'name': 'Гахраман', 'second_name': 'Камаладдин Оглы', 'table_num': '8', 'function': 2},
-#     ]
-#     Person.insert_many(data_person).execute()
-#     data_task = [
-#         {'type_obj': 'Ру-10кВ', 'title': 'Ярино', 'article': 'ENF10_637_03_044_00', 'order': 'ПР-028108', 'deadline': 42, 'master': 1},
-#         {'type_obj': 'Ру-10кВ ЛЭП АБ', 'title': 'Ярино', 'article': 'ENF10_633_03_065_00', 'order': 'ПР-028208', 'deadline': 42, 'master': 2},
-#         {'type_obj': 'Ру-10кВ', 'title': 'Абакумовка', 'article': 'ENF10_633_03_065_00', 'order': 'ПР-028258', 'deadline': 42, 'master': 3},
-#         {'type_obj': 'Ру-10кВ ЛЭП АБ', 'title': 'Ярино', 'article': 'ENF10_633_03_065_00', 'order': 'ПР-028278', 'deadline': 42, 'master': 4},
-#         {'type_obj': 'Ру-20кВ', 'title': 'ЗИЛ', 'article': 'ENF20_003_00_000_00-03', 'order': 'ПР-028103', 'deadline': 24, 'master': 5},
-#         {'type_obj': 'Ру-10кВ', 'title': 'Саларьево', 'article': 'ENF10_003_00_000_00-03', 'order': 'ПР-028203', 'deadline': 24, 'master': 1},
-#         {'type_obj': 'Ру-10кВ', 'title': 'Саянская', 'article': 'ENF10_634_03_022_00', 'order': 'ПР-027111', 'deadline': 42, 'master': 2},
-#         {'type_obj': 'Ру-10кВ', 'title': 'Саларьево', 'article': 'ENF10_635_00_000_00-03', 'order': 'ПР-028643', 'deadline': 24, 'master': 3},
-#         {'type_obj': 'Ру-10кВ', 'title': 'Ванино', 'article': 'ENF10_629_00_000_00-18', 'order': 'ПР-028104', 'deadline': 24, 'master': 4},
-#         {'type_obj': 'Ру-10кВ', 'title': 'Ванино', 'article': 'ENF10_633_03_067_00', 'order': 'ПР-028113', 'deadline': 42, 'master': 5},
-#         {'type_obj': 'Ру-10кВ', 'title': 'Саянская', 'article': 'ENF10_633_00_000_00-67', 'order': 'ПР-028313', 'deadline': 54, 'master': 6},
-#         {'type_obj': 'Ру-10кВ', 'title': 'Саянская', 'article': 'ENF10_633_00_000_00-67', 'order': 'ПР-028313', 'deadline': 54, 'master': 7},
-#         {'type_obj': 'Ру-10кВ', 'title': 'Саянская', 'article': 'ENF10_633_00_000_00-67', 'order': 'ПР-028313', 'deadline': 54, 'master': 8},
-#         {'type_obj': 'Ру-10кВ', 'title': 'Ванино', 'article': 'ENF10_633_00_000_00-67', 'order': 'ПР-028314', 'deadline': 54, 'master': 6},
-#         {'type_obj': 'Ру-10кВ', 'title': 'Ванино', 'article': 'ENF10_633_00_000_00-67', 'order': 'ПР-028314', 'deadline': 54, 'master': 7},
-#         {'type_obj': 'Ру-10кВ', 'title': 'Ванино', 'article': 'ENF10_633_00_000_00-67', 'order': 'ПР-028314', 'deadline': 54, 'master': 8},
-#         {'type_obj': 'Ру-10кВ', 'title': 'Ванино', 'article': 'ENF10_629_00_000_00-18', 'order': 'ПР-028315', 'deadline': 54, 'master': 6},
-#         {'type_obj': 'Ру-10кВ', 'title': 'Ванино', 'article': 'ENF10_629_00_000_00-18', 'order': 'ПР-028315', 'deadline': 54, 'master': 7},
-#         {'type_obj': 'Ру-10кВ', 'title': 'Ванино', 'article': 'ENF10_629_00_000_00-18', 'order': 'ПР-028315', 'deadline': 54, 'master': 8},
-#         {'type_obj': 'Ру-10кВ', 'title': 'Ванино', 'article': 'ENF10_629_00_000_00-18', 'order': 'ПР-028316', 'deadline': 54, 'master': 6},
-#         {'type_obj': 'Ру-10кВ', 'title': 'Ванино', 'article': 'ENF10_629_00_000_00-18', 'order': 'ПР-028316', 'deadline': 54, 'master': 7},
-#         {'type_obj': 'Ру-10кВ', 'title': 'Ванино', 'article': 'ENF10_629_00_000_00-18', 'order': 'ПР-028316', 'deadline': 54, 'master': 8},
-#         {'type_obj': 'Ру-10кВ', 'title': 'Саларьево', 'article': 'ENF10_633_00_000_00-67', 'order': 'ПР-028317', 'deadline': 54, 'master': 6},
-#         {'type_obj': 'Ру-10кВ', 'title': 'Саларьево', 'article': 'ENF10_633_00_000_00-67', 'order': 'ПР-028317', 'deadline': 54, 'master': 7},
-#         {'type_obj': 'Ру-10кВ', 'title': 'Саларьево', 'article': 'ENF10_633_00_000_00-67', 'order': 'ПР-028317', 'deadline': 54, 'master': 8},
-#     ]
-#     WorkTask.insert_many(data_task).execute()
-#
-#     # import datetime
-# import random
-# target_date = datetime.date(2024, 7, 11)
-# work_lapse_data = []
-# for _ in range(10):
-#     for worker in Person.select():
-#         if random.random() > 0.05:
-#             task = random.choice(worker.tasks.select())
-#             duration = 8
-#             # duration = random.choice([8, 12])
-#             if sum(task.time_worked) < task.deadline:
-#                 laps = {'worker': worker, 'task': task, 'value': duration, 'date': target_date}
-#                 WorkLapse.create(**laps)
-#         target_date += datetime.timedelta(days=1)
-# for task in WorkTask.select():
-#     if sum(task.time_worked) >= task.deadline:
-#         print(f"{task} {task.deadline} == {sum(task.time_worked)}")
-#         task.status = Status[2]
-#         task.save()
-#                     work_lapse_data.append(laps)
-#     # for i in range(0, len(work_lapse_data), 50):
-#     #     WorkLapse.insert_many(work_lapse_data[i:i + 50]).execute()
+
+
+
+                    # work_lapse_data.append(laps)
+    # for i in range(0, len(work_lapse_data), 50):
+    #     WorkLapse.insert_many(work_lapse_data[i:i + 50]).execute()
 
 
 
