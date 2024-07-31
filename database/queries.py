@@ -62,7 +62,7 @@ def get_mounter_tasks():
         get_all_tasks()
         .where(
             Status.state != sv[2],
-            Person.function.in_([fv[1], fv[2]])
+            Person.function.job_name.in_([fv[1], fv[2]])
         )
         .order_by(Person.function.id)
         .group_by(WorkTask.id)
@@ -74,7 +74,7 @@ def get_fitter_tasks():
         get_all_tasks()
         .where(
             Status.state != sv[2],
-            Person.function.in_([fv[3], fv[4]])
+            Person.function.job_name.in_([fv[3], fv[4]])
         )
         .group_by(WorkTask.order)
     )
