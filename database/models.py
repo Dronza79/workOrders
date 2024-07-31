@@ -36,7 +36,7 @@ class FuncPosition(BaseModel):
     job_name = CharField(verbose_name='Должность')
 
     def __str__(self):
-        return self.title
+        return self.job_name
 
 
 class Person(BaseModel):

@@ -1,5 +1,5 @@
 import peewee
-from .models import Person, FuncPosition, WorkTask, Status, WorkLapse, STATUS_VARIABLES as sv
+from .models import Person, FuncPosition, WorkTask, Status, WorkLapse, STATUS_VARIABLES as sv, FUNC_VARIABLES as fv
 
 
 def get_all_workers():
@@ -62,9 +62,9 @@ def get_mounter_tasks():
         get_all_tasks()
         .where(
             Status.state != sv[2],
-            FuncPosition.id.in_([[1, 2]])
+            Person.function.in_([fv[1], fv[2]])
         )
-        .order_by(Person.table_num)
+        .order_by(Person.function.id)
         .group_by(WorkTask.id)
     )
 
@@ -74,7 +74,7 @@ def get_fitter_tasks():
         get_all_tasks()
         .where(
             Status.state != sv[2],
-            FuncPosition.id.in_([3, 4])
+            Person.function.in_([fv[3], fv[4]])
         )
         .group_by(WorkTask.order)
     )
