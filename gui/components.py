@@ -1,10 +1,10 @@
 import PySimpleGUI as sg
 
-from .template_setting import table_setting
+from .templates_settings import table_setting
 
 
 def get_sector_workers():
-    heads = ['№ п/п', 'Фамилия имя отчество', 'Должность', 'Номер ПР', 'Норматив', 'Срок работы']
+    heads = ['№ п/п', 'Фамилия имя отчество', 'Должность', 'Номер ПР', 'Норматив', 'Выпонено']
     width_cols = [4, 30, 10, 10, 10, 10]
     return [[
         sg.Table(
@@ -16,15 +16,16 @@ def get_sector_workers():
     ]]
 
 
-def get_sector_tasks(code=''):
+def get_sector_tasks(code='', visible=None):
     heads = [
         '№ п/п', 'Номинал', 'Наименование объекта',
-        'Конструктив', 'Номер ПР', 'Норма', 'Итого', "Работник"]
-    width_cols = [3, 10, 15, 20, 10, 5, 5, 15]
+        'Конструктив', 'Номер ПР', 'Норматив', 'Выполнено', "Работник", 'Статус']
+    width_cols = [3, 10, 15, 20, 10, 5, 5, 15, 10]
     return [[
         sg.Table(
             values=[], headings=heads, key=code,
             col_widths=width_cols,
+            visible_column_map=visible,
             **table_setting)
     ]]
 
