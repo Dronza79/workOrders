@@ -25,7 +25,7 @@ def get_main_window():
                 'Архив выполненых работ',
                 get_sector_tasks(code='-CLOSE-', visible=visio_arj),
                 key='-TTF-', **tab_setting),
-        ]], key='-TG-', expand_x=True, expand_y=True)
+        ]], key='-TG-', expand_x=True, expand_y=True, enable_events=True)
     ]]
     return sg.Window('Учет нарядов', layout,
                      resizable=True,

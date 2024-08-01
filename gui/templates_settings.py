@@ -32,7 +32,7 @@ table_setting = {
     # 'sbar_arrow_width': None,
     # 'sbar_frame_color': None,
     # 'sbar_relief': None,
-    # 'enable_click_events': False,
+    'enable_click_events': True,
     # 'right_click_selects': False,
     # 'bind_return_key': False,
     # 'pad': None,
