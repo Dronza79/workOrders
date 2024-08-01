@@ -1,4 +1,6 @@
 import peewee
+
+from .app_logger import add_logger_peewee
 from .models import Person, FuncPosition, WorkTask, Status, WorkLapse, STATUS_VARIABLES as sv, FUNC_VARIABLES as fv
 
 
@@ -33,6 +35,7 @@ def get_all_workers():
     # )
 
 
+@add_logger_peewee
 def get_all_tasks():
     return (
         WorkTask.select(
@@ -40,7 +43,7 @@ def get_all_tasks():
             WorkTask.deadline, peewee.fn.SUM(WorkLapse.value).alias('total'),
             Status.state,
             Person.surname, Person.name, Person.second_name, Person.table_num,
-            FuncPosition.job_name.alias('post')
+            FuncPosition.job_name.alias('post'), FuncPosition.id
         )
         .join_from(WorkTask, WorkLapse, peewee.JOIN.LEFT_OUTER)
         .join_from(WorkTask, Status)
@@ -49,6 +52,7 @@ def get_all_tasks():
     )
 
 
+# @add_logger_peewee
 def get_close_tasks():
     return (
         get_all_tasks()
@@ -57,6 +61,7 @@ def get_close_tasks():
     )
 
 
+# @add_logger_peewee
 def get_mounter_tasks():
     return (
         get_all_tasks()
@@ -64,11 +69,11 @@ def get_mounter_tasks():
             Status.state != sv[2],
             Person.function.job_name.in_([fv[1], fv[2]])
         )
-        .order_by(Person.function.id)
         .group_by(WorkTask.id)
     )
 
 
+# @add_logger_peewee
 def get_fitter_tasks():
     return (
         get_all_tasks()
