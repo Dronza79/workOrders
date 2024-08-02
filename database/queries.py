@@ -1,6 +1,5 @@
 import peewee
 
-from .app_logger import add_logger_peewee
 from .models import Person, FuncPosition, WorkTask, Status, WorkLapse, STATUS_VARIABLES as sv, FUNC_VARIABLES as fv
 
 
@@ -35,7 +34,6 @@ def get_all_workers():
     # )
 
 
-@add_logger_peewee
 def get_all_tasks():
     return (
         WorkTask.select(
