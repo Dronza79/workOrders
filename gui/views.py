@@ -6,12 +6,24 @@ from database.queries import get_all_workers, get_mounter_tasks, get_fitter_task
 from .windows import get_main_window
 
 
+class StartWindowCard:
+    def __init__(self, data=None):
+        self.data = data
+
+    def run(self):
+        print(self.data)
+
+
+
 class StartMainWindow:
-    workers = []
-    tasks_mounter = []
-    tasks_fitter = []
-    tasks_close = []
+    table = {
+        '-WORKER-': [],
+        '-TASK-M-': [],
+        '-TASK-F-': [],
+        '-CLOSE-': [],
+    }
     sort = False
+    sort_col = None
 
     def __init__(self):
         self.window = get_main_window()
@@ -20,38 +32,43 @@ class StartMainWindow:
     def run(self):
         while True:
             ev, val = self.window.read()
-            print(f'{type(ev)=} {ev=} {val=}')
+            print(f'{ev=} {val=}')
+            # print(f'{type(ev)=} {ev=} {val=}')
             if ev == sg.WIN_CLOSED:
                 break
             elif ev == '-TG-':
                 self.actualizing()
             elif isinstance(ev, tuple) and ev[2][0] == -1:
                 self.sorting_list(ev[0], ev[2][1])
+            elif ev in ['-WORKER-', '-TASK-M-', '-TASK-F-', '-CLOSE-']:
+                # print(f"{self.table['-WORKER-']=} {val[ev]=}")
+                worker_card = StartWindowCard(data=self.table[ev][val[ev].pop()])
+                worker_card.run()
         self.window.close()
 
     def sorting_list(self, key_table, column):
-        self.sort = not self.sort
-        table = (
-            self.workers if key_table == '-WORKER-'
-            else self.tasks_mounter if key_table == '-TASK-M-'
-            else self.tasks_fitter if key_table == '-TASK-F-'
-            else self.tasks_close
-        )
-        table = sorted(table, key=itemgetter(column), reverse=self.sort)
-        self.window[key_table].update(values=table)
+        if self.sort_col == column:
+            self.sort = not self.sort
+        # print(f'{self.sort_col=} {self.sort=}')
+        self.table[key_table] = sorted(self.table[key_table], key=itemgetter(column), reverse=self.sort)
+        self.window[key_table].update(values=self.table[key_table])
+        if self.sort_col == column:
+            self.sort = not self.sort
+        self.sort_col = column
+        # print(f'{self.sort_col=} {self.sort=}')
 
     def actualizing(self):
         self.get_format_list_workers()
         self.get_format_list_tasks()
-        self.window['-WORKER-'].update(values=self.workers)
-        self.window['-TASK-M-'].update(values=self.tasks_mounter)
-        self.window['-TASK-F-'].update(values=self.tasks_fitter)
-        self.window['-CLOSE-'].update(values=self.tasks_close)
+        self.window['-WORKER-'].update(values=self.table['-WORKER-'])
+        self.window['-TASK-M-'].update(values=self.table['-TASK-M-'])
+        self.window['-TASK-F-'].update(values=self.table['-TASK-F-'])
+        self.window['-CLOSE-'].update(values=self.table['-CLOSE-'])
 
     # @add_logger_peewee
     def get_format_list_workers(self):
         all_workers = get_all_workers()
-        self.workers = []
+        self.table['-WORKER-'] = []
         # print(f'{all_workers=}')
         if all_workers:
             for i, worker in enumerate(all_workers, start=1):
@@ -66,8 +83,8 @@ class StartMainWindow:
                     task[-1].total if task and task[-1].total else 0,
                     worker.id
                 )
-                self.workers.append(formatted_data)
-        print(f'{self.workers=}')
+                self.table['-WORKER-'].append(formatted_data)
+        # print(f'{self.workers=}')
 
 
     @staticmethod
@@ -93,12 +110,9 @@ class StartMainWindow:
 
     # @add_logger_peewee
     def get_format_list_tasks(self):
-        self.tasks_mounter = []
-        self.tasks_fitter = []
-        self.tasks_close = []
-        self.tasks_mounter.extend(self._format_list_task(get_mounter_tasks()))
-        self.tasks_fitter.extend(self._format_list_task(get_fitter_tasks()))
-        self.tasks_close.extend(self._format_list_task(get_close_tasks()))
-        print(f'{self.tasks_mounter=}')
-        print(f'{self.tasks_fitter=}')
-        print(f'{self.tasks_close=}')
+        self.table['-TASK-M-'] = []
+        self.table['-TASK-F-'] = []
+        self.table['-CLOSE-'] = []
+        self.table['-TASK-M-'].extend(self._format_list_task(get_mounter_tasks()))
+        self.table['-TASK-F-'].extend(self._format_list_task(get_fitter_tasks()))
+        self.table['-CLOSE-'].extend(self._format_list_task(get_close_tasks()))
