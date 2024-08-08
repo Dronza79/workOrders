@@ -99,7 +99,7 @@ class StartMainWindow:
                 task.article,
                 task.order,
                 task.deadline,
-                task.total,
+                task.total if task and task.total else 0,
                 f'{task.master.surname} {task.master.name[:1]}.{task.master.second_name[:1]}.',
                 task.status.state,
                 task.id,
