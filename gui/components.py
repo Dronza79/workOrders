@@ -31,3 +31,11 @@ def get_sector_tasks(code='', visible=None):
 
 # mounter - монтажник
 # fitter - слесарь
+
+
+def get_card_worker():
+    return [[]]
+
+
+def get_card_task():
+    return [[]]

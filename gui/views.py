@@ -3,12 +3,14 @@ from operator import itemgetter
 import PySimpleGUI as sg
 
 from database.queries import get_all_workers, get_mounter_tasks, get_fitter_tasks, get_close_tasks
-from .windows import get_main_window
+from .windows import get_main_window, get_card_window
 
 
 class StartWindowCard:
-    def __init__(self, data=None):
+    def __init__(self, data=None, key=None):
         self.data = data
+        self.key = key
+        self.window = get_card_window(form=self.key)
 
     def run(self):
         print(self.data)
@@ -36,13 +38,18 @@ class StartMainWindow:
             # print(f'{type(ev)=} {ev=} {val=}')
             if ev == sg.WIN_CLOSED:
                 break
-            elif ev == '-TG-':
+            elif ev in ['-TG-', '-UPDATE-']:
                 self.actualizing()
             elif isinstance(ev, tuple) and ev[2][0] == -1:
                 self.sorting_list(ev[0], ev[2][1])
-            elif ev in ['-WORKER-', '-TASK-M-', '-TASK-F-', '-CLOSE-']:
-                # print(f"{self.table['-WORKER-']=} {val[ev]=}")
-                worker_card = StartWindowCard(data=self.table[ev][val[ev].pop()])
+            elif ev in ['-WORKER-', '-TASK-M-', '-TASK-F-', '-CLOSE-', '-ADD-']:
+                print(f"{val.get(ev)=}")
+                # print(f"{self.table.get(ev)=} {val.get(ev)=}")
+                kwargs = {
+                    'data': self.table[ev][val[ev].pop()] if val.get(ev) else None,
+                    'key': val.get('-TG-'),
+                }
+                worker_card = StartWindowCard(**kwargs)
                 worker_card.run()
         self.window.close()
 
