@@ -1,6 +1,6 @@
 import PySimpleGUI as sg
 
-from .components import get_sector_workers, get_sector_tasks
+from .components import get_sector_workers, get_sector_tasks  #, get_card_worker, get_card_task
 from .templates_settings import tab_setting
 
 
@@ -24,11 +24,25 @@ def get_main_window():
             sg.Tab(
                 'Архив выполненых работ',
                 get_sector_tasks(code='-CLOSE-', visible=visio_arj),
-                key='-TTF-', **tab_setting),
+                key='-TTC-', **tab_setting),
         ]], key='-TG-', expand_x=True, expand_y=True, enable_events=True)
+    ], [
+        sg.Button('Добавить', key='-ADD-'),
+        sg.Button('Обновить', key='-UPDATE-'),
     ]]
     return sg.Window('Учет нарядов', layout,
                      resizable=True,
                      finalize=True,
                      sbar_frame_color='#64778D', margins=(10, 10)
+                     )
+
+
+def get_card_window(form):
+    title = 'Карточка работника' if form == '-TW-' else "Карточка задачи"
+    layout = [[sg.Col([[]], key='body')]]
+    return sg.Window(title, layout,
+                     resizable=True,
+                     finalize=True,
+                     sbar_frame_color='#64778D', margins=(10, 10),
+                     modal=True
                      )

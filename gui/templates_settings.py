@@ -1,3 +1,5 @@
+import PySimpleGUI as sg
+
 table_setting = {
     'auto_size_columns': False,
     'justification': 'left',
@@ -54,4 +56,48 @@ tab_setting = {
     # 'expand_y': False,
     # 'visible': True,
     'element_justification': 'center',
+}
+
+text_setting = {
+    'size': (15, 1),
+    # 'auto_size_text': True,
+    # 'enable_events': False,
+    # 'relief': sg.RELIEF_SOLID,
+    'font': ('_', 15),
+    # 'text_color': None,
+    # 'background_color': None,
+    # 'border_width': 10,
+    'justification': 'left',
+    # 'pad': None,
+    # 'key': None,
+    # 'right_click_menu': None,
+    # 'expand_x': True,
+    # 'expand_y': False,
+    # 'grab': None,
+    # 'tooltip': None,
+    # 'visible': True,
+    # 'metadata': None
+}
+
+drop_down_setting = {
+    'default_value': "Не выбрано",
+    'size': (14, 1),
+    # 'auto_size_text': None,
+    # 'background_color': None,
+    # 'text_color': None,
+    # 'button_background_color': None,
+    # 'button_arrow_color': None,
+    # 'bind_return_key': False,
+    # 'change_submits': False,
+    # 'enable_events': False,
+    # 'disabled': False,
+    # 'key': None,
+    # 'pad': None,
+    # 'expand_x': False,
+    # 'expand_y': False,
+    # 'tooltip': None,
+    # 'readonly': False,
+    'font': ('_', 15),
+    # 'visible': True,
+    # 'metadata': None
 }
