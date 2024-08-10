@@ -2,18 +2,27 @@ from operator import itemgetter
 
 import PySimpleGUI as sg
 
+from database.models import Person
 from database.queries import get_all_workers, get_mounter_tasks, get_fitter_tasks, get_close_tasks
+from .components import get_card_worker
 from .windows import get_main_window, get_card_window
 
 
 class StartWindowCard:
-    def __init__(self, data=None, key=None):
-        self.data = data
+    def __init__(self, raw_data=None, key=None):
+        self.idx = raw_data[-1] if raw_data else None
         self.key = key
         self.window = get_card_window(form=self.key)
+        self.run()
 
     def run(self):
-        print(self.data)
+        print(self.idx)
+        print(self.key)
+        data = None
+        if self.idx:
+            data = Person[self.idx]
+            print(data.__data__)
+        self.window.extend_layout(self.window['body'], get_card_worker(data=data))
 
 
 
@@ -30,6 +39,7 @@ class StartMainWindow:
     def __init__(self):
         self.window = get_main_window()
         self.actualizing()
+        self.run()
 
     def run(self):
         while True:
@@ -46,11 +56,10 @@ class StartMainWindow:
                 print(f"{val.get(ev)=}")
                 # print(f"{self.table.get(ev)=} {val.get(ev)=}")
                 kwargs = {
-                    'data': self.table[ev][val[ev].pop()] if val.get(ev) else None,
+                    'raw_data': self.table[ev][val[ev].pop()] if val.get(ev) else None,
                     'key': val.get('-TG-'),
                 }
                 worker_card = StartWindowCard(**kwargs)
-                worker_card.run()
         self.window.close()
 
     def sorting_list(self, key_table, column):
