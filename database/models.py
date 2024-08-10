@@ -104,18 +104,3 @@ class Turn(BaseModel):
         return int(other + self.value) if isinstance(other, (int, float)) else NotImplemented
 
 
-
-
-
-                    # work_lapse_data.append(laps)
-    # for i in range(0, len(work_lapse_data), 50):
-    #     WorkLapse.insert_many(work_lapse_data[i:i + 50]).execute()
-
-
-
-# tasks = WorkTask.select(WorkTask.id, WorkTask.order, WorkTask.duration, fn.SUM(WorkLapse.term).alias('total')).join(WorkLapse, JOIN.LEFT_OUTER).group_by(WorkTask.id).dicts()
-# tasks = WorkTask.select(WorkTask, Status).join(Status)
-# laps = WorkLapse.select()
-# result = prefetch(tasks, laps)
-#
-# ts = WorkTask.select(WorkTask.order, WorkTask.duration, WorkTask.time_worked, fn.SUM(WorkTask.time_worked).alias('summ'))
