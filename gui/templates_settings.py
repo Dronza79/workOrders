@@ -58,7 +58,7 @@ tab_setting = {
     'element_justification': 'center',
 }
 
-text_setting = {
+input_setting = {
     'size': (20, 1),
     # 'auto_size_text': True,
     # 'enable_events': False,
@@ -98,6 +98,26 @@ drop_down_setting = {
     # 'tooltip': None,
     # 'readonly': False,
     'font': ('_', 14),
+    # 'visible': True,
+    # 'metadata': None
+}
+
+text_setting = {
+    'size': 15,
+    # 'auto_size_text': None,
+    # 'enable_events': False,
+    # 'relief': None,
+    # 'font': None,
+    # 'text_color': None,
+    # 'background_color': None,
+    # 'border_width': None,
+    # 'justification': None,
+    # 'pad': None,
+    # 'right_click_menu': None,
+    # 'expand_x': False,
+    # 'expand_y': False,
+    # 'grab': None,
+    # 'tooltip': None,
     # 'visible': True,
     # 'metadata': None
 }

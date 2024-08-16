@@ -2,7 +2,6 @@ from operator import itemgetter
 
 import PySimpleGUI as sg
 
-from database.models import Person
 from database.queries import get_all_workers, get_mounter_tasks, get_fitter_tasks, get_close_tasks, get_worker_data
 from .components import get_card_worker
 from .windows import get_main_window, get_card_window
@@ -30,7 +29,7 @@ class StartWindowCard:
         size_w, size_h = parent.current_size_accurate()
         loc_x, loc_y = parent.current_location()
         center_w = loc_x + size_w // 2, loc_y + size_h // 2
-        print(f'{size_w=}{size_h=}\n{loc_x=}{loc_y=}')
+        # print(f'{size_w=}{size_h=}\n{loc_x=}{loc_y=}')
         return center_w
 
     def move_center(self):

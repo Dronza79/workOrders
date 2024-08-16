@@ -37,7 +37,7 @@ def get_worker_data(idx=None):
         worker = peewee.prefetch(person, tasks).pop()
     else:
         worker = None
-    print(f'query = {worker=}')
+    # print(f'query = {worker=}')
     return {
         'func_position': FuncPosition.select(),
         'person': worker,
