@@ -17,21 +17,31 @@ def get_all_workers():
         .group_by(WorkTask.id)
     )
     return peewee.prefetch(persons, tasks)
-    # return (
-    #     Person.select(
-    #         Person.id, Person.surname, Person.name, Person.second_name,
-    #         FuncPosition.title.alias('post'),
-    #         WorkTask.order, WorkTask.deadline, peewee.fn.SUM(WorkLapse.value).alias('total'),
-    #         Status.state,
-    #     )
-    #     .join_from(Person, FuncPosition)
-    #     .join_from(Person, WorkTask, peewee.JOIN.LEFT_OUTER)
-    #     .join_from(WorkTask, Status)
-    #     .join_from(WorkTask, WorkLapse, peewee.JOIN.LEFT_OUTER)
-    #     .where(Status.state == 'В работе')
-    #     .group_by(Person.id)
-    #     # .dicts()
-    # )
+
+
+def get_worker_data(idx=None):
+    if idx:
+        person = (
+            Person.select(Person, FuncPosition)
+            .join_from(Person, FuncPosition)
+            .where(Person.id == idx)
+        )
+        tasks = (
+            WorkTask.select(
+                WorkTask, Status, peewee.fn.SUM(WorkLapse.value).alias('total'))
+            .join_from(WorkTask, Status)
+            .join_from(WorkTask, WorkLapse, peewee.JOIN.LEFT_OUTER)
+            .order_by(WorkTask.status)
+            .group_by(WorkTask.id)
+        )
+        worker = peewee.prefetch(person, tasks).pop()
+    else:
+        worker = None
+    print(f'query = {worker=}')
+    return {
+        'func_position': FuncPosition.select(),
+        'person': worker,
+    }
 
 
 def get_all_tasks():

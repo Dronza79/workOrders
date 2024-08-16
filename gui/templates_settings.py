@@ -59,7 +59,7 @@ tab_setting = {
 }
 
 text_setting = {
-    'size': (15, 1),
+    'size': (20, 1),
     # 'auto_size_text': True,
     # 'enable_events': False,
     # 'relief': sg.RELIEF_SOLID,
@@ -80,8 +80,8 @@ text_setting = {
 }
 
 drop_down_setting = {
-    'default_value': "Не выбрано",
-    'size': (14, 1),
+    # 'default_value': "Не выбрано",
+    'size': (19, 1),
     # 'auto_size_text': None,
     # 'background_color': None,
     # 'text_color': None,
@@ -97,7 +97,7 @@ drop_down_setting = {
     # 'expand_y': False,
     # 'tooltip': None,
     # 'readonly': False,
-    'font': ('_', 15),
+    'font': ('_', 14),
     # 'visible': True,
     # 'metadata': None
 }
