@@ -1,6 +1,6 @@
 import PySimpleGUI as sg
 
-from .templates_settings import table_setting, input_setting, drop_down_setting, text_setting
+from .templates_settings import table_setting, input_setting, drop_down_setting, text_setting, multiline_setting
 
 
 def get_sector_workers():
@@ -71,7 +71,7 @@ def get_card_worker(data):
                 sg.HorizontalSeparator(pad=(0, 30))
             ], [
                 sg.Table([
-                    [i, task.title, task.article, task.order, task.status]
+                    [i, task.title, task.article, task.order, task.status, task.id]
                     for i, task in enumerate(worker.tasks, start=1)], table_heads,
                     col_widths=width_cols,
                     num_rows=5,
@@ -82,5 +82,59 @@ def get_card_worker(data):
     ]]
 
 
-def get_card_task():
-    return [[]]
+def get_card_task(data):
+    task = data.get('task')
+    if task:
+        task = task.get()
+    statuses = list(data.get('statuses'))
+    workers = list(data.get('workers'))
+    full_passed_of_order = data.get('full_passed_of_order').dicts().get()
+    print(f'{task=}')
+    print(f'{statuses=}')
+    print(f'{workers=}')
+    print(f'{full_passed_of_order=}')
+    return [[
+        sg.Col([
+            [
+                sg.T("Тип объекта:", **text_setting),
+                # sg.Push(),
+                sg.Input(task.type_obj if task else '', key='type_obj', **input_setting)
+            ], [
+                sg.T("Наименование объекта:", **text_setting),
+                # sg.Push(),
+                sg.Input(task.title if task else '', key='title', **input_setting)
+            ], [
+                sg.T("Конструктив:", **text_setting),
+                # sg.Push(),
+                sg.Input(task.article if task else '', key='article', **input_setting)
+            ], [
+                sg.T("Производственный заказ:", **text_setting),
+                # sg.Push(),
+                sg.Input(task.order if task else '', key='order', **input_setting)
+            ], [
+                sg.T("Норматив выполнения:", **text_setting),
+                # sg.Push(),
+                sg.Input(task.deadline if task else '', key='deadline', **input_setting)
+            ], [
+                sg.T("Статус:", **text_setting),
+                # sg.Push(),
+                sg.Combo(
+                    statuses,
+                    key='status',
+                    default_value=task.status.state if task else 'Не выбрано',
+                    **drop_down_setting)
+            ], [
+                sg.T("Исполнитель:", **text_setting),
+                # sg.Push(),
+                sg.Combo(
+                    workers,
+                    key='master',
+                    default_value=task.master if task else 'Не выбрано',
+                    **drop_down_setting)
+            ], [
+                sg.T("Комментарии:", **text_setting),
+                # sg.Push(),
+                sg.Multiline(task.comment if task and task.comment else '', key='comment', **multiline_setting)
+            ],
+        ], pad=10)
+    ]]

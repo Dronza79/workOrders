@@ -2,8 +2,9 @@ from operator import itemgetter
 
 import PySimpleGUI as sg
 
-from database.queries import get_all_workers, get_mounter_tasks, get_fitter_tasks, get_close_tasks, get_worker_data
-from .components import get_card_worker
+from database.queries import get_all_workers, get_mounter_tasks, get_fitter_tasks, get_close_tasks, get_worker_data, \
+    get_task_data
+from .components import get_card_worker, get_card_task
 from .windows import get_main_window, get_card_window
 
 
@@ -11,31 +12,32 @@ class StartWindowCard:
     def __init__(self, parent, raw_data=None, key=None,):
         self.idx = raw_data[-1] if raw_data else None
         self.key = key
-        self.center_parent = self.get_center_parent(parent)
+        self.parent = parent
         self.window = get_card_window(form=self.key)
         self.run()
 
     def run(self):
         if self.key == '-TW-':
             data = get_worker_data(idx=self.idx)
-            card = get_card_worker(data=data)
+            card = get_card_worker(data)
         else:
-            card = []
+            data = get_task_data(idx=self.idx)
+            card = get_card_task(data)
         self.window.extend_layout(self.window['body'], card)
         self.move_center()
-
-    @staticmethod
-    def get_center_parent(parent: sg.Window):
-        size_w, size_h = parent.current_size_accurate()
-        loc_x, loc_y = parent.current_location()
-        center_w = loc_x + size_w // 2, loc_y + size_h // 2
-        # print(f'{size_w=}{size_h=}\n{loc_x=}{loc_y=}')
-        return center_w
+        while True:
+            ev, val = self.window.read()
+            print(f'{ev=} {val=}')
+            if ev in [sg.WIN_CLOSED, '-CANCEL-']:
+                break
+        self.window.close()
 
     def move_center(self):
+        size_w, size_h = self.parent.current_size_accurate()
+        loc_x, loc_y = self.parent.current_location()
         self.window.refresh()
         size = self.window.current_size_accurate()
-        self.window.move(self.center_parent[0] - size[0] // 2, self.center_parent[1] - size[1] // 2)
+        self.window.move(loc_x + size_w // 2 - size[0] // 2, loc_y + size_h // 2 - size[1] // 2)
 
 
 class StartMainWindow:
