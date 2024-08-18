@@ -1,6 +1,6 @@
 import PySimpleGUI as sg
 
-from .components import get_sector_workers, get_sector_tasks  #, get_card_worker, get_card_task
+from .components import get_sector_workers, get_sector_tasks, get_sector_orders
 from .templates_settings import tab_setting
 
 
@@ -12,15 +12,15 @@ def get_main_window():
             sg.Tab(
                 'Список работников',
                 get_sector_workers(),
-                key='-TW-', **tab_setting),
+                key='-WRK-', **tab_setting),
             sg.Tab(
-                'Список монтажных работ',
-                get_sector_tasks(code='-TASK-M-'),
-                key='-TTM-', **tab_setting),
+                'Список открытых заказов (ПРки)',
+                get_sector_orders(),
+                key='-ORD-', **tab_setting),
             sg.Tab(
-                'Список слесарных работ',
+                'Список выполняемых работ',
                 get_sector_tasks(code='-TASK-F-'),
-                key='-TTF-', **tab_setting),
+                key='-TSK-', **tab_setting),
             sg.Tab(
                 'Архив выполненых работ',
                 get_sector_tasks(code='-CLOSE-', visible=visio_arj),

@@ -16,6 +16,10 @@ def get_sector_workers():
     ]]
 
 
+def get_sector_orders():
+    pass
+
+
 def get_sector_tasks(code='', visible=None):
     heads = [
         '№', 'Номинал', 'Наименование объекта',

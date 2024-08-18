@@ -42,9 +42,9 @@ class StartWindowCard:
 
 class StartMainWindow:
     table = {
-        '-WORKER-': [],
-        '-TASK-M-': [],
-        '-TASK-F-': [],
+        '-WORKERS-': [],
+        '-ORDERS-': [],
+        '-TASKS-': [],
         '-CLOSE-': [],
     }
     sort = False
@@ -91,9 +91,9 @@ class StartMainWindow:
     def actualizing(self):
         self.get_format_list_workers()
         self.get_format_list_tasks()
-        self.window['-WORKER-'].update(values=self.table['-WORKER-'])
-        self.window['-TASK-M-'].update(values=self.table['-TASK-M-'])
-        self.window['-TASK-F-'].update(values=self.table['-TASK-F-'])
+        self.window['-WORKERS-'].update(values=self.table['-WORKERS-'])
+        self.window['-ORDERS-'].update(values=self.table['-ORDERS-'])
+        self.window['-TASKS-'].update(values=self.table['-TASKS-'])
         self.window['-CLOSE-'].update(values=self.table['-CLOSE-'])
 
     # @add_logger_peewee

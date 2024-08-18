@@ -45,6 +45,7 @@ class Person(BaseModel):
     second_name = CharField(null=True, verbose_name='Отчество')
     table_num = CharField(unique=True, verbose_name='Табельный номер')
     function = ForeignKeyField(FuncPosition, verbose_name='Должность', on_delete='CASCADE')
+    is_active = BooleanField(verbose_name='Отслеживается', default=True)
 
     def __str__(self):
         return f'{self.surname} {self.name[:1]}.{self.second_name[:1]}. ({self.function.job_name})'
@@ -73,15 +74,16 @@ class WorkTask(BaseModel):
     worker = ForeignKeyField(Person, backref='tasks', verbose_name='Работник', on_delete='CASCADE')
     status = ForeignKeyField(Status, backref='tasks', verbose_name='Состояние', default=1, on_delete='CASCADE')
     deadline = SmallIntegerField(verbose_name='Норматив выполнения')
-    comment = TextField(verbose_name='Комментарий', null=True)
+    comment = TextField(verbose_name='Комментарий', default='')
 
     def __str__(self):
         return f'{self.order} ({self.status.state})'
 
 
-class WorkLapse(BaseModel):
+class WorkPeriod(BaseModel):
     worker = ForeignKeyField(Person, verbose_name='Работник', backref='time_worked', on_delete='CASCADE')
     task = ForeignKeyField(WorkTask, backref='time_worked', verbose_name='Задача', on_delete='CASCADE')
+    order = ForeignKeyField(ProductionOrder, backref='time_worked', verbose_name='Задача', on_delete='CASCADE')
     date = DateField(default=datetime.datetime.now, verbose_name='Дата')
     value = SmallIntegerField(verbose_name="Продолжительность")
 
@@ -96,20 +98,20 @@ class WorkLapse(BaseModel):
         return int(other + self.value) if isinstance(other, (int, float)) else NotImplemented
 
 
-class Turn(BaseModel):
-    worker = ForeignKeyField(Person, verbose_name='Работник', backref='turns', on_delete='CASCADE')
-    date = DateField(verbose_name='Дата', default=datetime.datetime.now)
-    value = SmallIntegerField(verbose_name="Продолжительность")
-
-    def __str__(self):
-        return f'{self.value} ч.'
-
-    def __add__(self, other):  # обычное сложение с правым элементом
-        return int(self.value + other.value) if isinstance(other, self.__class__) else (
-            int(self.value + other) if isinstance(other, (int, float)) else NotImplemented)
-
-    def __radd__(self, other):  # метод для функции sum() и сложение с левым элементом
-        return int(other + self.value) if isinstance(other, (int, float)) else NotImplemented
+# class Turn(BaseModel):
+#     worker = ForeignKeyField(Person, verbose_name='Работник', backref='turns', on_delete='CASCADE')
+#     date = DateField(verbose_name='Дата', default=datetime.datetime.now)
+#     value = SmallIntegerField(verbose_name="Продолжительность")
+#
+#     def __str__(self):
+#         return f'{self.value} ч.'
+#
+#     def __add__(self, other):  # обычное сложение с правым элементом
+#         return int(self.value + other.value) if isinstance(other, self.__class__) else (
+#             int(self.value + other) if isinstance(other, (int, float)) else NotImplemented)
+#
+#     def __radd__(self, other):  # метод для функции sum() и сложение с левым элементом
+#         return int(other + self.value) if isinstance(other, (int, float)) else NotImplemented
 
 
 

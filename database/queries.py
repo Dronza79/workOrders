@@ -1,6 +1,6 @@
 import peewee
 
-from .models import Person, FuncPosition, WorkTask, Status, WorkLapse, STATUS_VARIABLES as sv, FUNC_VARIABLES as fv
+from .models import Person, FuncPosition, WorkTask, Status, WorkPeriod, STATUS_VARIABLES as sv, FUNC_VARIABLES as fv
 
 
 def get_all_workers():
@@ -9,10 +9,10 @@ def get_all_workers():
         .join(FuncPosition).group_by(Person.id)
     )
     tasks = (
-        WorkTask.select(WorkTask, Status, peewee.fn.SUM(WorkLapse.value).alias('total'))
-        .join_from(WorkTask, Status).join_from(WorkTask, WorkLapse, peewee.JOIN.LEFT_OUTER)
+        WorkTask.select(WorkTask, Status, peewee.fn.SUM(WorkPeriod.value).alias('total'))
+        .join_from(WorkTask, Status).join_from(WorkTask, WorkPeriod, peewee.JOIN.LEFT_OUTER)
         .where(Status.state != sv[2])
-        .order_by(WorkLapse.create_at)
+        .order_by(WorkPeriod.create_at)
         # .order_by(WorkLapse.create_at.desc())
         .group_by(WorkTask.id)
     )
@@ -28,9 +28,9 @@ def get_worker_data(idx=None):
         )
         tasks = (
             WorkTask.select(
-                WorkTask, Status, peewee.fn.SUM(WorkLapse.value).alias('passed'))
+                WorkTask, Status, peewee.fn.SUM(WorkPeriod.value).alias('passed'))
             .join_from(WorkTask, Status)
-            .join_from(WorkTask, WorkLapse, peewee.JOIN.LEFT_OUTER)
+            .join_from(WorkTask, WorkPeriod, peewee.JOIN.LEFT_OUTER)
             .order_by(WorkTask.status)
             .group_by(WorkTask.id)
         )
@@ -49,15 +49,15 @@ def get_task_data(idx=None):
         'statuses': Status.select(),
         'workers': Person.select(),
         'full_passed_of_order': (
-            WorkTask.select(WorkTask, peewee.fn.SUM(WorkLapse.value).alias('passed'))
-            .join_from(WorkTask, WorkLapse, peewee.JOIN.LEFT_OUTER)
+            WorkTask.select(WorkTask, peewee.fn.SUM(WorkPeriod.value).alias('passed'))
+            .join_from(WorkTask, WorkPeriod, peewee.JOIN.LEFT_OUTER)
             .where(WorkTask.order == WorkTask[idx].order)
             .group_by(WorkTask.order)),
         'task': (
-            WorkTask.select(WorkTask, Status, Person, peewee.fn.SUM(WorkLapse.value).alias('passed'))
+            WorkTask.select(WorkTask, Status, Person, peewee.fn.SUM(WorkPeriod.value).alias('passed'))
             .join_from(WorkTask, Status)
             .join_from(WorkTask, Person)
-            .join_from(WorkTask, WorkLapse, peewee.JOIN.LEFT_OUTER)
+            .join_from(WorkTask, WorkPeriod, peewee.JOIN.LEFT_OUTER)
             .where(WorkTask.id == idx)
             .group_by(WorkTask.id)
         )
@@ -68,12 +68,12 @@ def get_all_tasks():
     return (
         WorkTask.select(
             WorkTask.id, WorkTask.type_obj, WorkTask.title, WorkTask.article, WorkTask.order,
-            WorkTask.deadline, peewee.fn.SUM(WorkLapse.value).alias('total'),
+            WorkTask.deadline, peewee.fn.SUM(WorkPeriod.value).alias('total'),
             Status.state,
             Person.surname, Person.name, Person.second_name, Person.table_num,
             FuncPosition.job_name.alias('post'), FuncPosition.id
         )
-        .join_from(WorkTask, WorkLapse, peewee.JOIN.LEFT_OUTER)
+        .join_from(WorkTask, WorkPeriod, peewee.JOIN.LEFT_OUTER)
         .join_from(WorkTask, Status)
         .join_from(WorkTask, Person)
         .join_from(Person, FuncPosition)
