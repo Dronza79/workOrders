@@ -1,15 +1,16 @@
 from peewee import SqliteDatabase
 
-from .models import Person, WorkTask, WorkLapse, FuncPosition, Turn, Status
+from .models import Person, WorkTask, WorkLapse, FuncPosition, Turn, Status, ProductionOrder
 from .utils import path, get_database
 
 models = (
     FuncPosition,
     Person,
     Status,
+    ProductionOrder,
     WorkTask,
     WorkLapse,
-    Turn
+    # Turn
 )
 
 

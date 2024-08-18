@@ -57,18 +57,26 @@ class Status(BaseModel):
         return self.state
 
 
-class WorkTask(BaseModel):
+class ProductionOrder(BaseModel):
+    order = SmallIntegerField(primary_key=True, unique=True, index=True, verbose_name='ПРка')
     type_obj = CharField(verbose_name='Тип объекта')
     title = CharField(verbose_name='Наименование объекта')
     article = CharField(verbose_name='Конструктив')
-    order = CharField(verbose_name='Производственный заказ')
-    deadline = SmallIntegerField(verbose_name='Норматив выполнения')
-    master = ForeignKeyField(Person, backref='tasks', verbose_name='Работник', on_delete='CASCADE')
+
+    def __str__(self):
+        num = 6 - len(str(self.order))
+        return f'ПР-{"0" * num}{self.order}'
+
+
+class WorkTask(BaseModel):
+    order = ForeignKeyField(ProductionOrder, backref='tasks', verbose_name='Заказ', on_delete='CASCADE')
+    worker = ForeignKeyField(Person, backref='tasks', verbose_name='Работник', on_delete='CASCADE')
     status = ForeignKeyField(Status, backref='tasks', verbose_name='Состояние', default=1, on_delete='CASCADE')
+    deadline = SmallIntegerField(verbose_name='Норматив выполнения')
     comment = TextField(verbose_name='Комментарий', null=True)
 
     def __str__(self):
-        return self.order
+        return f'{self.order} ({self.status.state})'
 
 
 class WorkLapse(BaseModel):

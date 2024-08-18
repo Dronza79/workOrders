@@ -9,7 +9,7 @@ class DBSetting:
     def __init__(self):
         import datetime
         year = datetime.datetime.now().year
-        self._path = BASE_DIR / f'outsourcing{year}.db'
+        self._path = BASE_DIR / f'new_format{year}.db'
 
     @property
     def get_path(self):
