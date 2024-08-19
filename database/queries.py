@@ -1,13 +1,32 @@
 import peewee
 
-from .models import Person, FuncPosition, WorkTask, Status, WorkPeriod, STATUS_VARIABLES as sv, FUNC_VARIABLES as fv
+from .models import (
+    Person, FuncPosition, WorkTask, Status, WorkPeriod, ProductionOrder,
+    STATUS_VARIABLES as sv,
+    FUNC_VARIABLES as fv,
+    )
 
 
 def get_all_workers():
     persons = (
-        Person.select(Person.id, Person.surname, Person.name, Person.second_name, FuncPosition.job_name)
-        .join(FuncPosition).group_by(Person.id)
+        Person.select(
+            Person.id, Person.surname, Person.name, Person.second_name,
+            FuncPosition.job_name,
+            WorkTask.deadline,
+            ProductionOrder.order, ProductionOrder.type_obj, ProductionOrder.title, ProductionOrder.article,
+            WorkPeriod.date, WorkPeriod.value, peewee.fn.SUM(WorkPeriod.value).alias('time_worked')
+        )
+        .join_from(Person, FuncPosition)
+        .join_from(Person, WorkTask, peewee.JOIN.LEFT_OUTER)
+        .join_from(WorkTask, WorkPeriod, peewee.JOIN.LEFT_OUTER)
+        .join_from(WorkTask, ProductionOrder)
+        .where(Person.is_active == True)
+        .order_by(-WorkPeriod.date)
+        .group_by(Person.id)
+        .dicts()
     )
+
+
     tasks = (
         WorkTask.select(WorkTask, Status, peewee.fn.SUM(WorkPeriod.value).alias('total'))
         .join_from(WorkTask, Status).join_from(WorkTask, WorkPeriod, peewee.JOIN.LEFT_OUTER)

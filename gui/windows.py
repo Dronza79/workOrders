@@ -5,8 +5,6 @@ from .templates_settings import tab_setting
 
 
 def get_main_window():
-    # visio_arj = [True, True, True, True, True, True, True, False]
-    visio_arj = None
     layout = [[
         sg.TabGroup([[
             sg.Tab(
@@ -19,12 +17,12 @@ def get_main_window():
                 key='-ORD-', **tab_setting),
             sg.Tab(
                 'Список выполняемых работ',
-                get_sector_tasks(code='-TASK-F-'),
+                get_sector_tasks(code='-TASK-'),
                 key='-TSK-', **tab_setting),
             sg.Tab(
-                'Архив выполненых работ',
-                get_sector_tasks(code='-CLOSE-', visible=visio_arj),
-                key='-TTC-', **tab_setting),
+                'Архив выполненных работ',
+                get_sector_tasks(code='-CLOSE-'),
+                key='-CLS-', **tab_setting),
         ]], key='-TG-', expand_x=True, expand_y=True, enable_events=True)
     ], [
         sg.Button('Добавить', key='-ADD-'),

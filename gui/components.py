@@ -4,32 +4,38 @@ from .templates_settings import table_setting, input_setting, drop_down_setting,
 
 
 def get_sector_workers():
-    heads = ['№ п/п', 'Фамилия имя отчество', 'Должность', 'Номер ПР', 'Норматив', 'Выпонено']
-    width_cols = [4, 36, 14, 10, 5, 5]
+    heads = ['№ п/п', 'Фамилия имя отчество', 'Должность', 'Номер ПР', 'Норматив', 'Отработано']
+    width_cols = [4, 30, 16, 10, 7, 7]
     return [[
         sg.Table(
             values=[],
             headings=heads,
-            key='-WORKER-',
+            key='-WORKERS-',
             col_widths=width_cols,
             **table_setting)
     ]]
 
 
 def get_sector_orders():
-    pass
-
-
-def get_sector_tasks(code='', visible=None):
     heads = [
-        '№', 'Номинал', 'Наименование объекта',
-        'Конструктив', 'Номер ПР', 'Норма', 'Вып.', "Работник", 'Статус']
-    width_cols = [3, 14, 14, 21, 10, 5, 5, 13, 8]
+        '№', 'Номер ПР', 'Тип', 'Объект', "Конструктив", 'Работник']
+    width_cols = [3, 10, 5, 5, 13, 8]
+    return [[
+        sg.Table(
+            values=[], headings=heads, key='-ORDER-',
+            col_widths=width_cols,
+            **table_setting)
+    ]]
+
+
+def get_sector_tasks(code=''):
+    heads = [
+        '№', 'Номер ПР', 'Норма', 'Вып.', "Работник", 'Статус']
+    width_cols = [3, 10, 5, 5, 13, 8]
     return [[
         sg.Table(
             values=[], headings=heads, key=code,
             col_widths=width_cols,
-            visible_column_map=visible,
             **table_setting)
     ]]
 

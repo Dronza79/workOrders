@@ -92,14 +92,14 @@ class StartMainWindow:
         self.get_format_list_workers()
         self.get_format_list_tasks()
         self.window['-WORKERS-'].update(values=self.table['-WORKERS-'])
-        self.window['-ORDERS-'].update(values=self.table['-ORDERS-'])
-        self.window['-TASKS-'].update(values=self.table['-TASKS-'])
-        self.window['-CLOSE-'].update(values=self.table['-CLOSE-'])
+        # self.window['-ORDERS-'].update(values=self.table['-ORDERS-'])
+        # self.window['-TASKS-'].update(values=self.table['-TASKS-'])
+        # self.window['-CLOSE-'].update(values=self.table['-CLOSE-'])
 
     # @add_logger_peewee
     def get_format_list_workers(self):
         all_workers = get_all_workers()
-        self.table['-WORKER-'] = []
+        self.table['-WORKERS-'] = []
         # print(f'{all_workers=}')
         if all_workers:
             for i, worker in enumerate(all_workers, start=1):
@@ -109,14 +109,13 @@ class StartMainWindow:
                     i,
                     f'{worker.surname} {worker.name} {worker.second_name}',
                     str(worker.function),
-                    task[-1].order if task else '--',
+                    str(task[-1].order) if task else '--',
                     task[-1].deadline if task else 0,
                     task[-1].total if task and task[-1].total else 0,
                     worker.id
                 )
-                self.table['-WORKER-'].append(formatted_data)
+                self.table['-WORKERS-'].append(formatted_data)
         # print(f'{self.workers=}')
-
 
     @staticmethod
     def _format_list_task(list_task):
@@ -144,6 +143,6 @@ class StartMainWindow:
         self.table['-TASK-M-'] = []
         self.table['-TASK-F-'] = []
         self.table['-CLOSE-'] = []
-        self.table['-TASK-M-'].extend(self._format_list_task(get_mounter_tasks()))
-        self.table['-TASK-F-'].extend(self._format_list_task(get_fitter_tasks()))
-        self.table['-CLOSE-'].extend(self._format_list_task(get_close_tasks()))
+        # self.table['-TASK-M-'].extend(self._format_list_task(get_mounter_tasks()))
+        # self.table['-TASK-F-'].extend(self._format_list_task(get_fitter_tasks()))
+        # self.table['-CLOSE-'].extend(self._format_list_task(get_close_tasks()))
