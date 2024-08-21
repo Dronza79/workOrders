@@ -75,7 +75,7 @@ def get_card_worker(data):
                 sg.Combo(
                     job_list,
                     key='function',
-                    default_value=worker.function.job_name if worker else 'Не выбрано',
+                    default_value=worker.function.name if worker else 'Не выбрано',
                     **drop_down_setting)
             ], [
                 sg.HorizontalSeparator(pad=(0, 30))

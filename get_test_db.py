@@ -3,7 +3,7 @@ import random
 from database.models import *
 
 with get_database().atomic():
-    FuncPosition.insert_many([[func] for func in FUNC_VARIABLES.values()], fields=['job_name']).execute()
+    Vacancy.insert_many([[func] for func in FUNC_VARIABLES.values()], fields=['post']).execute()
     Status.insert_many([[value] for value in STATUS_VARIABLES.values()], ['state']).execute()
     data_person = [
         {'surname': 'Вахитов', 'name': 'Данис', 'second_name': 'Римович', 'table_num': 'A-001', 'function': 2},
@@ -16,7 +16,7 @@ with get_database().atomic():
         {'surname': 'Коробка', 'name': 'Алексей', 'second_name': 'Викторович', 'table_num': 'A-006', 'function': 4},
         {'surname': 'Пузанков', 'name': 'Максим', 'second_name': 'Витальевич', 'table_num': 'A-007', 'function': 4},
     ]
-    Person.insert_many(data_person).execute()
+    Worker.insert_many(data_person).execute()
 
     tit = ['Абакумовка', 'завод ЗИЛ', 'Славянская', 'Саянкая', 'Вишняковская', 'Ярино', 'Ванино', 'Разметелево']
     type_ob = ['РУ-10кВ', 'РУ10-ЛЭП АБ', 'РУ-6кВ']
@@ -40,13 +40,13 @@ with get_database().atomic():
             obj['order'] = order
             data_order.append(obj)
 
-    ProductionOrder.insert_many(data_order).execute()
+    Order.insert_many(data_order).execute()
 
 data_task = []
 with get_database().atomic():
-    mechanic = Person.select().where(Person.function_id.in_([3, 4]))  # слесяря
-    mounter = Person.select().where(Person.function_id.in_([1, 2]))
-    for order in ProductionOrder.select():
+    mechanic = Worker.select().where(Worker.function_id.in_([3, 4]))  # слесяря
+    mounter = Worker.select().where(Worker.function_id.in_([1, 2]))
+    for order in Order.select():
         task = {'order': order}
         if order.article[10:12] == '03':
             task['worker'] = random.choice(mounter)
@@ -67,7 +67,7 @@ with get_database().atomic():
                     }
                     data_task.append(task)
     for i in range(0, len(data_task), 50):
-        WorkTask.insert_many(data_task[i:i + 50]).execute()
+        Task.insert_many(data_task[i:i + 50]).execute()
 
 data_period = []
 with get_database().atomic():
@@ -76,10 +76,10 @@ with get_database().atomic():
     history = {}
     for _ in range(100):
         for task in (
-            WorkTask.select(WorkTask, Person, ProductionOrder)
-            .join_from(WorkTask, Person)
-            .join_from(WorkTask, ProductionOrder)
-            .group_by(WorkTask.id)
+            Task.select(Task, Worker, Order)
+            .join_from(Task, Worker)
+            .join_from(Task, Order)
+            .group_by(Task.id)
         ):
             # print(f'{task.__dict__=}')
             temp = history.setdefault(task.order, dict(deadline=task.deadline, passed=0))
@@ -103,17 +103,17 @@ with get_database().atomic():
                 target_date += delta
 
     for i in range(0, len(data_period), 50):
-        WorkPeriod.insert_many(data_period[i:i + 50]).execute()
+        Period.insert_many(data_period[i:i + 50]).execute()
 
         #
     # target_date = datetime.date(2024, 7, 11)
     # work_lapse_data = []
     # for _ in range(14):
-    #     for worker in Person.select():
-    #         for worker in Person.select().where(Person.function.in_([FuncPosition[3], FuncPosition[4]])):
+    #     for worker in Worker.select():
+    #         for worker in Worker.select().where(Worker.function.in_([Vacancy[3], Vacancy[4]])):
     # if random.random() > 0.05:
     #     task = random.choice(worker.tasks.select())
-    #     task = random.choice(WorkTask.select().where(WorkTask.master == worker, WorkTask.status != Status[2]))
+    #     task = random.choice(Task.select().where(Task.master == worker, Task.status != Status[2]))
     # duration = 8
     # duration = random.choice([8, 12])
     # print(f"{task.id}: {task}={task.deadline} =>{sum(task.time_worked)}")
@@ -125,23 +125,23 @@ with get_database().atomic():
     #         task.save()
     # target_date += datetime.timedelta(days=1)
     #
-    # for task in WorkTask.select():
+    # for task in Task.select():
     #     if sum(task.time_worked) >= task.deadline:
     #         print(f"{task} {task.deadline} == {sum(task.time_worked)}")
     #         task.status = Status[2]
     #         task.save()
     #
     # query = (
-    #     WorkTask.select(WorkTask, peewee.fn.SUM(WorkLapse.value).alias('total'), Person)
-    #     .join_from(WorkTask, WorkLapse, peewee.JOIN.LEFT_OUTER)
-    #     .join_from(WorkTask, Person)
-    #     .where(WorkTask.status != Status[2], Person.function.in_([FuncPosition[3], FuncPosition[4]]))
-    #     .group_by(WorkTask.order)
+    #     Task.select(Task, peewee.fn.SUM(WorkLapse.value).alias('total'), Worker)
+    #     .join_from(Task, WorkLapse, peewee.JOIN.LEFT_OUTER)
+    #     .join_from(Task, Worker)
+    #     .where(Task.status != Status[2], Worker.function.in_([Vacancy[3], Vacancy[4]]))
+    #     .group_by(Task.order)
     # )
     #
     # for task in query:
     #     print(f"{task.id} {task} {task.deadline} == {task.total} {task.status}")
     #     if task.total >= task.deadline:
     #         print(f"{task.id}: было={task.status}", end=' ')
-    #         WorkTask.update(status=Status[2]).where(WorkTask.order == task.order).execute()
-    #         print(f"стало={WorkTask.select().where(WorkTask.order == task.order)[0].status}")
+    #         Task.update(status=Status[2]).where(Task.order == task.order).execute()
+    #         print(f"стало={Task.select().where(Task.order == task.order)[0].status}")

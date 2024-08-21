@@ -32,23 +32,23 @@ class BaseModel(Model):
         super().save(**kwargs)
 
 
-class FuncPosition(BaseModel):
-    job_name = CharField(verbose_name='Должность')
+class Vacancy(BaseModel):
+    post = CharField(verbose_name='Должность')
 
     def __str__(self):
-        return self.job_name
+        return self.post
 
 
-class Person(BaseModel):
+class Worker(BaseModel):
     surname = CharField(verbose_name='Фамилия')
     name = CharField(verbose_name='Имя')
     second_name = CharField(null=True, verbose_name='Отчество')
     table_num = CharField(unique=True, verbose_name='Табельный номер')
-    function = ForeignKeyField(FuncPosition, verbose_name='Должность', on_delete='CASCADE')
+    function = ForeignKeyField(Vacancy, verbose_name='Должность', on_delete='CASCADE')
     is_active = BooleanField(verbose_name='Отслеживается', default=True)
 
     def __str__(self):
-        return f'{self.surname} {self.name[:1]}.{self.second_name[:1]}. ({self.function.job_name})'
+        return f'{self.surname} {self.name[:1]}.{self.second_name[:1]}. ({self.function.post})'
 
 
 class Status(BaseModel):
@@ -58,7 +58,7 @@ class Status(BaseModel):
         return self.state
 
 
-class ProductionOrder(BaseModel):
+class Order(BaseModel):
     order = SmallIntegerField(primary_key=True, unique=True, index=True, verbose_name='ПРка')
     type_obj = CharField(verbose_name='Тип объекта')
     title = CharField(verbose_name='Наименование объекта')
@@ -69,9 +69,9 @@ class ProductionOrder(BaseModel):
         return f'ПР-{"0" * num}{self.order}'
 
 
-class WorkTask(BaseModel):
-    order = ForeignKeyField(ProductionOrder, backref='tasks', verbose_name='Заказ', on_delete='CASCADE')
-    worker = ForeignKeyField(Person, backref='tasks', verbose_name='Работник', on_delete='CASCADE')
+class Task(BaseModel):
+    order = ForeignKeyField(Order, backref='tasks', verbose_name='Заказ', on_delete='CASCADE')
+    worker = ForeignKeyField(Worker, backref='tasks', verbose_name='Работник', on_delete='CASCADE')
     status = ForeignKeyField(Status, backref='tasks', verbose_name='Состояние', default=1, on_delete='CASCADE')
     deadline = SmallIntegerField(verbose_name='Норматив выполнения')
     comment = TextField(verbose_name='Комментарий', default='')
@@ -80,10 +80,10 @@ class WorkTask(BaseModel):
         return f'{self.order} ({self.status.state})'
 
 
-class WorkPeriod(BaseModel):
-    worker = ForeignKeyField(Person, verbose_name='Работник', backref='time_worked', on_delete='CASCADE')
-    task = ForeignKeyField(WorkTask, backref='time_worked', verbose_name='Задача', on_delete='CASCADE')
-    order = ForeignKeyField(ProductionOrder, backref='time_worked', verbose_name='Задача', on_delete='CASCADE')
+class Period(BaseModel):
+    worker = ForeignKeyField(Worker, verbose_name='Работник', backref='time_worked', on_delete='CASCADE')
+    task = ForeignKeyField(Task, backref='time_worked', verbose_name='Задача', on_delete='CASCADE')
+    order = ForeignKeyField(Order, backref='time_worked', verbose_name='Задача', on_delete='CASCADE')
     date = DateField(default=datetime.datetime.now, verbose_name='Дата')
     value = SmallIntegerField(verbose_name="Продолжительность")
 
@@ -99,7 +99,7 @@ class WorkPeriod(BaseModel):
 
 
 # class Turn(BaseModel):
-#     worker = ForeignKeyField(Person, verbose_name='Работник', backref='turns', on_delete='CASCADE')
+#     worker = ForeignKeyField(Worker, verbose_name='Работник', backref='turns', on_delete='CASCADE')
 #     date = DateField(verbose_name='Дата', default=datetime.datetime.now)
 #     value = SmallIntegerField(verbose_name="Продолжительность")
 #
@@ -123,9 +123,9 @@ class WorkPeriod(BaseModel):
 
 
 
-# tasks = WorkTask.select(WorkTask.id, WorkTask.order, WorkTask.duration, fn.SUM(WorkLapse.term).alias('total')).join(WorkLapse, JOIN.LEFT_OUTER).group_by(WorkTask.id).dicts()
-# tasks = WorkTask.select(WorkTask, Status).join(Status)
+# tasks = Task.select(Task.id, Task.order, Task.duration, fn.SUM(WorkLapse.term).alias('total')).join(WorkLapse, JOIN.LEFT_OUTER).group_by(Task.id).dicts()
+# tasks = Task.select(Task, Status).join(Status)
 # laps = WorkLapse.select()
 # result = prefetch(tasks, laps)
 #
-# ts = WorkTask.select(WorkTask.order, WorkTask.duration, WorkTask.time_worked, fn.SUM(WorkTask.time_worked).alias('summ'))
+# ts = Task.select(Task.order, Task.duration, Task.time_worked, fn.SUM(Task.time_worked).alias('summ'))

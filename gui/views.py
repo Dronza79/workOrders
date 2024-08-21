@@ -2,6 +2,7 @@ from operator import itemgetter
 
 import PySimpleGUI as sg
 
+from database.models import Period
 from database.queries import get_all_workers, get_mounter_tasks, get_fitter_tasks, get_close_tasks, get_worker_data, \
     get_task_data
 from .components import get_card_worker, get_card_task
@@ -90,7 +91,7 @@ class StartMainWindow:
 
     def actualizing(self):
         self.get_format_list_workers()
-        self.get_format_list_tasks()
+        # self.get_format_list_tasks()
         self.window['-WORKERS-'].update(values=self.table['-WORKERS-'])
         # self.window['-ORDERS-'].update(values=self.table['-ORDERS-'])
         # self.window['-TASKS-'].update(values=self.table['-TASKS-'])
@@ -103,15 +104,22 @@ class StartMainWindow:
         # print(f'{all_workers=}')
         if all_workers:
             for i, worker in enumerate(all_workers, start=1):
-                task = worker.tasks
-                # print(f'{worker=} {task=} ')
+                # period = worker.time_worked.order_by(Period.date.desc()).limit(1).get()
+                period = worker.time_worked
+                if period:
+                    period = period[-1]
+                    total_worked = sum(period.task.time_worked)
+                    print(f'{worker=} {period=} {total_worked=}')
+                else:
+                    period = None
+                    total_worked = None
                 formatted_data = (
                     i,
                     f'{worker.surname} {worker.name} {worker.second_name}',
                     str(worker.function),
-                    str(task[-1].order) if task else '--',
-                    task[-1].deadline if task else 0,
-                    task[-1].total if task and task[-1].total else 0,
+                    str(period.order) if period else '--',
+                    period.task.deadline if period else 0,
+                    total_worked if total_worked else 0,
                     worker.id
                 )
                 self.table['-WORKERS-'].append(formatted_data)
