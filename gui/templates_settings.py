@@ -1,5 +1,3 @@
-import PySimpleGUI as sg
-
 table_setting = {
     'auto_size_columns': False,
     'justification': 'left',
@@ -58,12 +56,12 @@ tab_setting = {
     'element_justification': 'center',
 }
 
-text_setting = {
-    'size': (15, 1),
+input_setting = {
+    'size': (25, 1),
     # 'auto_size_text': True,
     # 'enable_events': False,
     # 'relief': sg.RELIEF_SOLID,
-    'font': ('_', 15),
+    'font': ('_', 12),
     # 'text_color': None,
     # 'background_color': None,
     # 'border_width': 10,
@@ -80,8 +78,8 @@ text_setting = {
 }
 
 drop_down_setting = {
-    'default_value': "Не выбрано",
-    'size': (14, 1),
+    # 'default_value': "Не выбрано",
+    'size': (24, 1),
     # 'auto_size_text': None,
     # 'background_color': None,
     # 'text_color': None,
@@ -97,7 +95,66 @@ drop_down_setting = {
     # 'expand_y': False,
     # 'tooltip': None,
     # 'readonly': False,
-    'font': ('_', 15),
+    'font': ('_', 12),
+    # 'visible': True,
+    # 'metadata': None
+}
+
+text_setting = {
+    'size': 20,
+    # 'auto_size_text': None,
+    # 'enable_events': False,
+    # 'relief': None,
+    'font': '_ 10',
+    # 'text_color': None,
+    # 'background_color': None,
+    # 'border_width': None,
+    # 'justification': None,
+    # 'pad': None,
+    # 'right_click_menu': None,
+    # 'expand_x': False,
+    # 'expand_y': False,
+    # 'grab': None,
+    # 'tooltip': None,
+    # 'visible': True,
+    # 'metadata': None
+}
+
+multiline_setting = {
+    # 'disabled': False,
+    # 'autoscroll': False,
+    # 'border_width': None,
+    'size': (24, 3),
+    # 'auto_size_text': None,
+    # 'background_color': None,
+    # 'text_color': None,
+    # 'horizontal_scroll': False,
+    # 'change_submits': False,
+    # 'enable_events': False,
+    # 'do_not_clear': True,
+    # 'write_only': False,
+    # 'auto_refresh': False,
+    # 'reroute_stdout': False,
+    # 'reroute_stderr': False,
+    # 'reroute_cprint': False,
+    # 'echo_stdout_stderr': False,
+    # 'focus': False,
+    'font': '_ 12',
+    # 'pad': None,
+    # 'tooltip': None,
+    # 'justification': None,
+    # 'no_scrollbar': False,
+    # 'sbar_trough_color': None,
+    # 'sbar_background_color': None,
+    # 'sbar_arrow_color': None,
+    # 'sbar_width': None,
+    # 'sbar_arrow_width': None,
+    # 'sbar_frame_color': None,
+    # 'sbar_relief': None,
+    # 'expand_x': False,
+    # 'expand_y': False,
+    # 'rstrip': True,
+    # 'right_click_menu': None,
     # 'visible': True,
     # 'metadata': None
 }

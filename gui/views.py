@@ -2,28 +2,42 @@ from operator import itemgetter
 
 import PySimpleGUI as sg
 
-from database.models import Person
-from database.queries import get_all_workers, get_mounter_tasks, get_fitter_tasks, get_close_tasks
-from .components import get_card_worker
+from database.queries import get_all_workers, get_mounter_tasks, get_fitter_tasks, get_close_tasks, get_worker_data, \
+    get_task_data
+from .components import get_card_worker, get_card_task
 from .windows import get_main_window, get_card_window
 
 
 class StartWindowCard:
-    def __init__(self, raw_data=None, key=None):
+    def __init__(self, parent, raw_data=None, key=None,):
         self.idx = raw_data[-1] if raw_data else None
         self.key = key
+        self.parent = parent
         self.window = get_card_window(form=self.key)
         self.run()
 
     def run(self):
-        print(self.idx)
-        print(self.key)
-        data = None
-        if self.idx:
-            data = Person[self.idx]
-            print(data.__data__)
-        self.window.extend_layout(self.window['body'], get_card_worker(data=data))
+        if self.key == '-TW-':
+            data = get_worker_data(idx=self.idx)
+            card = get_card_worker(data)
+        else:
+            data = get_task_data(idx=self.idx)
+            card = get_card_task(data)
+        self.window.extend_layout(self.window['body'], card)
+        self.move_center()
+        while True:
+            ev, val = self.window.read()
+            print(f'{ev=} {val=}')
+            if ev in [sg.WIN_CLOSED, '-CANCEL-']:
+                break
+        self.window.close()
 
+    def move_center(self):
+        size_w, size_h = self.parent.current_size_accurate()
+        loc_x, loc_y = self.parent.current_location()
+        self.window.refresh()
+        size = self.window.current_size_accurate()
+        self.window.move(loc_x + size_w // 2 - size[0] // 2, loc_y + size_h // 2 - size[1] // 2)
 
 
 class StartMainWindow:
@@ -58,6 +72,7 @@ class StartMainWindow:
                 kwargs = {
                     'raw_data': self.table[ev][val[ev].pop()] if val.get(ev) else None,
                     'key': val.get('-TG-'),
+                    'parent': self.window
                 }
                 worker_card = StartWindowCard(**kwargs)
         self.window.close()

@@ -8,14 +8,14 @@ with get_database().atomic():
     FuncPosition.insert_many([[func] for func in FUNC_VARIABLES.values()], fields=['job_name']).execute()
     Status.insert_many([[value] for value in STATUS_VARIABLES.values()], ['state']).execute()
     data_person = [
-        {'surname': 'Вахитов', 'name': 'Данис', 'second_name': 'Римович', 'table_num': '1', 'function': 2},
-        {'surname': 'Найденко', 'name': 'Георгий', 'second_name': 'Владимирович', 'table_num': '2', 'function': 2},
-        {'surname': 'Шмырин', 'name': 'Олег', 'second_name': 'Афанасьевич', 'table_num': '3', 'function': 1},
-        {'surname': 'Прокопенко', 'name': 'Юрий', 'second_name': 'Валерьевич', 'table_num': '4', 'function': 2},
-        {'surname': 'Полякова', 'name': 'Мирина', 'second_name': 'Ивановна', 'table_num': '5', 'function': 2},
-        {'surname': 'Аскеров', 'name': 'Гахраман', 'second_name': 'Камаладдин Оглы', 'table_num': '8', 'function': 3},
-        {'surname': 'Коробка', 'name': 'Алексей', 'second_name': 'Викторович', 'table_num': '6', 'function': 4},
-        {'surname': 'Пузанков', 'name': 'Максим', 'second_name': 'Витальевич', 'table_num': '7', 'function': 4},
+        {'surname': 'Вахитов', 'name': 'Данис', 'second_name': 'Римович', 'table_num': 'A-001', 'function': 2},
+        {'surname': 'Найденко', 'name': 'Георгий', 'second_name': 'Владимирович', 'table_num': 'A-002', 'function': 2},
+        {'surname': 'Шмырин', 'name': 'Олег', 'second_name': 'Афанасьевич', 'table_num': 'A-003', 'function': 1},
+        {'surname': 'Прокопенко', 'name': 'Юрий', 'second_name': 'Валерьевич', 'table_num': 'A-004', 'function': 2},
+        {'surname': 'Полякова', 'name': 'Мирина', 'second_name': 'Ивановна', 'table_num': 'A-005', 'function': 2},
+        {'surname': 'Аскеров', 'name': 'Гахраман', 'second_name': 'Камаладдин Оглы', 'table_num': 'A-008', 'function': 3},
+        {'surname': 'Коробка', 'name': 'Алексей', 'second_name': 'Викторович', 'table_num': 'A-006', 'function': 4},
+        {'surname': 'Пузанков', 'name': 'Максим', 'second_name': 'Витальевич', 'table_num': 'A-007', 'function': 4},
     ]
     Person.insert_many(data_person).execute()
     data_task = [

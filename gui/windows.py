@@ -39,7 +39,10 @@ def get_main_window():
 
 def get_card_window(form):
     title = 'Карточка работника' if form == '-TW-' else "Карточка задачи"
-    layout = [[sg.Col([[]], key='body')]]
+    layout = [
+        [sg.Col([[]], key='body')],
+        [sg.Push(), sg.B('Сохранить', key='-SAVE-'), sg.B('Отменить', key='-CANCEL-'), sg.Push()]
+    ]
     return sg.Window(title, layout,
                      resizable=True,
                      finalize=True,
