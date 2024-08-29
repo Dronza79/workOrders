@@ -102,16 +102,16 @@ def get_task_data(idx=None):
 def get_all_tasks():
     return (
         Task.select(
-            Task.id, Task.type_obj, Task.title, Task.article, Task.order,
-            Task.deadline, peewee.fn.SUM(Period.value).alias('total'),
+            Task.id, Task.deadline, peewee.fn.SUM(Period.value).alias('total_worked'),
+            Order.order,
             Status.state,
-            Worker.surname, Worker.name, Worker.second_name, Worker.table_num,
-            Vacancy.post.alias('post'), Vacancy.id
+            Period.value,
+            Worker.surname, Worker.name, Worker.second_name
         )
-        .join_from(Task, Period, peewee.JOIN.LEFT_OUTER)
         .join_from(Task, Status)
         .join_from(Task, Worker)
-        .join_from(Worker, Vacancy)
+        .join_from(Task, Order)
+        .join_from(Order, Period, peewee.JOIN.LEFT_OUTER)
     )
 
 
@@ -123,25 +123,20 @@ def get_close_tasks():
     )
 
 
-def get_mounter_tasks():
+def get_open_tasks():
     return (
         get_all_tasks()
-        .where(
-            Status.state != sv[2],
-            Worker.function.name.in_([fv[1], fv[2]])
-        )
+        .where(Status.state != sv[2])
         .group_by(Task.id)
     )
 
-    # @add_logger_peewee
 
-
-def get_fitter_tasks():
-    return (
-        get_all_tasks()
-        .where(
-            Status.state != sv[2],
-            Worker.function.name.in_([fv[3], fv[4]])
-        )
-        .group_by(Task.order)
-    )
+# def get_fitter_tasks():
+#     return (
+#         get_all_tasks()
+#         .where(
+#             Status.state != sv[2],
+#             Worker.function.name.in_([fv[3], fv[4]])
+#         )
+#         .group_by(Task.order)
+#     )

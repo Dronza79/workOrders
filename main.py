@@ -6,7 +6,7 @@ from database.utils import path
 from gui.views import StartMainWindow
 
 
-@add_logger_peewee
+# @add_logger_peewee
 def main():
     # print(f'{path.get_path=}')
     if not Path(path.get_path).exists():

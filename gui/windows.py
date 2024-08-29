@@ -17,7 +17,7 @@ def get_main_window():
                 key='-ORD-', **tab_setting),
             sg.Tab(
                 'Список выполняемых работ',
-                get_sector_tasks(code='-TASK-'),
+                get_sector_tasks(code='-TASKS-'),
                 key='-TSK-', **tab_setting),
             sg.Tab(
                 'Архив выполненных работ',

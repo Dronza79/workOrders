@@ -2,9 +2,15 @@ from operator import itemgetter
 
 import PySimpleGUI as sg
 
-from database.models import Period
-from database.queries import get_all_workers, get_mounter_tasks, get_fitter_tasks, get_close_tasks, get_worker_data, \
-    get_task_data, get_all_orders
+from database.queries import (
+    get_all_workers,
+    get_open_tasks,
+    # get_fitter_tasks,
+    get_close_tasks,
+    get_worker_data,
+    get_task_data,
+    get_all_orders
+)
 from .components import get_card_worker, get_card_task
 from .windows import get_main_window, get_card_window
 
@@ -92,11 +98,11 @@ class StartMainWindow:
     def actualizing(self):
         self.get_format_list_workers()
         self.get_format_list_orders()
-        # self.get_format_list_tasks()
+        self.get_format_list_tasks()
         self.window['-WORKERS-'].update(values=self.table['-WORKERS-'])
         self.window['-ORDERS-'].update(values=self.table['-ORDERS-'])
-        # self.window['-TASKS-'].update(values=self.table['-TASKS-'])
-        # self.window['-CLOSE-'].update(values=self.table['-CLOSE-'])
+        self.window['-TASKS-'].update(values=self.table['-TASKS-'])
+        self.window['-CLOSE-'].update(values=self.table['-CLOSE-'])
 
     def get_format_list_workers(self):
         all_workers = get_all_workers()
@@ -151,26 +157,22 @@ class StartMainWindow:
         if not list_task:
             return []
         lst = []
-        for task in list_task:
+        for i, task in enumerate(list_task, start=1):
             formatted_data = [
-                task.type_obj,
-                task.title,
-                task.article,
-                task.order,
+                i,
+                str(task.order),
                 task.deadline,
-                task.total if task and task.total else 0,
-                f'{task.master.surname} {task.master.name[:1]}.{task.master.second_name[:1]}.',
-                task.status.state,
+                task.total_worked,
+                f'{task.worker.surname} {task.worker.name[:1]}.{task.worker.second_name[:1]}.',
+                str(task.status),
                 task.id,
             ]
-            formatted_data.insert(0, len(lst) + 1)
+            # formatted_data.insert(0, len(lst) + 1)
             lst.append(formatted_data)
         return lst
 
     def get_format_list_tasks(self):
-        self.table['-TASK-M-'] = []
-        self.table['-TASK-F-'] = []
+        self.table['-TASKS-'] = []
         self.table['-CLOSE-'] = []
-        # self.table['-TASK-M-'].extend(self._format_list_task(get_mounter_tasks()))
-        # self.table['-TASK-F-'].extend(self._format_list_task(get_fitter_tasks()))
-        # self.table['-CLOSE-'].extend(self._format_list_task(get_close_tasks()))
+        self.table['-TASKS-'].extend(self._format_list_task(get_open_tasks()))
+        self.table['-CLOSE-'].extend(self._format_list_task(get_close_tasks()))
