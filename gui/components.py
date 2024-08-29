@@ -19,7 +19,7 @@ def get_sector_workers():
 def get_sector_orders():
     heads = [
         '№', 'Номер ПР', 'Тип', 'Объект', "Конструктив", 'Работник']
-    width_cols = [3, 10, 5, 5, 13, 8]
+    width_cols = [3, 10, 12, 12, 22, 11]
     return [[
         sg.Table(
             values=[], headings=heads, key='-ORDERS-',
