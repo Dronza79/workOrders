@@ -22,7 +22,7 @@ def get_sector_orders():
     width_cols = [3, 10, 5, 5, 13, 8]
     return [[
         sg.Table(
-            values=[], headings=heads, key='-ORDER-',
+            values=[], headings=heads, key='-ORDERS-',
             col_widths=width_cols,
             **table_setting)
     ]]

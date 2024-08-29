@@ -8,32 +8,50 @@ from .models import (
 
 
 def get_all_workers():
-    # persons = (
-    #     Worker
-    #     .select(Worker.id, Worker.surname, Worker.name, Worker.second_name, Vacancy.post)
-    #     .join(Vacancy).where(Worker.is_active == True)
-    # )
-    #
-    # period = (
-    #     Period
-    #     .select(Period, Task, Order)
-    #     .join(Task)
-    #     .join(Order)
-    #     .where(Task.status_id != 2)
-    #     .order_by(Period.date.desc())
-    #     .group_by(Period.id)
-    # )
-    # return peewee.prefetch(persons, period)
-    return (
+    persons = (
         Worker
-        .select(Worker, Vacancy, Task, Order, Period)
-        .join_from(Worker, Period, peewee.JOIN.LEFT_OUTER)
+        .select(Worker.id, Worker.surname, Worker.name, Worker.second_name, Vacancy.post)
+        .join(Vacancy).where(Worker.is_active == True)
+    )
+
+    periods = (
+        Period
+        .select(Period, Task, Order, Worker)
         .join_from(Period, Task)
         .join_from(Period, Order)
-        .join_from(Worker, Vacancy)
-        .where(Worker.is_active == True, Task.status_id != 2)
-        .group_by(Worker.id)
+        .join_from(Period, Worker)
+        .where(Task.status_id != 2)
+        .order_by(Period.date)
+        .group_by(Period.id)
     )
+    tasks = (
+        Task.select(Task, Worker, Order, Status, peewee.fn.SUM(Period.value).alias('total_time'))
+        .join_from(Task, Period, peewee.JOIN.LEFT_OUTER)
+        .join_from(Task, Order)
+        .join_from(Task, Worker)
+        .join_from(Task, Status)
+        .group_by(Task.id)
+    )
+    return peewee.prefetch(persons, periods, tasks)
+
+
+def get_all_orders():
+    orders = (
+        Order.select()
+        .where(
+            Order.order.not_in(Task.select(Task.order)) |
+            Order.order.in_(Task.select(Task.order).join(Status).where(Task.status.state.in_([sv[1], sv[3]])))
+        )
+        .group_by(Order.order)
+    )
+
+    tasks = (
+        Task.select(Task, Worker.surname, Worker.name, Worker.second_name)
+        .join_from(Task, Worker)
+        .group_by(Task.id)
+    )
+
+    return peewee.prefetch(orders, tasks)
 
 
 def get_worker_data(idx=None):

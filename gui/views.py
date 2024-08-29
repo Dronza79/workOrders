@@ -4,7 +4,7 @@ import PySimpleGUI as sg
 
 from database.models import Period
 from database.queries import get_all_workers, get_mounter_tasks, get_fitter_tasks, get_close_tasks, get_worker_data, \
-    get_task_data
+    get_task_data, get_all_orders
 from .components import get_card_worker, get_card_task
 from .windows import get_main_window, get_card_window
 
@@ -67,7 +67,7 @@ class StartMainWindow:
                 self.actualizing()
             elif isinstance(ev, tuple) and ev[2][0] == -1:
                 self.sorting_list(ev[0], ev[2][1])
-            elif ev in ['-WORKER-', '-TASK-M-', '-TASK-F-', '-CLOSE-', '-ADD-']:
+            elif ev in ['-WORKERS-', '-ORDERS-', '-TASKS-', '-CLOSE-', '-ADD-']:
                 print(f"{val.get(ev)=}")
                 # print(f"{self.table.get(ev)=} {val.get(ev)=}")
                 kwargs = {
@@ -91,25 +91,23 @@ class StartMainWindow:
 
     def actualizing(self):
         self.get_format_list_workers()
+        self.get_format_list_orders()
         # self.get_format_list_tasks()
         self.window['-WORKERS-'].update(values=self.table['-WORKERS-'])
-        # self.window['-ORDERS-'].update(values=self.table['-ORDERS-'])
+        self.window['-ORDERS-'].update(values=self.table['-ORDERS-'])
         # self.window['-TASKS-'].update(values=self.table['-TASKS-'])
         # self.window['-CLOSE-'].update(values=self.table['-CLOSE-'])
 
-    # @add_logger_peewee
     def get_format_list_workers(self):
         all_workers = get_all_workers()
         self.table['-WORKERS-'] = []
-        # print(f'{all_workers=}')
         if all_workers:
             for i, worker in enumerate(all_workers, start=1):
-                # period = worker.time_worked.order_by(Period.date.desc()).limit(1).get()
                 period = worker.time_worked
                 if period:
                     period = period[-1]
-                    total_worked = sum(period.task.time_worked)
-                    print(f'{worker=} {period=} {total_worked=}')
+                    total_worked = period.task.total_time
+                    # print(f'{worker=} {period=} {total_worked=}')
                 else:
                     period = None
                     total_worked = None
@@ -124,6 +122,29 @@ class StartMainWindow:
                 )
                 self.table['-WORKERS-'].append(formatted_data)
         # print(f'{self.workers=}')
+
+    def get_format_list_orders(self):
+        all_orders = get_all_orders()
+        self.table['-ORDERS-'] = []
+        if all_orders:
+            for i, order in enumerate(all_orders, start=1):
+                tasks = order.tasks
+                if tasks:
+                    worker = tasks[0].worker
+                else:
+                    worker = None
+                formatted_data = (
+                    i,
+                    str(order),
+                    order.type_obj,
+                    order.title,
+                    order.article,
+                    f'{worker.surname} {worker.name[:1]}.{worker.second_name[:1]}.' if worker else '---',
+                    order.order
+                )
+                # print(f'{formatted_data=}')
+
+                self.table['-ORDERS-'].append(formatted_data)
 
     @staticmethod
     def _format_list_task(list_task):
@@ -146,7 +167,6 @@ class StartMainWindow:
             lst.append(formatted_data)
         return lst
 
-    # @add_logger_peewee
     def get_format_list_tasks(self):
         self.table['-TASK-M-'] = []
         self.table['-TASK-F-'] = []
