@@ -40,15 +40,25 @@ def get_sector_tasks(code=''):
     ]]
 
 
-# mounter - монтажник
-# fitter - слесарь
-
-
 def get_card_worker(data):
     job_list = list(data['func_position'])
-    worker = data.get('person')
-    table_heads = ['№', 'Объект', 'Артикул', 'ПРка', 'Статус']
-    width_cols = [3, 10, 20, 10, 8]
+    worker = data.get('worker')
+    table_heads = ['№', 'Объект', 'Артикул', 'ПРка', 'Статус', 'Норма', 'Вып.', 'Коммент']
+    width_cols = [3, 12, 20, 10, 8, 5, 5, 14]
+    if worker:
+        table = (
+            [sg.HorizontalSeparator(pad=(0, 30))],
+            [sg.Table([
+                [i, task.order.title, task.order.article,
+                 task.order, task.status, task.deadline, task.worked_out, task.comment, task.id]
+                for i, task in enumerate(worker.tasks, start=1)],
+                table_heads,
+                col_widths=width_cols,
+                num_rows=5,
+                **table_setting)
+            ])
+    else:
+        table = ([])
     return [[
         sg.Col([
             [
@@ -75,19 +85,9 @@ def get_card_worker(data):
                 sg.Combo(
                     job_list,
                     key='function',
-                    default_value=worker.function.name if worker else 'Не выбрано',
+                    default_value=worker.function.post if worker else 'Не выбрано',
                     **drop_down_setting)
-            ], [
-                sg.HorizontalSeparator(pad=(0, 30))
-            ], [
-                sg.Table([
-                    [i, task.title, task.article, task.order, task.status, task.id]
-                    for i, task in enumerate(worker.tasks, start=1)], table_heads,
-                    col_widths=width_cols,
-                    num_rows=5,
-                    **table_setting
-                )
-            ]
+            ], *table
         ], pad=10)
     ]]
 
@@ -99,10 +99,10 @@ def get_card_task(data):
     statuses = list(data.get('statuses'))
     workers = list(data.get('workers'))
     full_passed_of_order = data.get('full_passed_of_order').dicts().get()
-    print(f'{task=}')
-    print(f'{statuses=}')
-    print(f'{workers=}')
-    print(f'{full_passed_of_order=}')
+    # print(f'{task=}')
+    # print(f'{statuses=}')
+    # print(f'{workers=}')
+    # print(f'{full_passed_of_order=}')
     return [[
         sg.Col([
             [

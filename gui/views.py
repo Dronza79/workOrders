@@ -24,7 +24,7 @@ class StartWindowCard:
         self.run()
 
     def run(self):
-        if self.key == '-TW-':
+        if self.key == '-WRK-':
             data = get_worker_data(idx=self.idx)
             card = get_card_worker(data)
         else:
@@ -74,14 +74,15 @@ class StartMainWindow:
             elif isinstance(ev, tuple) and ev[2][0] == -1:
                 self.sorting_list(ev[0], ev[2][1])
             elif ev in ['-WORKERS-', '-ORDERS-', '-TASKS-', '-CLOSE-', '-ADD-']:
-                print(f"{val.get(ev)=}")
+                # print(f"{val.get(ev)=}")
                 # print(f"{self.table.get(ev)=} {val.get(ev)=}")
                 kwargs = {
                     'raw_data': self.table[ev][val[ev].pop()] if val.get(ev) else None,
                     'key': val.get('-TG-'),
                     'parent': self.window
                 }
-                worker_card = StartWindowCard(**kwargs)
+                print(f'{kwargs=}')
+                StartWindowCard(**kwargs)
         self.window.close()
 
     def sorting_list(self, key_table, column):

@@ -55,6 +55,7 @@ def get_all_orders():
 
 
 def get_worker_data(idx=None):
+    print(f'{idx=}')
     if idx:
         person = (
             Worker.select(Worker, Vacancy)
@@ -63,18 +64,22 @@ def get_worker_data(idx=None):
         )
         tasks = (
             Task.select(
-                Task, Status, peewee.fn.SUM(Period.value).alias('passed'))
+                Task.id, Task.deadline, Task.comment,
+                Status, Worker, Order,
+                peewee.fn.SUM(Period.value).alias('worked_out'))
             .join_from(Task, Status)
+            .join_from(Task, Worker)
             .join_from(Task, Period, peewee.JOIN.LEFT_OUTER)
+            .join_from(Task, Order)
             .order_by(Task.status)
             .group_by(Task.id)
         )
-        worker = peewee.prefetch(person, tasks).pop()
+        query = peewee.prefetch(person, tasks).pop()
     else:
-        worker = None
+        query = None
     return {
         'func_position': Vacancy.select(),
-        'person': worker,
+        'worker': query,
     }
 
 
