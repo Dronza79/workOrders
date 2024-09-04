@@ -24,12 +24,16 @@ class StartWindowCard:
         self.run()
 
     def run(self):
+        card = []
         if self.key == '-WRK-':
             data = get_worker_data(idx=self.idx)
             card = get_card_worker(data)
-        else:
+        elif self.key in ['-CLS-', '-TSK-']:
             data = get_task_data(idx=self.idx)
             card = get_card_task(data)
+        elif self.key == '-ORD-':
+            data = get_order_data(idx=self.idx)
+            card = get_card_order(data)
         self.window.extend_layout(self.window['body'], card)
         self.move_center()
         while True:
@@ -37,6 +41,12 @@ class StartWindowCard:
             print(f'{ev=} {val=}')
             if ev in [sg.WIN_CLOSED, '-CANCEL-']:
                 break
+            elif ev == 'order':
+                order = val.get(ev)
+                self.window['type_obj'].update(order.type_obj)
+                self.window['title'].update(order.title)
+                self.window['article'].update(order.article)
+                self.window.refresh()
         self.window.close()
 
     def move_center(self):

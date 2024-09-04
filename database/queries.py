@@ -87,20 +87,23 @@ def get_task_data(idx=None):
     print(f'{idx=}')
     return {
         'statuses': Status.select(),
-        'workers': Worker.select(),
-        'full_passed_of_order': (
-            Task.select(Task, peewee.fn.SUM(Period.value).alias('passed'))
-            .join_from(Task, Period, peewee.JOIN.LEFT_OUTER)
-            .where(Task.order == Task[idx].order)
-            .group_by(Task.order)),
+        'workers': Worker.select(Worker, Vacancy.post).join(Vacancy),
+        'all_orders': (
+            Order.select()
+            .where(
+                Order.order.not_in(Task.select(Task.order)) |
+                Order.order.in_(Task.select(Task.order).join(Status).where(Task.status.state.in_([sv[1], sv[3]])))
+            )
+        ),
         'task': (
-            Task.select(Task, Status, Worker, peewee.fn.SUM(Period.value).alias('passed'))
+            Task.select(Task, Status, Worker, Order, peewee.fn.SUM(Period.value).alias('passed'))
             .join_from(Task, Status)
+            .join_from(Task, Order)
             .join_from(Task, Worker)
             .join_from(Task, Period, peewee.JOIN.LEFT_OUTER)
             .where(Task.id == idx)
             .group_by(Task.id)
-        )
+        ) if idx else None
     }
 
 

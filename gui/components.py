@@ -98,29 +98,35 @@ def get_card_task(data):
         task = task.get()
     statuses = list(data.get('statuses'))
     workers = list(data.get('workers'))
-    full_passed_of_order = data.get('full_passed_of_order').dicts().get()
+    all_order = list(data.get('all_orders'))
     # print(f'{task=}')
     # print(f'{statuses=}')
     # print(f'{workers=}')
-    # print(f'{full_passed_of_order=}')
+    # print(f'{all_order=}')
     return [[
         sg.Col([
             [
+                sg.T("Производственный заказ:", **text_setting),
+                # sg.Push(),
+                sg.Combo(
+                    all_order,
+                    key='order',
+                    default_value=task.order if task else 'Не выбрано',
+                    disabled=True if task else False,
+                    enable_events=True,
+                    **drop_down_setting)
+            ], [
                 sg.T("Тип объекта:", **text_setting),
                 # sg.Push(),
-                sg.Input(task.type_obj if task else '', key='type_obj', **input_setting)
+                sg.Input(task.order.type_obj if task else '', key='type_obj', readonly=True, **input_setting)
             ], [
                 sg.T("Наименование объекта:", **text_setting),
                 # sg.Push(),
-                sg.Input(task.title if task else '', key='title', **input_setting)
+                sg.Input(task.order.title if task else '', key='title', readonly=True, **input_setting)
             ], [
                 sg.T("Конструктив:", **text_setting),
                 # sg.Push(),
-                sg.Input(task.article if task else '', key='article', **input_setting)
-            ], [
-                sg.T("Производственный заказ:", **text_setting),
-                # sg.Push(),
-                sg.Input(task.order if task else '', key='order', **input_setting)
+                sg.Input(task.order.article if task else '', key='article', readonly=True, **input_setting)
             ], [
                 sg.T("Норматив выполнения:", **text_setting),
                 # sg.Push(),
@@ -132,6 +138,7 @@ def get_card_task(data):
                     statuses,
                     key='status',
                     default_value=task.status.state if task else 'Не выбрано',
+                    # disabled=True if task else False,
                     **drop_down_setting)
             ], [
                 sg.T("Исполнитель:", **text_setting),
@@ -139,7 +146,8 @@ def get_card_task(data):
                 sg.Combo(
                     workers,
                     key='master',
-                    default_value=task.master if task else 'Не выбрано',
+                    default_value=task.worker if task else 'Не выбрано',
+                    disabled=True if task else False,
                     **drop_down_setting)
             ], [
                 sg.T("Комментарии:", **text_setting),
