@@ -85,17 +85,9 @@ def get_worker_data(idx=None):
 
 def get_task_data(idx=None):
     print(f'{idx=}')
-    return {
-        'statuses': Status.select(),
-        'workers': Worker.select(Worker, Vacancy.post).join(Vacancy),
-        'all_orders': (
-            Order.select()
-            .where(
-                Order.order.not_in(Task.select(Task.order)) |
-                Order.order.in_(Task.select(Task.order).join(Status).where(Task.status.state.in_([sv[1], sv[3]])))
-            )
-        ),
-        'task': (
+    query = {'statuses': Status.select()}
+    if idx:
+        query['task'] = (
             Task.select(Task, Status, Worker, Order, peewee.fn.SUM(Period.value).alias('passed'))
             .join_from(Task, Status)
             .join_from(Task, Order)
@@ -103,8 +95,18 @@ def get_task_data(idx=None):
             .join_from(Task, Period, peewee.JOIN.LEFT_OUTER)
             .where(Task.id == idx)
             .group_by(Task.id)
-        ) if idx else None
-    }
+        )
+    else:
+        query['workers'] = Worker.select(Worker, Vacancy.post).join(Vacancy)
+        query['all_orders'] = (
+            Order.select()
+            .where(
+                Order.order.not_in(Task.select(Task.order)) |
+                Order.order.in_(Task.select(Task.order).join(Status).where(Task.status.state.in_([sv[1], sv[3]])))
+            )
+        )
+
+    return query
 
 
 def get_all_tasks():

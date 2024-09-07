@@ -93,12 +93,12 @@ def get_card_worker(data):
 
 
 def get_card_task(data):
-    task = data.get('task')
-    if task:
+    # task = data.get('task')
+    if task := data.get('task'):
         task = task.get()
-    statuses = list(data.get('statuses'))
-    workers = list(data.get('workers'))
-    all_order = list(data.get('all_orders'))
+    statuses = list(data.get('statuses', []))
+    workers = list(data.get('workers', []))
+    all_order = list(data.get('all_orders', []))
     # print(f'{task=}')
     # print(f'{statuses=}')
     # print(f'{workers=}')

@@ -97,35 +97,5 @@ class Period(BaseModel):
     def __radd__(self, other):  # метод для функции sum() и сложение с левым элементом
         return int(other + self.value) if isinstance(other, (int, float)) else NotImplemented
 
-
-# class Turn(BaseModel):
-#     worker = ForeignKeyField(Worker, verbose_name='Работник', backref='turns', on_delete='CASCADE')
-#     date = DateField(verbose_name='Дата', default=datetime.datetime.now)
-#     value = SmallIntegerField(verbose_name="Продолжительность")
-#
-#     def __str__(self):
-#         return f'{self.value} ч.'
-#
-#     def __add__(self, other):  # обычное сложение с правым элементом
-#         return int(self.value + other.value) if isinstance(other, self.__class__) else (
-#             int(self.value + other) if isinstance(other, (int, float)) else NotImplemented)
-#
-#     def __radd__(self, other):  # метод для функции sum() и сложение с левым элементом
-#         return int(other + self.value) if isinstance(other, (int, float)) else NotImplemented
-
-
-
-
-
-                    # work_lapse_data.append(laps)
-    # for i in range(0, len(work_lapse_data), 50):
-    #     WorkLapse.insert_many(work_lapse_data[i:i + 50]).execute()
-
-
-
-# tasks = Task.select(Task.id, Task.order, Task.duration, fn.SUM(WorkLapse.term).alias('total')).join(WorkLapse, JOIN.LEFT_OUTER).group_by(Task.id).dicts()
-# tasks = Task.select(Task, Status).join(Status)
-# laps = WorkLapse.select()
-# result = prefetch(tasks, laps)
-#
-# ts = Task.select(Task.order, Task.duration, Task.time_worked, fn.SUM(Task.time_worked).alias('summ'))
+    def get_day_week(self):
+        return f'{self.date:%a}', int(f'{self.date:%w}')
