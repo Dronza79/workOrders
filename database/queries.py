@@ -96,6 +96,7 @@ def get_task_data(idx=None):
             .where(Task.id == idx)
             .group_by(Task.id)
         )
+        query['time_worked'] = Period.select().where(Period.task_id == idx)
     else:
         query['workers'] = Worker.select(Worker, Vacancy.post).join(Vacancy)
         query['all_orders'] = (
