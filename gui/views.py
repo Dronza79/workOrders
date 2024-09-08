@@ -1,3 +1,4 @@
+from datetime import datetime
 from operator import itemgetter
 
 import PySimpleGUI as sg
@@ -5,18 +6,17 @@ import PySimpleGUI as sg
 from database.queries import (
     get_all_workers,
     get_open_tasks,
-    # get_fitter_tasks,
     get_close_tasks,
     get_worker_data,
     get_task_data,
-    get_all_orders
+    get_all_orders, create_new_period
 )
 from .components import get_card_worker, get_card_task
-from .windows import get_main_window, get_card_window
+from .windows import get_main_window, get_card_window, popup_get_period
 
 
 class StartWindowCard:
-    def __init__(self, parent, raw_data=None, key=None,):
+    def __init__(self, parent, raw_data=None, key=None, ):
         self.idx = raw_data[-1] if raw_data else None
         self.key = key
         self.parent = parent
@@ -47,6 +47,23 @@ class StartWindowCard:
                 self.window['title'].update(order.title)
                 self.window['article'].update(order.article)
                 self.window.refresh()
+            elif ev == '-ADD-TIME-':
+                period = popup_get_period(self.window)
+                if period:
+                    tsk = get_task_data(val.get('task')).get('task').get()
+                    data = {
+                        'worker': tsk.worker,
+                        'task': tsk,
+                        'order': tsk.order,
+                        'date': datetime.strptime(period.get('date'), '%d.%m.%Y'),
+                        'value': period.get('value')
+                    }
+                    create_new_period(data)
+                    new_data = get_task_data(val.get('task'))
+                    time_worked = '\n'.join([str(period) for period in new_data.get('time_worked', [])])
+                    self.window['-PASSED-'].update(new_data.get('task').get().passed)
+                    self.window['-TIME-WORKED-'].update(time_worked)
+                    self.window.refresh()
         self.window.close()
 
     def move_center(self):
@@ -91,8 +108,10 @@ class StartMainWindow:
                     'key': val.get('-TG-'),
                     'parent': self.window
                 }
-                print(f'{kwargs=}')
+                # print(f'{kwargs=}')
                 StartWindowCard(**kwargs)
+                self.actualizing()
+
         self.window.close()
 
     def sorting_list(self, key_table, column):

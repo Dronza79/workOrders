@@ -63,25 +63,20 @@ def get_card_worker(data):
         sg.Col([
             [
                 sg.T("Фамилия:", **text_setting),
-                # sg.Push(),
                 sg.Input(worker.surname.upper() if worker else '', key='surname', **input_setting)
             ], [
                 sg.T("Имя:", **text_setting),
-                # sg.Push(),
                 sg.Input(worker.name if worker else '', key='name', **input_setting)
             ], [
                 sg.T("Отчество:", **text_setting),
-                # sg.Push(),
                 sg.Input(worker.second_name if worker else '', key='second_name', **input_setting)
             ], [
                 sg.HorizontalSeparator(pad=(0, 30))
             ],  [
                 sg.T('Табельный номер:', **text_setting),
-                # sg.Push(),
                 sg.Input(worker.table_num if worker else '', key='tab_num', **input_setting)
             ], [
                 sg.T('Должность:', **text_setting),
-                # sg.Push(),
                 sg.Combo(
                     job_list,
                     key='function',
@@ -93,17 +88,22 @@ def get_card_worker(data):
 
 
 def get_card_task(data):
-    # task = data.get('task')
+    time_worked = '\n'.join([str(period) for period in data.get('time_worked', [])])
     if task := data.get('task'):
         task = task.get()
+        table = ([
+                sg.HorizontalSeparator()
+            ], [
+                sg.Multiline(time_worked if task else '', key='-TIME-WORKED-', disabled=True, size=(30, 5), font='_ 12'),
+                sg.Button('Добавить\nвремя', key='-ADD-TIME-', size=(10, 3), pad=10),
+                sg.Input(task.id, key='task', visible=False)
+            ])
+    else:
+        table = []
     statuses = list(data.get('statuses', []))
     workers = list(data.get('workers', []))
     all_order = list(data.get('all_orders', []))
-    time_worked = '\n'.join([str(period) for period in data.get('time_worked', [])])
-    # print(f'{task=}')
-    # print(f'{statuses=}')
-    # print(f'{workers=}')
-    # print(f'{all_order=}')
+
     return [[
         sg.Col([
             [
@@ -129,7 +129,7 @@ def get_card_task(data):
                 sg.Input(task.deadline if task else '', key='deadline', **input_setting)
             ], [
                 sg.T("Отработано:", **text_setting),
-                sg.Input(task.passed if task else '0', readonly=True, **input_setting)
+                sg.Input(task.passed if task else '0', key='-PASSED-', readonly=True, **input_setting)
             ], [
                 sg.T("Статус:", **text_setting),
                 sg.Combo(
@@ -148,11 +148,6 @@ def get_card_task(data):
             ], [
                 sg.T("Комментарии:", **text_setting),
                 sg.Multiline(task.comment if task and task.comment else '', key='comment', **multiline_setting)
-            ], [
-                sg.HorizontalSeparator()
-            ], [
-                sg.Multiline(time_worked if task else '', key='-TIME-WORKED-', disabled=True, size=(30, 5), font='_ 12'),
-                sg.Button('Добавить\nвремя', key='-ADD-TIME-', size=(10, 3), pad=10)
-            ],
+            ], *table
         ], pad=10)
     ]]

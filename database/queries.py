@@ -55,7 +55,7 @@ def get_all_orders():
 
 
 def get_worker_data(idx=None):
-    print(f'{idx=}')
+    # print(f'{idx=}')
     if idx:
         person = (
             Worker.select(Worker, Vacancy)
@@ -84,7 +84,7 @@ def get_worker_data(idx=None):
 
 
 def get_task_data(idx=None):
-    print(f'{idx=}')
+    # print(f'{idx=}')
     query = {'statuses': Status.select()}
     if idx:
         query['task'] = (
@@ -142,12 +142,5 @@ def get_open_tasks():
     )
 
 
-# def get_fitter_tasks():
-#     return (
-#         get_all_tasks()
-#         .where(
-#             Status.state != sv[2],
-#             Worker.function.name.in_([fv[3], fv[4]])
-#         )
-#         .group_by(Task.order)
-#     )
+def create_new_period(data):
+    return Period.create(**data)
