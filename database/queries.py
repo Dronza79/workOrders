@@ -111,6 +111,27 @@ def get_task_data(idx=None):
     return query
 
 
+def get_order_data(idx=None):
+    if idx:
+        return {
+            'order': Order[idx],
+            'tasks': (
+                Task.select(
+                    Task, Status, Worker, Order,
+                    peewee.fn.SUM(Period.value).alias('passed')
+                )
+                .join_from(Task, Status)
+                .join_from(Task, Worker)
+                .join_from(Task, Order)
+                .join_from(Task, Period, peewee.JOIN.LEFT_OUTER)
+                .where(Task.order_id == idx)
+                .group_by(Task.id)
+            )
+        }
+    else:
+        return None
+
+
 def get_all_tasks():
     return (
         Task.select(

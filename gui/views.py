@@ -9,9 +9,9 @@ from database.queries import (
     get_close_tasks,
     get_worker_data,
     get_task_data,
-    get_all_orders, create_new_period
+    get_all_orders, create_new_period, get_order_data
 )
-from .components import get_card_worker, get_card_task
+from .components import get_card_worker, get_card_task, get_card_order
 from .windows import get_main_window, get_card_window, popup_get_period
 
 
@@ -34,11 +34,13 @@ class StartWindowCard:
         elif self.key == '-ORD-':
             data = get_order_data(idx=self.idx)
             card = get_card_order(data)
+            w, h = self.window.current_size_accurate()
+            self.window.size = (w, h - 100)
         self.window.extend_layout(self.window['body'], card)
         self.move_center()
         while True:
             ev, val = self.window.read()
-            # print(f'{ev=} {val=}')
+            print(f'{ev=} {val=}')
             if ev in [sg.WIN_CLOSED, '-CANCEL-']:
                 break
             elif ev == 'order':

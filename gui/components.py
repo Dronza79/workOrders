@@ -156,3 +156,46 @@ def get_card_task(data):
             ], *table
         ], pad=10)
     ]]
+
+
+def get_card_order(data):
+    if data:
+        order = data.get('order', '')
+        tasks = data.get('tasks', [])
+        table_heads = ['№', 'Статус', 'Норма', 'Вып.', 'Работник', 'Коммент']
+        width_cols = [3, 8, 5, 5, 12, 14]
+        table = (
+            [
+                sg.HorizontalSeparator(pad=(0, 20))
+            ], [
+                sg.Table([
+                    [
+                        i, task.status, task.deadline, task.passed, task.worker, task.comment
+                    ] for i, task in enumerate(tasks, start=1)],
+                    table_heads,
+                    col_widths=width_cols,
+                    num_rows=5,
+                    key='-WORKER-TASKS-',
+                    **table_setting
+                )
+            ]
+        )
+    else:
+        table = []
+    return [[
+        sg.Col([
+            [
+                sg.T("Производственный заказ:", **text_setting),
+                sg.Input(order if data else '', key='order', **input_setting)
+            ], [
+                sg.T("Тип объекта:", **text_setting),
+                sg.Input(order.type_obj if data else '', key='type_obj', **input_setting)
+            ], [
+                sg.T("Наименование объекта:", **text_setting),
+                sg.Input(order.title if data else '', key='title', **input_setting)
+            ], [
+                sg.T("Конструктив:", **text_setting),
+                sg.Input(order.article if data else '', key='article', **input_setting)
+            ], *table
+        ], pad=10)
+    ]]
