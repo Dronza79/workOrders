@@ -5,7 +5,7 @@ table_setting = {
     'alternating_row_color': '#0E7477',
     'expand_y': True,
     'expand_x': True,
-    # 'vertical_scroll_only': False,
+    'vertical_scroll_only': False,
     'enable_events': True,
     'row_height': 35,
     'font': '_ 12',

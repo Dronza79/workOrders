@@ -43,22 +43,26 @@ def get_sector_tasks(code=''):
 def get_card_worker(data):
     job_list = list(data['func_position'])
     worker = data.get('worker')
-    table_heads = ['№', 'Объект', 'Артикул', 'ПРка', 'Статус', 'Норма', 'Вып.', 'Коммент']
-    width_cols = [3, 12, 20, 10, 8, 5, 5, 14]
+    table_heads = ['№', 'Статус', 'Объект', 'Артикул', 'ПРка', 'Норма', 'Вып.', 'Коммент']
+    width_cols = [3, 8, 12, 20, 10, 5, 5, 14]
     if worker:
         table = (
             [sg.HorizontalSeparator(pad=(0, 30))],
-            [sg.Table([
-                [i, task.order.title, task.order.article,
-                 task.order, task.status, task.deadline, task.worked_out, task.comment, task.id]
-                for i, task in enumerate(worker.tasks, start=1)],
-                table_heads,
-                col_widths=width_cols,
-                num_rows=5,
-                **table_setting)
-            ])
+            [sg.Input(worker.id, key='worker_id', visible=False)],
+            [
+                sg.Table([
+                    [i, task.status, task.order.title, task.order.article,
+                     task.order, task.deadline, task.worked_out, task.comment, task.id]
+                    for i, task in enumerate(worker.tasks, start=1)],
+                    table_heads,
+                    col_widths=width_cols,
+                    num_rows=5,
+                    key='-WORKER-TASKS-',
+                    **table_setting),
+            ]
+        )
     else:
-        table = ([])
+        table = []
     return [[
         sg.Col([
             [
@@ -72,7 +76,7 @@ def get_card_worker(data):
                 sg.Input(worker.second_name if worker else '', key='second_name', **input_setting)
             ], [
                 sg.HorizontalSeparator(pad=(0, 30))
-            ],  [
+            ], [
                 sg.T('Табельный номер:', **text_setting),
                 sg.Input(worker.table_num if worker else '', key='tab_num', **input_setting)
             ], [
@@ -92,12 +96,13 @@ def get_card_task(data):
     if task := data.get('task'):
         task = task.get()
         table = ([
-                sg.HorizontalSeparator()
-            ], [
-                sg.Multiline(time_worked if task else '', key='-TIME-WORKED-', disabled=True, size=(30, 5), font='_ 12'),
-                sg.Button('Добавить\nвремя', key='-ADD-TIME-', size=(10, 3), pad=10),
-                sg.Input(task.id, key='task', visible=False)
-            ])
+                     sg.HorizontalSeparator(pad=(0, 20))
+                 ], [
+                     sg.Multiline(time_worked if task else '', key='-TIME-WORKED-', disabled=True, size=(30, 8),
+                                  font='_ 12'),
+                     sg.Button('Добавить\nвремя', key='-ADD-TIME-', size=(10, 3), pad=10),
+                     sg.Input(task.id, key='task', visible=False)
+                 ])
     else:
         table = []
     statuses = list(data.get('statuses', []))

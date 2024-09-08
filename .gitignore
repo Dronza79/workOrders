@@ -2,3 +2,4 @@
 .idea/
 pac/
 *.db
+/t.py

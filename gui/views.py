@@ -17,7 +17,7 @@ from .windows import get_main_window, get_card_window, popup_get_period
 
 class StartWindowCard:
     def __init__(self, parent, raw_data=None, key=None, ):
-        self.idx = raw_data[-1] if raw_data else None
+        self.idx = int(raw_data[-1]) if raw_data else None
         self.key = key
         self.parent = parent
         self.window = get_card_window(form=self.key)
@@ -38,7 +38,7 @@ class StartWindowCard:
         self.move_center()
         while True:
             ev, val = self.window.read()
-            print(f'{ev=} {val=}')
+            # print(f'{ev=} {val=}')
             if ev in [sg.WIN_CLOSED, '-CANCEL-']:
                 break
             elif ev == 'order':
@@ -64,6 +64,14 @@ class StartWindowCard:
                     self.window['-PASSED-'].update(new_data.get('task').get().passed)
                     self.window['-TIME-WORKED-'].update(time_worked)
                     self.window.refresh()
+            elif ev == '-WORKER-TASKS-':
+                data = get_worker_data(int(val.get('worker_id')))
+                worker = data.get('worker')
+                StartWindowCard(
+                    raw_data=['', worker.tasks[val[ev].pop()].id],
+                    key='-TSK-',
+                    parent=self.window
+                )
         self.window.close()
 
     def move_center(self):
@@ -92,8 +100,7 @@ class StartMainWindow:
     def run(self):
         while True:
             ev, val = self.window.read()
-            print(f'{ev=} {val=}')
-            # print(f'{type(ev)=} {ev=} {val=}')
+            # print(f'{ev=} {val=}')
             if ev == sg.WIN_CLOSED:
                 break
             elif ev in ['-TG-', '-UPDATE-']:
@@ -101,15 +108,11 @@ class StartMainWindow:
             elif isinstance(ev, tuple) and ev[2][0] == -1:
                 self.sorting_list(ev[0], ev[2][1])
             elif ev in ['-WORKERS-', '-ORDERS-', '-TASKS-', '-CLOSE-', '-ADD-']:
-                # print(f"{val.get(ev)=}")
-                # print(f"{self.table.get(ev)=} {val.get(ev)=}")
-                kwargs = {
-                    'raw_data': self.table[ev][val[ev].pop()] if val.get(ev) else None,
-                    'key': val.get('-TG-'),
-                    'parent': self.window
-                }
-                # print(f'{kwargs=}')
-                StartWindowCard(**kwargs)
+                StartWindowCard(
+                    raw_data=self.table[ev][val[ev].pop()] if val.get(ev) else None,
+                    key=val.get('-TG-'),
+                    parent=self.window
+                )
                 self.actualizing()
 
         self.window.close()
@@ -117,13 +120,11 @@ class StartMainWindow:
     def sorting_list(self, key_table, column):
         if self.sort_col == column:
             self.sort = not self.sort
-        # print(f'{self.sort_col=} {self.sort=}')
         self.table[key_table] = sorted(self.table[key_table], key=itemgetter(column), reverse=self.sort)
         self.window[key_table].update(values=self.table[key_table])
         if self.sort_col == column:
             self.sort = not self.sort
         self.sort_col = column
-        # print(f'{self.sort_col=} {self.sort=}')
 
     def actualizing(self):
         self.get_format_list_workers()
@@ -143,7 +144,6 @@ class StartMainWindow:
                 if period:
                     period = period[-1]
                     total_worked = period.task.total_time
-                    # print(f'{worker=} {period=} {total_worked=}')
                 else:
                     period = None
                     total_worked = None
@@ -157,7 +157,6 @@ class StartMainWindow:
                     worker.id
                 )
                 self.table['-WORKERS-'].append(formatted_data)
-        # print(f'{self.workers=}')
 
     def get_format_list_orders(self):
         all_orders = get_all_orders()
@@ -178,7 +177,6 @@ class StartMainWindow:
                     f'{worker.surname} {worker.name[:1]}.{worker.second_name[:1]}.' if worker else '---',
                     order.order
                 )
-                # print(f'{formatted_data=}')
 
                 self.table['-ORDERS-'].append(formatted_data)
 
@@ -197,7 +195,6 @@ class StartMainWindow:
                 str(task.status),
                 task.id,
             ]
-            # formatted_data.insert(0, len(lst) + 1)
             lst.append(formatted_data)
         return lst
 

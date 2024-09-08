@@ -46,7 +46,9 @@ def get_card_window(form):
     return sg.Window(title, layout,
                      resizable=True,
                      finalize=True,
-                     sbar_frame_color='#64778D', margins=(10, 10),
+                     sbar_frame_color='#64778D',
+                     size=(450, 570),
+                     margins=(10, 10),
                      # modal=True
                      )
 
