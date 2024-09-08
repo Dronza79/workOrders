@@ -23,7 +23,7 @@ with get_database().atomic():
     data_order = []
     order = 28130
     for i in tit:
-        for _ in range(random.randint(6, 20)):
+        for _ in range(random.randint(1, 3)):
             obj = {}
             order += 1
             obj['title'] = i
@@ -74,7 +74,7 @@ with get_database().atomic():
     target_date = datetime.date(2024, 1, 14)
     delta = datetime.timedelta(days=1)
     history = {}
-    for _ in range(100):
+    for _ in range(30):
         for task in (
             Task.select(Task, Worker, Order)
             .join_from(Task, Worker)

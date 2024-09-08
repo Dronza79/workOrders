@@ -30,6 +30,7 @@ def get_all_workers():
         .join_from(Task, Order)
         .join_from(Task, Worker)
         .join_from(Task, Status)
+        .order_by(Period.date)
         .group_by(Task.id)
     )
     return peewee.prefetch(persons, periods, tasks)
