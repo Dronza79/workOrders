@@ -12,6 +12,7 @@ from database.queries import (
     get_all_orders, create_new_period, get_order_data
 )
 from .components import get_card_worker, get_card_task, get_card_order
+from .utils import validation_data
 from .windows import get_main_window, get_card_window, popup_get_period
 
 
@@ -25,22 +26,29 @@ class StartWindowCard:
 
     def run(self):
         card = []
+        w, h = self.window.current_size_accurate()
         if self.key == '-WRK-':
             data = get_worker_data(idx=self.idx)
             card = get_card_worker(data)
+            if not self.idx:
+                self.window.size = (w, h - 270)
         elif self.key in ['-CLS-', '-TSK-']:
             data = get_task_data(idx=self.idx)
             card = get_card_task(data)
+            if not self.idx:
+                self.window.size = (w, h - 190)
         elif self.key == '-ORD-':
             data = get_order_data(idx=self.idx)
             card = get_card_order(data)
-            w, h = self.window.current_size_accurate()
-            self.window.size = (w, h - 100)
+            if self.idx:
+                self.window.size = (w, h - 110)
+            else:
+                self.window.size = (w, h - 360)
         self.window.extend_layout(self.window['body'], card)
         self.move_center()
         while True:
             ev, val = self.window.read()
-            print(f'{ev=} {val=}')
+            print(f'WindowCard {ev=} {val=}')
             if ev in [sg.WIN_CLOSED, '-CANCEL-']:
                 break
             elif ev == 'order':
@@ -74,6 +82,8 @@ class StartWindowCard:
                     key='-TSK-',
                     parent=self.window
                 )
+            elif ev == '-SAVE-':
+                errors, valid_data = validation_data(val, self.idx)
         self.window.close()
 
     def move_center(self):
@@ -102,7 +112,7 @@ class StartMainWindow:
     def run(self):
         while True:
             ev, val = self.window.read()
-            # print(f'{ev=} {val=}')
+            print(f'MainWindow {ev=} {val=}')
             if ev == sg.WIN_CLOSED:
                 break
             elif ev in ['-TG-', '-UPDATE-']:

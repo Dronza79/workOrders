@@ -1,4 +1,5 @@
 import datetime
+import re
 
 from peewee import *
 
@@ -67,6 +68,14 @@ class Order(BaseModel):
     def __str__(self):
         num = 6 - len(str(self.order))
         return f'ПР-{"0" * num}{self.order}'
+
+    @property
+    def to_order(self):
+        return self.__str__()
+
+    @to_order.setter
+    def to_order(self, string_order):
+        self.order = int(re.findall(r'\d+', string_order).pop())
 
 
 class Task(BaseModel):

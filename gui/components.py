@@ -66,6 +66,7 @@ def get_card_worker(data):
     return [[
         sg.Col([
             [
+                sg.Input('worker', key='type', visible=False),
                 sg.T("Фамилия:", **text_setting),
                 sg.Input(worker.surname.upper() if worker else '', key='surname', **input_setting)
             ], [
@@ -112,6 +113,7 @@ def get_card_task(data):
     return [[
         sg.Col([
             [
+                sg.Input('task', key='type', visible=False),
                 sg.T("Производственный заказ:", **text_setting),
                 sg.Combo(
                     all_order,
@@ -182,9 +184,11 @@ def get_card_order(data):
         )
     else:
         table = []
+        order = None
     return [[
         sg.Col([
             [
+                sg.Input('order', key='type', visible=False),
                 sg.T("Производственный заказ:", **text_setting),
                 sg.Input(order if data else '', key='order', **input_setting)
             ], [
