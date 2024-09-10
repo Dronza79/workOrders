@@ -3,8 +3,8 @@ import random
 from database.models import *
 
 with get_database().atomic():
-    Vacancy.insert_many([[func] for func in FUNC_VARIABLES.values()], fields=['post']).execute()
-    Status.insert_many([[value] for value in STATUS_VARIABLES.values()], ['state']).execute()
+    # Vacancy.insert_many([[func] for func in FUNC_VARIABLES.values()], fields=['post']).execute()
+    # Status.insert_many([[value] for value in STATUS_VARIABLES.values()], ['state']).execute()
     data_person = [
         {'surname': 'Вахитов', 'name': 'Данис', 'second_name': 'Римович', 'table_num': 'A-001', 'function': 2},
         {'surname': 'Найденко', 'name': 'Георгий', 'second_name': 'Владимирович', 'table_num': 'A-002', 'function': 2},
@@ -37,7 +37,7 @@ with get_database().atomic():
             obj['article'] = (f"ENF{'20' if item == 'РУ-20кВ' else '06' if item == 'РУ-6кВ' else '10'}"
                               f"_{num}_{tunum}_0{hed}_00")
             obj['article'] += '-' + str(random.randint(10, 50)) if tunum == "00" else ''
-            obj['order'] = order
+            obj['no'] = order
             data_order.append(obj)
 
     Order.insert_many(data_order).execute()

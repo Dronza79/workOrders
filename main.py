@@ -3,7 +3,7 @@ from pathlib import Path
 
 from database.app_logger import add_logger_peewee
 from database.migrations import apply_migrations
-from database.utils import path
+from database.settings import path
 from gui.views import StartMainWindow
 
 

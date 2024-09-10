@@ -1,27 +1,33 @@
-from pathlib import Path
+import re
 
-from peewee import SqliteDatabase
-
-BASE_DIR = Path('.').resolve()
+from database.models import Worker, Vacancy
 
 
-class DBSetting:
-    def __init__(self):
-        import datetime
-        year = datetime.datetime.now().year
-        self._path = BASE_DIR / f'new_format{year}.db'
+def validation_data(raw_data):
+    errors = []
+    valid_data = raw_data.copy()
+    entity = valid_data.pop('type')
+    if entity == 'worker':
+        dep = {
+            'surname': 'Фамилия',
+            'name': 'Имя',
+            'table_num': 'Табельный номер',
+            'second_name': 'Отчество',
+            'function': 'Должность'
+        }
+        for key in valid_data:
+            if key not in ['second_name', 'function'] and len(valid_data[key]) < 3:
+                errors.append(f'Ошибка:\nПоле {dep[key]} не заполнено! (мин. 3 буквы)\n')
+            elif key in ['surname', 'name'] or (key == 'second_name' and valid_data['second_name']):
+                if not re.findall(r'\b[А-Яа-я]+\b', valid_data[key]):
+                    errors.append(f'Ошибка:\nПоле {dep[key]} допускаются только русские буквы!\n')
+            if key == 'table_num':
+                if Worker.get_or_none(Worker.table_num == valid_data['table_num']):
+                    errors.append(f'Ошибка:\nРаботник с таким Табельным номером уже существует!\n')
+            if key == 'function' and not isinstance(valid_data[key], Vacancy):
+                print(f'{isinstance(valid_data[key], Vacancy)=}')
+                errors.append(f'Ошибка:\nПоле {dep[key]} не выбрано!\n')
+            if key in ['surname', 'name', 'second_name']:
+                valid_data[key] = valid_data[key].capitalize()
 
-    @property
-    def get_path(self):
-        return self._path
-
-    @get_path.setter
-    def get_path(self, value):
-        self._path = Path(value).resolve()
-
-
-path = DBSetting()
-
-
-def get_database():
-    return SqliteDatabase(path.get_path)
+    return errors, valid_data

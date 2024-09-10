@@ -3,7 +3,7 @@ import re
 
 from peewee import *
 
-from .utils import get_database
+from .settings import get_database
 
 
 STATUS_VARIABLES = {
@@ -41,15 +41,19 @@ class Vacancy(BaseModel):
 
 
 class Worker(BaseModel):
-    surname = CharField(verbose_name='Фамилия')
-    name = CharField(verbose_name='Имя')
-    second_name = CharField(null=True, verbose_name='Отчество')
-    table_num = CharField(unique=True, verbose_name='Табельный номер')
+    surname = CharField(verbose_name='Фамилия', constraints=[Check('surname != ""')])
+    name = CharField(verbose_name='Имя', constraints=[Check('name != ""')])
+    # second_name = CharField(null=True, verbose_name='Отчество', default='')
+    second_name = CharField(verbose_name='Отчество', default='')
+    table_num = CharField(unique=True, verbose_name='Табельный номер', constraints=[Check('table_num != ""')])
     function = ForeignKeyField(Vacancy, verbose_name='Должность', on_delete='CASCADE')
     is_active = BooleanField(verbose_name='Отслеживается', default=True)
 
     def __str__(self):
-        return f'{self.surname} {self.name[:1]}.{self.second_name[:1]}. ({self.function.post})'
+        return (
+            f'{self.surname} '
+            f'{self.name[:1]}.'
+            f'{self.second_name[:1]+"." if self.second_name else ""} ({self.function.post})')
 
 
 class Status(BaseModel):
@@ -60,14 +64,14 @@ class Status(BaseModel):
 
 
 class Order(BaseModel):
-    order = SmallIntegerField(primary_key=True, unique=True, index=True, verbose_name='ПРка')
+    no = SmallIntegerField(unique=True, index=True, verbose_name='ПРка')
     type_obj = CharField(verbose_name='Тип объекта')
     title = CharField(verbose_name='Наименование объекта')
     article = CharField(verbose_name='Конструктив')
 
     def __str__(self):
-        num = 6 - len(str(self.order))
-        return f'ПР-{"0" * num}{self.order}'
+        num = 6 - len(str(self.no))
+        return f'ПР-{"0" * num}{self.no}'
 
     @property
     def to_order(self):
@@ -75,7 +79,7 @@ class Order(BaseModel):
 
     @to_order.setter
     def to_order(self, string_order):
-        self.order = int(re.findall(r'\d+', string_order).pop())
+        self.no = int(re.findall(r'\d+', string_order).pop())
 
 
 class Task(BaseModel):

@@ -11,8 +11,9 @@ from database.queries import (
     get_task_data,
     get_all_orders, create_new_period, get_order_data
 )
+from database.utils import validation_data
 from .components import get_card_worker, get_card_task, get_card_order
-from .utils import validation_data
+from .templates_settings import error_popup_setting
 from .windows import get_main_window, get_card_window, popup_get_period
 
 
@@ -64,7 +65,7 @@ class StartWindowCard:
                     data = {
                         'worker': tsk.worker,
                         'task': tsk,
-                        'order': tsk.order,
+                        'order': tsk.no,
                         'date': datetime.strptime(period.get('date'), '%d.%m.%Y'),
                         'value': period.get('value')
                     }
@@ -83,7 +84,11 @@ class StartWindowCard:
                     parent=self.window
                 )
             elif ev == '-SAVE-':
-                errors, valid_data = validation_data(val, self.idx)
+                errors, valid_data = validation_data(val)
+                if errors:
+                    sg.popup('\n'.join(errors), **error_popup_setting)
+                print(f'{errors=}')
+                print(f'{valid_data=}')
         self.window.close()
 
     def move_center(self):
@@ -162,6 +167,7 @@ class StartMainWindow:
                 formatted_data = (
                     i,
                     f'{worker.surname} {worker.name} {worker.second_name}',
+                    worker.table_num,
                     str(worker.function),
                     str(period.order) if period else '--',
                     period.task.deadline if period else 0,
@@ -187,7 +193,7 @@ class StartMainWindow:
                     order.title,
                     order.article,
                     f'{worker.surname} {worker.name[:1]}.{worker.second_name[:1]}.' if worker else '---',
-                    order.order
+                    order.no
                 )
 
                 self.table['-ORDERS-'].append(formatted_data)

@@ -4,8 +4,8 @@ from .templates_settings import table_setting, input_setting, drop_down_setting,
 
 
 def get_sector_workers():
-    heads = ['№ п/п', 'Фамилия имя отчество', 'Должность', 'Номер ПР', 'Норматив', 'Отработано']
-    width_cols = [4, 30, 16, 10, 7, 7]
+    heads = ['№ п/п', 'Фамилия имя отчество', 'Таб.номер', 'Должность', 'Номер ПР', 'Норматив', 'Отработано']
+    width_cols = [4, 30, 10, 16, 10, 7, 7]
     return [[
         sg.Table(
             values=[],
@@ -79,7 +79,7 @@ def get_card_worker(data):
                 sg.HorizontalSeparator(pad=(0, 30))
             ], [
                 sg.T('Табельный номер:', **text_setting),
-                sg.Input(worker.table_num if worker else '', key='tab_num', **input_setting)
+                sg.Input(worker.table_num if worker else '', key='table_num', **input_setting)
             ], [
                 sg.T('Должность:', **text_setting),
                 sg.Combo(
@@ -118,19 +118,19 @@ def get_card_task(data):
                 sg.Combo(
                     all_order,
                     key='order',
-                    default_value=task.order if task else 'Не выбрано',
+                    default_value=task.no if task else 'Не выбрано',
                     disabled=True if task else False,
                     enable_events=True,
                     **drop_down_setting)
             ], [
                 sg.T("Тип объекта:", **text_setting),
-                sg.Input(task.order.type_obj if task else '', key='type_obj', readonly=True, **input_setting)
+                sg.Input(task.no.type_obj if task else '', key='type_obj', readonly=True, **input_setting)
             ], [
                 sg.T("Наименование объекта:", **text_setting),
-                sg.Input(task.order.title if task else '', key='title', readonly=True, **input_setting)
+                sg.Input(task.no.title if task else '', key='title', readonly=True, **input_setting)
             ], [
                 sg.T("Конструктив:", **text_setting),
-                sg.Input(task.order.article if task else '', key='article', readonly=True, **input_setting)
+                sg.Input(task.no.article if task else '', key='article', readonly=True, **input_setting)
             ], [
                 sg.T("Норматив выполнения:", **text_setting),
                 sg.Input(task.deadline if task else '', key='deadline', **input_setting)

@@ -10,7 +10,7 @@ from .models import (
 def get_all_workers():
     persons = (
         Worker
-        .select(Worker.id, Worker.surname, Worker.name, Worker.second_name, Vacancy.post)
+        .select(Worker.id, Worker.table_num, Worker.surname, Worker.name, Worker.second_name, Vacancy.post)
         .join(Vacancy).where(Worker.is_active == True)
     )
 
@@ -40,10 +40,10 @@ def get_all_orders():
     orders = (
         Order.select()
         .where(
-            Order.order.not_in(Task.select(Task.order)) |
-            Order.order.in_(Task.select(Task.order).join(Status).where(Task.status.state.in_([sv[1], sv[3]])))
+            Order.no.not_in(Task.select(Task.order)) |
+            Order.no.in_(Task.select(Task.order).join(Status).where(Task.status.state.in_([sv[1], sv[3]])))
         )
-        .group_by(Order.order)
+        .group_by(Order.no)
     )
 
     tasks = (
@@ -103,8 +103,8 @@ def get_task_data(idx=None):
         query['all_orders'] = (
             Order.select()
             .where(
-                Order.order.not_in(Task.select(Task.order)) |
-                Order.order.in_(Task.select(Task.order).join(Status).where(Task.status.state.in_([sv[1], sv[3]])))
+                Order.no.not_in(Task.select(Task.order)) |
+                Order.no.in_(Task.select(Task.order).join(Status).where(Task.status.state.in_([sv[1], sv[3]])))
             )
         )
 
@@ -136,7 +136,7 @@ def get_all_tasks():
     return (
         Task.select(
             Task.id, Task.deadline, peewee.fn.SUM(Period.value).alias('total_worked'),
-            Order.order,
+            Order.no,
             Status.state,
             Period.value,
             Worker.surname, Worker.name, Worker.second_name

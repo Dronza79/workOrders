@@ -1,3 +1,5 @@
+from PySimpleGUI import POPUP_BUTTONS_OK
+
 table_setting = {
     'auto_size_columns': False,
     'justification': 'left',
@@ -159,4 +161,27 @@ multiline_setting = {
     # 'right_click_menu': None,
     # 'visible': True,
     # 'metadata': None
+}
+
+error_popup_setting = {
+    'title': 'Ошибка',
+    # 'button_color': None,
+    'background_color': '#92AECE',
+    'text_color': 'red',
+    # 'button_type': POPUP_BUTTONS_OK,
+    # 'auto_close': False,
+    # 'auto_close_duration': None,
+    # 'custom_text': (None, None),
+    # 'non_blocking': False,
+    # 'icon': None,
+    'line_width': 50,
+    'font': '_ 12',
+    # 'no_titlebar': False,
+    # 'grab_anywhere': False,
+    # 'keep_on_top': None,
+    # 'location': (None, None),
+    # 'relative_location': (None, None),
+    # 'any_key_closes': False,
+    # 'image': None,
+    'modal': True
 }
