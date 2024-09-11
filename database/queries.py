@@ -40,10 +40,10 @@ def get_all_orders():
     orders = (
         Order.select()
         .where(
-            Order.no.not_in(Task.select(Task.order)) |
-            Order.no.in_(Task.select(Task.order).join(Status).where(Task.status.state.in_([sv[1], sv[3]])))
+            Order.id.not_in(Task.select(Task.order)) |
+            Order.id.in_(Task.select(Task.order).join(Status).where(Task.status.state.in_([sv[1], sv[3]])))
         )
-        .group_by(Order.no)
+        .group_by(Order.id)
     )
 
     tasks = (

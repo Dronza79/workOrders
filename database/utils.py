@@ -1,6 +1,6 @@
 import re
 
-from database.models import Worker, Vacancy
+from database.models import Worker, Vacancy, Order
 
 
 def validation_data(raw_data, idx=None):
@@ -18,7 +18,6 @@ def validation_data(raw_data, idx=None):
         worker = None
         if idx:
             worker = Worker.select().where(Worker.id == idx).dicts().get()
-            print(worker)
         for key in ['surname', 'name', 'second_name', 'table_num', 'function']:
             if key not in ['second_name', 'function'] and len(raw_data[key]) < 3:
                 errors.append(f'Ошибка:\nПоле {dep[key]} не заполнено! (мин. 3 буквы)\n')
@@ -41,5 +40,28 @@ def validation_data(raw_data, idx=None):
             if key in ['surname', 'name', 'second_name']:
                 if valid_data.get(key):
                     valid_data[key] = valid_data[key].capitalize()
+    elif entity == 'order':
+        dep = {
+            'no': 'Номер производственного заказа',
+            'type_obj': 'Тип объекта',
+            'title': 'Наименование объекта',
+            'article': 'Конструктив',
+        }
+        order = None
+        if idx:
+            order = Order.select().where(Order.id == idx).get()
+            # order = Order.select().where(Order.id == idx).dicts().get()
+            print(f'{order=}')
+        for key in ['no', 'type_obj', 'title', 'article']:
+            if len(raw_data[key]) < 3:
+                errors.append(f'Ошибка:\nПоле {dep[key]} не заполнено!\n')
+            elif key == 'article' and not re.findall(
+                    r'\b[A-Z]{3}\d{2}[_-]\d{3}[_-]\d{2}[_-]\d{3}[_-]\d{2}', raw_data[key]):
+                errors.append(f'Ошибка:\nПоле {dep[key]} заполнено не по формату!\n')
+            elif key == 'no':
+                print(f'{idx=}')
+                if not idx or order.to_order != raw_data['no']:
+                    if Order.get_or_none(Order.no == int(re.findall(r'\d+', raw_data['no']).pop())):
+                        errors.append(f'Ошибка:\nЗаказ с таким номером уже существует!\n')
 
     return errors, valid_data

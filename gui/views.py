@@ -193,7 +193,7 @@ class StartMainWindow:
                     order.title,
                     order.article,
                     f'{worker.surname} {worker.name[:1]}.{worker.second_name[:1]}.' if worker else '---',
-                    order.no
+                    order.id
                 )
 
                 self.table['-ORDERS-'].append(formatted_data)

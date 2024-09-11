@@ -48,7 +48,7 @@ def get_card_worker(data):
     if worker:
         table = (
             [sg.HorizontalSeparator(pad=(0, 30))],
-            # [sg.Input(worker.id, key='worker_id', visible=False)],
+            [sg.Input(worker.id, key='worker_id', visible=False)],
             [
                 sg.Table([
                     [i, task.status, task.order.title, task.order.article,
@@ -118,19 +118,19 @@ def get_card_task(data):
                 sg.Combo(
                     all_order,
                     key='order',
-                    default_value=task.no if task else 'Не выбрано',
+                    default_value=task.order if task else 'Не выбрано',
                     disabled=True if task else False,
                     enable_events=True,
                     **drop_down_setting)
             ], [
                 sg.T("Тип объекта:", **text_setting),
-                sg.Input(task.no.type_obj if task else '', key='type_obj', readonly=True, **input_setting)
+                sg.Input(task.order.type_obj if task else '', key='type_obj', readonly=True, **input_setting)
             ], [
                 sg.T("Наименование объекта:", **text_setting),
-                sg.Input(task.no.title if task else '', key='title', readonly=True, **input_setting)
+                sg.Input(task.order.title if task else '', key='title', readonly=True, **input_setting)
             ], [
                 sg.T("Конструктив:", **text_setting),
-                sg.Input(task.no.article if task else '', key='article', readonly=True, **input_setting)
+                sg.Input(task.order.article if task else '', key='article', readonly=True, **input_setting)
             ], [
                 sg.T("Норматив выполнения:", **text_setting),
                 sg.Input(task.deadline if task else '', key='deadline', **input_setting)
@@ -190,7 +190,7 @@ def get_card_order(data):
             [
                 sg.Input('order', key='type', visible=False),
                 sg.T("Производственный заказ:", **text_setting),
-                sg.Input(order if data else '', key='order', **input_setting)
+                sg.Input(order.to_order if data else '', key='no', **input_setting)
             ], [
                 sg.T("Тип объекта:", **text_setting),
                 sg.Input(order.type_obj if data else '', key='type_obj', **input_setting)
