@@ -84,7 +84,7 @@ class StartWindowCard:
                     parent=self.window
                 )
             elif ev == '-SAVE-':
-                errors, valid_data = validation_data(val)
+                errors, valid_data = validation_data(val, self.idx)
                 if errors:
                     sg.popup('\n'.join(errors), **error_popup_setting)
                 print(f'{errors=}')

@@ -48,7 +48,7 @@ def get_card_worker(data):
     if worker:
         table = (
             [sg.HorizontalSeparator(pad=(0, 30))],
-            [sg.Input(worker.id, key='worker_id', visible=False)],
+            # [sg.Input(worker.id, key='worker_id', visible=False)],
             [
                 sg.Table([
                     [i, task.status, task.order.title, task.order.article,
@@ -85,7 +85,7 @@ def get_card_worker(data):
                 sg.Combo(
                     job_list,
                     key='function',
-                    default_value=worker.function.post if worker else 'Не выбрано',
+                    default_value=worker.function if worker else 'Не выбрано',
                     **drop_down_setting)
             ], *table
         ], pad=10)
