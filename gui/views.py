@@ -12,7 +12,8 @@ from database.queries import (
     get_all_orders, create_new_period, get_order_data
 )
 from database.utils import validation_data
-from .components import get_card_worker, get_card_task, get_card_order
+from .components import get_card_worker, get_card_task, get_card_order, get_list_task_for_worker, \
+    get_list_task_for_order
 from .templates_settings import error_popup_setting
 from .windows import get_main_window, get_card_window, popup_get_period
 
@@ -65,7 +66,7 @@ class StartWindowCard:
                     data = {
                         'worker': tsk.worker,
                         'task': tsk,
-                        'order': tsk.no,
+                        'order': tsk.order,
                         'date': datetime.strptime(period.get('date'), '%d.%m.%Y'),
                         'value': period.get('value')
                     }
@@ -75,14 +76,24 @@ class StartWindowCard:
                     self.window['-PASSED-'].update(new_data.get('task').get().passed)
                     self.window['-TIME-WORKED-'].update(time_worked)
                     self.window.refresh()
-            elif ev == '-WORKER-TASKS-':
-                data = get_worker_data(int(val.get('worker_id')))
-                worker = data.get('worker')
+            elif ev == '-DOUBLE-TASKS-':
+                if val['type'] == 'worker':
+                    entity = get_worker_data(int(val.get('worker_id'))).get('tasks')
+                    list_comprehension = get_list_task_for_worker
+                else:
+                    entity = get_order_data(int(val.get('order_id'))).get('tasks')
+                    list_comprehension = get_list_task_for_order
                 StartWindowCard(
-                    raw_data=['', worker.tasks[val[ev].pop()].id],
+                    raw_data=['', entity[val[ev].pop()].id],
                     key='-TSK-',
                     parent=self.window
                 )
+                if val['type'] == 'worker':
+                    entity = get_worker_data(int(val.get('worker_id'))).get('tasks')
+                else:
+                    entity = get_order_data(int(val.get('order_id'))).get('tasks')
+                self.window['-DOUBLE-TASKS-'].update(list(list_comprehension(entity)))
+                self.window.refresh()
             elif ev == '-SAVE-':
                 errors, valid_data = validation_data(val, self.idx)
                 if errors:

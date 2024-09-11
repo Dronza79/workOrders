@@ -61,26 +61,29 @@ def get_worker_data(idx=None):
         person = (
             Worker.select(Worker, Vacancy)
             .join_from(Worker, Vacancy)
-            .where(Worker.id == idx)
+            .where(Worker.id == idx).get()
         )
         tasks = (
             Task.select(
                 Task.id, Task.deadline, Task.comment,
                 Status, Worker, Order,
-                peewee.fn.SUM(Period.value).alias('worked_out'))
+                peewee.fn.SUM(Period.value).alias('passed'))
             .join_from(Task, Status)
             .join_from(Task, Worker)
             .join_from(Task, Period, peewee.JOIN.LEFT_OUTER)
             .join_from(Task, Order)
+            .where(Worker.id == idx)
             .order_by(Task.status)
             .group_by(Task.id)
         )
-        query = peewee.prefetch(person, tasks).pop()
+        # query = peewee.prefetch(person, tasks).pop()
     else:
-        query = None
+        person = None
+        tasks = None
     return {
         'func_position': Vacancy.select(),
-        'worker': query,
+        'worker': person,
+        'tasks': tasks
     }
 
 
@@ -114,7 +117,7 @@ def get_task_data(idx=None):
 def get_order_data(idx=None):
     if idx:
         return {
-            'order': Order[idx],
+            'order': Order.select().where(Order.id == idx).get(),
             'tasks': (
                 Task.select(
                     Task, Status, Worker, Order,

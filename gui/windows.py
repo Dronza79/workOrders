@@ -62,7 +62,7 @@ def popup_get_period(parent):
     layout = [
         [
             sg.Input(default_text=f'{date_now:%d.%m.%Y}', key='date', size=(10, 1)),
-            sg.CalendarButton('Календарь', begin_at_sunday_plus=1, target='date', format='%d.%m.%Y')
+            sg.CalendarButton('Календарь', key='-CB-', begin_at_sunday_plus=1, target='date', format='%d.%m.%Y')
         ], [
             sg.T('Продолжительность', font='_ 10'),
             sg.Combo([i for i in range(1, 13)], default_value=1, key='value', font='_ 12'),
@@ -77,4 +77,5 @@ def popup_get_period(parent):
     window.refresh()
     size = window.current_size_accurate()
     window.move(loc_x + size_w // 2 - size[0] // 2, loc_y + size_h // 2 - size[1] // 2)
+    window['-CB-'].calendar_location = loc_x + size_w // 2 - size[0] // 2, loc_y + size_h // 2 - size[1] // 2
     return window.read(close=True)[1]

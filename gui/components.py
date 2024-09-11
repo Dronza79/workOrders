@@ -40,9 +40,27 @@ def get_sector_tasks(code=''):
     ]]
 
 
+def get_list_task_for_worker(query):
+    return [
+        [
+            i, task.status, task.order.title, task.order.article,
+            task.order, task.deadline, task.passed, task.comment, task.id
+        ] for i, task in enumerate(query, start=1)
+    ]
+
+
+def get_list_task_for_order(query):
+    return [
+        [
+            i, task.status, task.deadline, task.passed, task.worker, task.comment
+        ] for i, task in enumerate(query, start=1)
+    ]
+
+
 def get_card_worker(data):
     job_list = list(data['func_position'])
     worker = data.get('worker')
+    tasks = data.get('tasks')
     table_heads = ['№', 'Статус', 'Объект', 'Артикул', 'ПРка', 'Норма', 'Вып.', 'Коммент']
     width_cols = [3, 8, 12, 20, 10, 5, 5, 14]
     if worker:
@@ -50,14 +68,12 @@ def get_card_worker(data):
             [sg.HorizontalSeparator(pad=(0, 30))],
             [sg.Input(worker.id, key='worker_id', visible=False)],
             [
-                sg.Table([
-                    [i, task.status, task.order.title, task.order.article,
-                     task.order, task.deadline, task.worked_out, task.comment, task.id]
-                    for i, task in enumerate(worker.tasks, start=1)],
+                sg.Table(
+                    get_list_task_for_worker(tasks),
                     table_heads,
                     col_widths=width_cols,
                     num_rows=5,
-                    key='-WORKER-TASKS-',
+                    key='-DOUBLE-TASKS-',
                     **table_setting),
             ]
         )
@@ -167,17 +183,15 @@ def get_card_order(data):
         table_heads = ['№', 'Статус', 'Норма', 'Вып.', 'Работник', 'Коммент']
         width_cols = [3, 8, 5, 5, 12, 14]
         table = (
+            [sg.HorizontalSeparator(pad=(0, 20))],
+            [sg.Input(order.id, key='order_id', visible=False)],
             [
-                sg.HorizontalSeparator(pad=(0, 20))
-            ], [
-                sg.Table([
-                    [
-                        i, task.status, task.deadline, task.passed, task.worker, task.comment
-                    ] for i, task in enumerate(tasks, start=1)],
+                sg.Table(
+                    get_list_task_for_order(tasks),
                     table_heads,
                     col_widths=width_cols,
                     num_rows=5,
-                    key='-WORKER-TASKS-',
+                    key='-DOUBLE-TASKS-',
                     **table_setting
                 )
             ]
