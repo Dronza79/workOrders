@@ -1,6 +1,6 @@
 import re
 
-from database.models import Worker, Vacancy, Order
+from database.models import Worker, Vacancy, Order, Task, Status
 
 
 def validation_data(raw_data, idx=None):
@@ -17,7 +17,7 @@ def validation_data(raw_data, idx=None):
         }
         worker = None
         if idx:
-            worker = Worker.select().where(Worker.id == idx).get()
+            worker = Worker.get(Worker.id == idx)
         for key in ['surname', 'name', 'second_name', 'table_num', 'function']:
             if key != 'function':
                 if key != 'second_name' and len(raw_data[key].strip()) < 3:
@@ -51,7 +51,7 @@ def validation_data(raw_data, idx=None):
         }
         order = None
         if idx:
-            order = Order.select().where(Order.id == idx).get()
+            order = Order.get(Order.id == idx)
         for key in ['no', 'type_obj', 'title', 'article']:
             if len(raw_data[key]) < 3:
                 errors.append(f'Ошибка:\nПоле {dep[key]} не заполнено!\n')
@@ -77,5 +77,31 @@ def validation_data(raw_data, idx=None):
             else:
                 if (idx and getattr(order, key) != raw_data[key]) or not idx:
                     valid_data[key] = raw_data[key]
+
+    elif entity == 'task':
+        dep = {
+            'order': 'Производственный заказ',
+            'worker': 'Исполнитель',
+            'status': 'Статус',
+            'deadline': 'Норматив выполнения',
+            'comment': 'Комментарии'
+        }
+        task = None
+        if idx:
+            task = Task.get(Task.id == idx)
+        for key, value in {'order': Order, 'status': Status, 'worker': Worker}.items():
+            print(f'{key=} {value=} {raw_data[key]=}')
+            if not isinstance(raw_data[key], value) and not idx:
+                errors.append(f'Ошибка:\nПоле {dep[key]} не выбрано!\n')
+            else:
+                if (idx and key not in ['order', 'worker'] and getattr(task, key) != raw_data[key]) or not idx:
+                    valid_data[key] = raw_data[key]
+        if not raw_data['deadline'].isdigit():
+            errors.append(f'Ошибка:\nПоле {dep["deadline"]} допускаются только цифры!\n')
+        else:
+            if (idx and getattr(task, "deadline") != int(raw_data["deadline"])) or not idx:
+                valid_data["deadline"] = int(raw_data["deadline"])
+        if (idx and getattr(task, "comment") != raw_data["comment"]) or not idx:
+            valid_data["comment"] = raw_data["comment"]
 
     return errors, valid_data

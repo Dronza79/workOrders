@@ -158,13 +158,13 @@ def get_card_task(data):
                 sg.Combo(
                     statuses,
                     key='status',
-                    default_value=task.status.state if task else 'Не выбрано',
+                    default_value=task.status if task else statuses[0],
                     **drop_down_setting)
             ], [
                 sg.T("Исполнитель:", **text_setting),
                 sg.Combo(
                     workers,
-                    key='master',
+                    key='worker',
                     default_value=task.worker if task else 'Не выбрано',
                     disabled=True if task else False,
                     **drop_down_setting)
