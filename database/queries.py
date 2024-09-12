@@ -7,6 +7,20 @@ from .models import (
 )
 
 
+def get_subquery_worker():
+    return (
+        Period.select(Period, Task, Order, Worker)
+        .join_from(Period, Task).join_from(Period, Order)
+        .join_from(Period, Worker).where(Task.status_id != 2)
+        .order_by(Period.date).group_by(Period.id)
+    ), (
+        Task.select(Task, Worker, Order, Status, peewee.fn.SUM(Period.value).alias('total_time'))
+        .join_from(Task, Period, peewee.JOIN.LEFT_OUTER).join_from(Task, Order)
+        .join_from(Task, Worker).join_from(Task, Status)
+        .order_by(Period.date).group_by(Task.id)
+    )
+
+
 def get_all_workers():
     persons = (
         Worker
@@ -14,25 +28,18 @@ def get_all_workers():
         .join(Vacancy).where(Worker.is_active == True)
     )
 
-    periods = (
-        Period
-        .select(Period, Task, Order, Worker)
-        .join_from(Period, Task)
-        .join_from(Period, Order)
-        .join_from(Period, Worker)
-        .where(Task.status_id != 2)
-        .order_by(Period.date)
-        .group_by(Period.id)
+    periods, tasks = get_subquery_worker()
+    return peewee.prefetch(persons, periods, tasks)
+
+
+def get_all_dismiss():
+    persons = (
+        Worker
+        .select(Worker.id, Worker.table_num, Worker.surname, Worker.name, Worker.second_name, Vacancy.post)
+        .join(Vacancy).where(Worker.is_active == False)
     )
-    tasks = (
-        Task.select(Task, Worker, Order, Status, peewee.fn.SUM(Period.value).alias('total_time'))
-        .join_from(Task, Period, peewee.JOIN.LEFT_OUTER)
-        .join_from(Task, Order)
-        .join_from(Task, Worker)
-        .join_from(Task, Status)
-        .order_by(Period.date)
-        .group_by(Task.id)
-    )
+
+    periods, tasks = get_subquery_worker()
     return peewee.prefetch(persons, periods, tasks)
 
 
@@ -179,3 +186,7 @@ def create_or_update_entity(key, data, idx):
         result = model.create(**data)
 
     return result
+
+
+def delete_or_restore_worker(idx):
+    return Worker.update(is_active=~Worker.is_active).where(Worker.id == idx).execute()

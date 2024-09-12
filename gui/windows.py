@@ -11,7 +11,7 @@ def get_main_window():
         sg.TabGroup([[
             sg.Tab(
                 'Список работников',
-                get_sector_workers(),
+                get_sector_workers(code='-WORKERS-'),
                 key='-WRK-', **tab_setting),
             sg.Tab(
                 'Список открытых заказов (ПРки)',
@@ -25,6 +25,10 @@ def get_main_window():
                 'Архив выполненных работ',
                 get_sector_tasks(code='-CLOSE-'),
                 key='-CLS-', **tab_setting),
+            sg.Tab(
+                'Исключенные работники',
+                get_sector_workers(code='-DISMISS-'),
+                key='-DSMS-', **tab_setting),
         ]], key='-TG-', expand_x=True, expand_y=True, enable_events=True)
     ], [
         sg.Button('Добавить', key='-ADD-'),

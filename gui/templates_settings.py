@@ -185,3 +185,37 @@ error_popup_setting = {
     # 'image': None,
     'modal': True
 }
+
+delete_button_setting = {
+    # 'target': (None, None),
+    # 'tooltip': None,
+    # 'file_types': FILE_TYPES_ALL_FILES,
+    # 'initial_folder': None,
+    # 'default_extension': '',
+    # 'disabled': False,
+    # 'change_submits': False,
+    # 'enable_events': False,
+    # 'image_filename': None,
+    # 'image_data': None,
+    # 'image_size': (None, None),
+    # 'image_subsample': None,
+    # 'image_source': None,
+    # 'border_width': None,
+    # 'size': (None, None),
+    # 's': (None, None),
+    # 'auto_size_button': None,
+    # 'button_color': 'red',
+    'disabled_button_color': '#616B67 on #64778D',
+    # 'highlight_colors': None,
+    # 'mouseover_colors': (None, None),
+    'use_ttk_buttons': True,
+    # 'font': None,
+    # 'bind_return_key': False,
+    # 'focus': False,
+    'pad': ((10, 10), (20, 0)),  # (left/right, top/bottom) or ((left, right), (top, bottom))
+    # 'right_click_menu': None,
+    # 'expand_x': False,
+    # 'expand_y': False,
+    # 'visible': True,
+    # 'metadata': None
+}

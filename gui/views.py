@@ -9,7 +9,8 @@ from database.queries import (
     get_close_tasks,
     get_worker_data,
     get_task_data,
-    get_all_orders, create_new_period, get_order_data, create_or_update_entity
+    get_all_orders, create_new_period, get_order_data, create_or_update_entity, get_all_dismiss,
+    delete_or_restore_worker
 )
 from database.utils import validation_data
 from .components import get_card_worker, get_card_task, get_card_order, get_list_task_for_worker, \
@@ -29,7 +30,7 @@ class StartWindowCard:
     def run(self):
         card = []
         w, h = self.window.current_size_accurate()
-        if self.key == '-WRK-':
+        if self.key in ['-WRK-', '-DSMS-']:
             data = get_worker_data(idx=self.idx)
             card = get_card_worker(data)
             if not self.idx:
@@ -96,19 +97,24 @@ class StartWindowCard:
                 self.window.refresh()
             elif ev == '-SAVE-':
                 errors, valid_data = validation_data(val, self.idx)
-                print(f'{errors=}')
-                print(f'{valid_data=}')
+                # print(f'{errors=}')
+                # print(f'{valid_data=}')
                 if errors:
                     sg.popup('\n'.join(errors), **error_popup_setting)
                 else:
                     if valid_data:
                         result = create_or_update_entity(key=val.get('type'), data=valid_data, idx=self.idx)
-                        print(f'{result=}')
+                        # print(f'{result=}')
                         if result:
                             sg.popup('Запись сохранена', **error_popup_setting)
                             break
                     else:
                         sg.popup('Изменения не вносились', **error_popup_setting)
+            elif ev in ['-DELETE-', '-RESTORE-']:
+                res = delete_or_restore_worker(int(val.get('worker_id')))
+                if res:
+                    sg.popup('Запись сохранена', **error_popup_setting)
+                    break
 
         self.window.close()
 
@@ -126,6 +132,7 @@ class StartMainWindow:
         '-ORDERS-': [],
         '-TASKS-': [],
         '-CLOSE-': [],
+        '-DISMISS-': [],
     }
     sort = False
     sort_col = None
@@ -145,7 +152,7 @@ class StartMainWindow:
                 self.actualizing()
             elif isinstance(ev, tuple) and ev[2][0] == -1:
                 self.sorting_list(ev[0], ev[2][1])
-            elif ev in ['-WORKERS-', '-ORDERS-', '-TASKS-', '-CLOSE-', '-ADD-']:
+            elif ev in ['-WORKERS-', '-ORDERS-', '-TASKS-', '-CLOSE-', '-ADD-', '-DISMISS-']:
                 StartWindowCard(
                     raw_data=self.table[ev][val[ev].pop()] if val.get(ev) else None,
                     key=val.get('-TG-'),
@@ -172,30 +179,62 @@ class StartMainWindow:
         self.window['-ORDERS-'].update(values=self.table['-ORDERS-'])
         self.window['-TASKS-'].update(values=self.table['-TASKS-'])
         self.window['-CLOSE-'].update(values=self.table['-CLOSE-'])
+        self.window['-DISMISS-'].update(values=self.table['-DISMISS-'])
+
+    # def get_format_list_workers(self):
+    #     all_workers = get_all_workers()
+    #     self.table['-WORKERS-'] = []
+    #     if all_workers:
+    #         for i, worker in enumerate(all_workers, start=1):
+    #             period = worker.time_worked
+    #             if period:
+    #                 period = period[-1]
+    #                 total_worked = period.task.total_time
+    #             else:
+    #                 period = None
+    #                 total_worked = None
+    #             formatted_data = (
+    #                 i,
+    #                 f'{worker.surname} {worker.name} {worker.second_name}',
+    #                 worker.table_num,
+    #                 str(worker.function),
+    #                 str(period.order) if period else '--',
+    #                 period.task.deadline if period else 0,
+    #                 total_worked if total_worked else 0,
+    #                 worker.id
+    #             )
+    #             self.table['-WORKERS-'].append(formatted_data)
+    @staticmethod
+    def _format_list_workers(lst_workers):
+        if not lst_workers:
+            return []
+        lst = []
+        for i, worker in enumerate(lst_workers, start=1):
+            period = worker.time_worked
+            if period:
+                period = period[-1]
+                total_worked = period.task.total_time
+            else:
+                period = None
+                total_worked = None
+            formatted_data = (
+                i,
+                f'{worker.surname} {worker.name} {worker.second_name}',
+                worker.table_num,
+                str(worker.function),
+                str(period.order) if period else '--',
+                period.task.deadline if period else 0,
+                total_worked if total_worked else 0,
+                worker.id
+            )
+            lst.append(formatted_data)
+        return lst
 
     def get_format_list_workers(self):
-        all_workers = get_all_workers()
         self.table['-WORKERS-'] = []
-        if all_workers:
-            for i, worker in enumerate(all_workers, start=1):
-                period = worker.time_worked
-                if period:
-                    period = period[-1]
-                    total_worked = period.task.total_time
-                else:
-                    period = None
-                    total_worked = None
-                formatted_data = (
-                    i,
-                    f'{worker.surname} {worker.name} {worker.second_name}',
-                    worker.table_num,
-                    str(worker.function),
-                    str(period.order) if period else '--',
-                    period.task.deadline if period else 0,
-                    total_worked if total_worked else 0,
-                    worker.id
-                )
-                self.table['-WORKERS-'].append(formatted_data)
+        self.table['-DISMISS-'] = []
+        self.table['-WORKERS-'].extend(self._format_list_workers(get_all_workers()))
+        self.table['-DISMISS-'].extend(self._format_list_workers(get_all_dismiss()))
 
     def get_format_list_orders(self):
         all_orders = get_all_orders()

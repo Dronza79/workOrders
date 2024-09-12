@@ -1,16 +1,17 @@
 import PySimpleGUI as sg
 
-from .templates_settings import table_setting, input_setting, drop_down_setting, text_setting, multiline_setting
+from .templates_settings import table_setting, input_setting, drop_down_setting, text_setting, multiline_setting, \
+    delete_button_setting
 
 
-def get_sector_workers():
+def get_sector_workers(code=''):
     heads = ['№ п/п', 'Фамилия имя отчество', 'Таб.номер', 'Должность', 'Номер ПР', 'Норматив', 'Отработано']
     width_cols = [4, 30, 10, 16, 10, 7, 7]
     return [[
         sg.Table(
             values=[],
             headings=heads,
-            key='-WORKERS-',
+            key=code,
             col_widths=width_cols,
             **table_setting)
     ]]
@@ -65,6 +66,18 @@ def get_card_worker(data):
     width_cols = [3, 8, 12, 20, 10, 5, 5, 14]
     if worker:
         table = (
+            [
+                sg.Button(
+                    'Исключить',
+                    key='-DELETE-',
+                    disabled=False if worker.is_active else True,
+                    **delete_button_setting),
+                sg.Button(
+                    'Вернуть',
+                    key='-RESTORE-',
+                    disabled=True if worker.is_active else False,
+                    **delete_button_setting),
+            ],
             [sg.HorizontalSeparator(pad=(0, 30))],
             [sg.Input(worker.id, key='worker_id', visible=False)],
             [
@@ -103,7 +116,7 @@ def get_card_worker(data):
                     key='function',
                     default_value=worker.function if worker else 'Не выбрано',
                     **drop_down_setting)
-            ], *table
+            ],  *table
         ], pad=10)
     ]]
 
