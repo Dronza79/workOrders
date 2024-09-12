@@ -169,3 +169,13 @@ def get_open_tasks():
 
 def create_new_period(data):
     return Period.create(**data)
+
+
+def create_or_update_entity(key, data, idx):
+    model = Worker if key == 'worker' else Order if key == 'order' else Task
+    if idx:
+        result = model.update(**data).where(model.id == idx).execute()
+    else:
+        result = model.create(**data)
+
+    return result

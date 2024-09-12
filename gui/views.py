@@ -9,7 +9,7 @@ from database.queries import (
     get_close_tasks,
     get_worker_data,
     get_task_data,
-    get_all_orders, create_new_period, get_order_data
+    get_all_orders, create_new_period, get_order_data, create_or_update_entity
 )
 from database.utils import validation_data
 from .components import get_card_worker, get_card_task, get_card_order, get_list_task_for_worker, \
@@ -96,10 +96,20 @@ class StartWindowCard:
                 self.window.refresh()
             elif ev == '-SAVE-':
                 errors, valid_data = validation_data(val, self.idx)
-                if errors:
-                    sg.popup('\n'.join(errors), **error_popup_setting)
                 print(f'{errors=}')
                 print(f'{valid_data=}')
+                if errors:
+                    sg.popup('\n'.join(errors), **error_popup_setting)
+                else:
+                    if valid_data:
+                        result = create_or_update_entity(key=val.get('type'), data=valid_data, idx=self.idx)
+                        print(f'{result=}')
+                        if result:
+                            sg.popup('Запись сохранена', **error_popup_setting)
+                            break
+                    else:
+                        sg.popup('Изменения не вносились', **error_popup_setting)
+
         self.window.close()
 
     def move_center(self):
