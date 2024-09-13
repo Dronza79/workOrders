@@ -1,7 +1,7 @@
 import PySimpleGUI as sg
 
 from .templates_settings import table_setting, input_setting, drop_down_setting, text_setting, multiline_setting, \
-    delete_button_setting
+    delete_button_setting, table_period_setting
 
 
 def get_sector_workers(code=''):
@@ -122,19 +122,34 @@ def get_card_worker(data):
 
 
 def get_card_task(data):
-    time_worked = '\n'.join([str(period) for period in data.get('time_worked', [])])
+    # time_worked = '\n'.join([str(period) for period in data.get('time_worked', [])])
+    time_worked = [
+        [
+            f'{period.date if period else "":%d.%m.%y}',
+            f'{period.date if period else "":%a}',
+            f'{period.value if period else ""} ч.',
+        ] for period in data.get('time_worked', [])]
+    headers = ['Дата', 'Дн.нед.', 'Время']
+    width_cols = [10, 5, 5]
     if task := data.get('task'):
         task = task.get()
-        table = ([
+        # table = [[
+        #              sg.HorizontalSeparator(pad=(0, 20))
+        #          ], [
+        #              sg.Multiline(time_worked if task else '', key='-TIME-WORKED-', disabled=True, size=(30, 8),
+        #                           font='_ 12'),
+        #              sg.Button('Добавить\nвремя', key='-ADD-TIME-', size=(10, 3), pad=10),
+        #              sg.Input(task.id, key='task', visible=False)
+        #          ]]
+        table = [[
                      sg.HorizontalSeparator(pad=(0, 20))
                  ], [
-                     sg.Multiline(time_worked if task else '', key='-TIME-WORKED-', disabled=True, size=(30, 8),
-                                  font='_ 12'),
+                     sg.Table(time_worked, headings=headers, col_widths=width_cols, key='-TIME-WORKED-', **table_period_setting),
                      sg.Button('Добавить\nвремя', key='-ADD-TIME-', size=(10, 3), pad=10),
                      sg.Input(task.id, key='task', visible=False)
-                 ])
+                 ]]
     else:
-        table = []
+        table = [[]]
     statuses = list(data.get('statuses', []))
     workers = list(data.get('workers', []))
     all_order = list(data.get('all_orders', []))

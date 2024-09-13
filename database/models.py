@@ -101,7 +101,7 @@ class Period(BaseModel):
     value = SmallIntegerField(verbose_name="Продолжительность")
 
     def __str__(self):
-        return f'{self.date:%d.%m.%y} ({self.date:%a}) - {self.value} ч.'
+        return f'id:{self.id} {self.date:%d.%m.%y} ({self.date:%a}) - {self.value} ч.'
 
     def __add__(self, other):  # обычное сложение с правым элементом
         return int(self.value + other.value) if isinstance(other, self.__class__) else (

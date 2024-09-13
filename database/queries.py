@@ -190,3 +190,8 @@ def create_or_update_entity(key, data, idx):
 
 def delete_or_restore_worker(idx):
     return Worker.update(is_active=~Worker.is_active).where(Worker.id == idx).execute()
+
+
+def get_period(pos, task):
+    task = Task.select().join(Period, peewee.JOIN.LEFT_OUTER).where(Task.id == int(task)).get()
+    return task.time_worked[pos]

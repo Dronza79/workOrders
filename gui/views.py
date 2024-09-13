@@ -10,7 +10,7 @@ from database.queries import (
     get_worker_data,
     get_task_data,
     get_all_orders, create_new_period, get_order_data, create_or_update_entity, get_all_dismiss,
-    delete_or_restore_worker
+    delete_or_restore_worker, get_period
 )
 from database.utils import validation_data
 from .components import get_card_worker, get_card_task, get_card_order, get_list_task_for_worker, \
@@ -20,14 +20,140 @@ from .windows import get_main_window, get_card_window, popup_get_period
 
 
 class StartWindowCard:
+    value = None
+
     def __init__(self, parent, raw_data=None, key=None, ):
         self.idx = int(raw_data[-1]) if raw_data else None
         self.key = key
         self.parent = parent
         self.window = get_card_window(form=self.key)
+        self.windows_extend()
         self.run()
 
     def run(self):
+        # card = []
+        # w, h = self.window.current_size_accurate()
+        # if self.key in ['-WRK-', '-DSMS-']:
+        #     data = get_worker_data(idx=self.idx)
+        #     card = get_card_worker(data)
+        #     if not self.idx:
+        #         self.window.size = (w, h - 270)
+        # elif self.key in ['-CLS-', '-TSK-']:
+        #     data = get_task_data(idx=self.idx)
+        #     card = get_card_task(data)
+        #     if not self.idx:
+        #         self.window.size = (w, h - 190)
+        # elif self.key == '-ORD-':
+        #     data = get_order_data(idx=self.idx)
+        #     card = get_card_order(data)
+        #     if self.idx:
+        #         self.window.size = (w, h - 110)
+        #     else:
+        #         self.window.size = (w, h - 360)
+        # self.window.extend_layout(self.window['body'], card)
+        # self.move_center()
+        while True:
+            ev, self.value = self.window.read()
+            # val = self.value
+            # print(f'WindowCard {ev=} {val=}')
+            print(f'WindowCard {ev=} {self.value=}')
+            if ev in [sg.WIN_CLOSED, '-CANCEL-']:
+                break
+            elif ev == 'order':
+                # order = val.get(ev)
+                order = self.value.get(ev)
+                self.window['type_obj'].update(order.type_obj)
+                self.window['title'].update(order.title)
+                self.window['article'].update(order.article)
+                self.window.refresh()
+            elif ev == '-ADD-TIME-':
+                _, period = popup_get_period(self.window)
+                if period:
+                    # tsk = get_task_data(val.get('task')).get('task').get()
+                    tsk = get_task_data(self.value.get('task')).get('task').get()
+                    data = {
+                        'worker': tsk.worker,
+                        'task': tsk,
+                        'order': tsk.order,
+                        'date': datetime.strptime(period.get('date'), '%d.%m.%Y'),
+                        'value': period.get('value')
+                    }
+                    create_new_period(data)
+                    # new_data = get_task_data(val.get('task'))
+                    new_data = get_task_data(self.value.get('task'))
+                    time_worked = [
+                        [
+                            f'{period.date if period else "":%d.%m.%y}',
+                            f'{period.date if period else "":%a}',
+                            f'{period.value if period else ""} ч.',
+                        ] for period in new_data.get('time_worked', [])]
+                    self.window['-PASSED-'].update(new_data.get('task').get().passed)
+                    self.window['-TIME-WORKED-'].update(time_worked)
+                    self.window.refresh()
+            elif ev == '-TIME-WORKED-':
+                # period = get_period(pos=val.get(ev).pop(), task=val.get('task'))
+                period = get_period(pos=self.value.get(ev).pop(), task=self.value.get('task'))
+                ev_per, val_per = popup_get_period(self.window, period)
+                # print(f'Period {ev_per=} {val_per=} {val.get("task")=}')
+                print(f'Period {ev_per=} {val_per=} {self.value.get("task")=}')
+            elif ev == '-DOUBLE-TASKS-':
+                # if val['type'] == 'worker':
+                if self.value['type'] == 'worker':
+                    # entity = get_worker_data(int(val.get('worker_id'))).get('tasks')
+                    entity = get_worker_data(int(self.value.get('worker_id'))).get('tasks')
+                    list_comprehension = get_list_task_for_worker
+                else:
+                    # entity = get_order_data(int(val.get('order_id'))).get('tasks')
+                    entity = get_order_data(int(self.value.get('order_id'))).get('tasks')
+                    list_comprehension = get_list_task_for_order
+                StartWindowCard(
+                    # raw_data=['', entity[val[ev].pop()].id],
+                    raw_data=['', entity[self.value[ev].pop()].id],
+                    key='-TSK-',
+                    parent=self.window
+                )
+                # if val['type'] == 'worker':
+                if self.value['type'] == 'worker':
+                    # entity = get_worker_data(int(val.get('worker_id'))).get('tasks')
+                    entity = get_worker_data(int(self.value.get('worker_id'))).get('tasks')
+                else:
+                    # entity = get_order_data(int(val.get('order_id'))).get('tasks')
+                    entity = get_order_data(int(self.value.get('order_id'))).get('tasks')
+                self.window['-DOUBLE-TASKS-'].update(list(list_comprehension(entity)))
+                self.window.refresh()
+            elif ev == '-SAVE-':
+                # errors, valid_data = validation_data(val, self.idx)
+                errors, valid_data = validation_data(self.value, self.idx)
+                # print(f'{errors=}')
+                # print(f'{valid_data=}')
+                if errors:
+                    sg.popup('\n'.join(errors), **error_popup_setting)
+                else:
+                    if valid_data:
+                        # result = create_or_update_entity(key=val.get('type'), data=valid_data, idx=self.idx)
+                        result = create_or_update_entity(key=self.value.get('type'), data=valid_data, idx=self.idx)
+                        # print(f'{result=}')
+                        if result:
+                            sg.popup('Запись сохранена', **error_popup_setting)
+                            break
+                    else:
+                        sg.popup('Изменения не вносились', **error_popup_setting)
+            elif ev in ['-DELETE-', '-RESTORE-']:
+                # res = delete_or_restore_worker(int(val.get('worker_id')))
+                res = delete_or_restore_worker(int(self.value.get('worker_id')))
+                if res:
+                    sg.popup('Запись сохранена', **error_popup_setting)
+                    break
+        self.window.close()
+
+    def move_center(self):
+        size_w, size_h = self.parent.current_size_accurate()
+        loc_x, loc_y = self.parent.current_location()
+        self.window.refresh()
+        size = self.window.current_size_accurate()
+        self.window.move(loc_x + size_w // 2 - size[0] // 2, loc_y + size_h // 2 - size[1] // 2)
+
+    def windows_extend(self):
         card = []
         w, h = self.window.current_size_accurate()
         if self.key in ['-WRK-', '-DSMS-']:
@@ -49,81 +175,6 @@ class StartWindowCard:
                 self.window.size = (w, h - 360)
         self.window.extend_layout(self.window['body'], card)
         self.move_center()
-        while True:
-            ev, val = self.window.read()
-            print(f'WindowCard {ev=} {val=}')
-            if ev in [sg.WIN_CLOSED, '-CANCEL-']:
-                break
-            elif ev == 'order':
-                order = val.get(ev)
-                self.window['type_obj'].update(order.type_obj)
-                self.window['title'].update(order.title)
-                self.window['article'].update(order.article)
-                self.window.refresh()
-            elif ev == '-ADD-TIME-':
-                period = popup_get_period(self.window)
-                if period:
-                    tsk = get_task_data(val.get('task')).get('task').get()
-                    data = {
-                        'worker': tsk.worker,
-                        'task': tsk,
-                        'order': tsk.order,
-                        'date': datetime.strptime(period.get('date'), '%d.%m.%Y'),
-                        'value': period.get('value')
-                    }
-                    create_new_period(data)
-                    new_data = get_task_data(val.get('task'))
-                    time_worked = '\n'.join([str(period) for period in new_data.get('time_worked', [])])
-                    self.window['-PASSED-'].update(new_data.get('task').get().passed)
-                    self.window['-TIME-WORKED-'].update(time_worked)
-                    self.window.refresh()
-            elif ev == '-DOUBLE-TASKS-':
-                if val['type'] == 'worker':
-                    entity = get_worker_data(int(val.get('worker_id'))).get('tasks')
-                    list_comprehension = get_list_task_for_worker
-                else:
-                    entity = get_order_data(int(val.get('order_id'))).get('tasks')
-                    list_comprehension = get_list_task_for_order
-                StartWindowCard(
-                    raw_data=['', entity[val[ev].pop()].id],
-                    key='-TSK-',
-                    parent=self.window
-                )
-                if val['type'] == 'worker':
-                    entity = get_worker_data(int(val.get('worker_id'))).get('tasks')
-                else:
-                    entity = get_order_data(int(val.get('order_id'))).get('tasks')
-                self.window['-DOUBLE-TASKS-'].update(list(list_comprehension(entity)))
-                self.window.refresh()
-            elif ev == '-SAVE-':
-                errors, valid_data = validation_data(val, self.idx)
-                # print(f'{errors=}')
-                # print(f'{valid_data=}')
-                if errors:
-                    sg.popup('\n'.join(errors), **error_popup_setting)
-                else:
-                    if valid_data:
-                        result = create_or_update_entity(key=val.get('type'), data=valid_data, idx=self.idx)
-                        # print(f'{result=}')
-                        if result:
-                            sg.popup('Запись сохранена', **error_popup_setting)
-                            break
-                    else:
-                        sg.popup('Изменения не вносились', **error_popup_setting)
-            elif ev in ['-DELETE-', '-RESTORE-']:
-                res = delete_or_restore_worker(int(val.get('worker_id')))
-                if res:
-                    sg.popup('Запись сохранена', **error_popup_setting)
-                    break
-
-        self.window.close()
-
-    def move_center(self):
-        size_w, size_h = self.parent.current_size_accurate()
-        loc_x, loc_y = self.parent.current_location()
-        self.window.refresh()
-        size = self.window.current_size_accurate()
-        self.window.move(loc_x + size_w // 2 - size[0] // 2, loc_y + size_h // 2 - size[1] // 2)
 
 
 class StartMainWindow:
