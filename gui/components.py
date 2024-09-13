@@ -144,7 +144,12 @@ def get_card_task(data):
         table = [[
                      sg.HorizontalSeparator(pad=(0, 20))
                  ], [
-                     sg.Table(time_worked, headings=headers, col_widths=width_cols, key='-TIME-WORKED-', **table_period_setting),
+                     sg.Table(
+                         time_worked,
+                         headings=headers,
+                         col_widths=width_cols,
+                         key='-TIME-WORKED-',
+                         **table_period_setting),
                      sg.Button('Добавить\nвремя', key='-ADD-TIME-', size=(10, 3), pad=10),
                      sg.Input(task.id, key='task', visible=False)
                  ]]
@@ -180,7 +185,7 @@ def get_card_task(data):
                 sg.Input(task.deadline if task else '', key='deadline', **input_setting)
             ], [
                 sg.T("Отработано:", **text_setting),
-                sg.Input(task.passed if task else '0', key='-PASSED-', readonly=True, **input_setting)
+                sg.Input(data.get('passed', 0), key='-PASSED-', readonly=True, **input_setting)
             ], [
                 sg.T("Статус:", **text_setting),
                 sg.Combo(

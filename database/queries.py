@@ -95,7 +95,6 @@ def get_worker_data(idx=None):
 
 
 def get_task_data(idx=None):
-    # print(f'{idx=}')
     query = {'statuses': Status.select()}
     if idx:
         query['task'] = (
@@ -107,7 +106,9 @@ def get_task_data(idx=None):
             .where(Task.id == idx)
             .group_by(Task.id)
         )
-        query['time_worked'] = Period.select().where(Period.task_id == idx)
+        periods = Period.select().where(Period.task_id == idx)
+        query['passed'] = sum(periods)
+        query['time_worked'] = periods
     else:
         query['workers'] = Worker.select(Worker, Vacancy.post).join(Vacancy)
         query['all_orders'] = (
