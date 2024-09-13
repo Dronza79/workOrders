@@ -98,13 +98,12 @@ def get_task_data(idx=None):
     query = {'statuses': Status.select()}
     if idx:
         query['task'] = (
-            Task.select(Task, Status, Worker, Order, peewee.fn.SUM(Period.value).alias('passed'))
+            Task.select(Task, Status, Worker, Order)
             .join_from(Task, Status)
             .join_from(Task, Order)
             .join_from(Task, Worker)
-            .join_from(Task, Period, peewee.JOIN.LEFT_OUTER)
             .where(Task.id == idx)
-            .group_by(Task.id)
+            # .group_by(Task.id)
         )
         periods = Period.select().where(Period.task_id == idx)
         query['passed'] = sum(periods)

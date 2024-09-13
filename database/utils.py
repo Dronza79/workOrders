@@ -105,3 +105,7 @@ def validation_data(raw_data, idx=None):
             valid_data["comment"] = raw_data["comment"]
 
     return errors, valid_data
+
+
+def validation_period_data(raw_data):
+    print(f'validation_period_data {raw_data=}')

@@ -116,19 +116,17 @@ def get_card_worker(data):
                     key='function',
                     default_value=worker.function if worker else 'Не выбрано',
                     **drop_down_setting)
-            ],  *table
+            ], *table
         ], pad=10)
     ]]
 
 
 def get_card_task(data):
-    # time_worked = '\n'.join([str(period) for period in data.get('time_worked', [])])
     time_worked = [
-        [
-            f'{period.date if period else "":%d.%m.%y}',
-            f'{period.date if period else "":%a}',
-            f'{period.value if period else ""} ч.',
-        ] for period in data.get('time_worked', [])]
+        [f'{period.date:%d.%m.%y}',
+         f'{period.date:%a}',
+         f'{period.value} ч.',
+         ] for period in data.get('time_worked', [])]
     headers = ['Дата', 'Дн.нед.', 'Время']
     width_cols = [10, 5, 5]
     if task := data.get('task'):
@@ -142,17 +140,17 @@ def get_card_task(data):
         #              sg.Input(task.id, key='task', visible=False)
         #          ]]
         table = [[
-                     sg.HorizontalSeparator(pad=(0, 20))
-                 ], [
-                     sg.Table(
-                         time_worked,
-                         headings=headers,
-                         col_widths=width_cols,
-                         key='-TIME-WORKED-',
-                         **table_period_setting),
-                     sg.Button('Добавить\nвремя', key='-ADD-TIME-', size=(10, 3), pad=10),
-                     sg.Input(task.id, key='task', visible=False)
-                 ]]
+            sg.HorizontalSeparator(pad=(0, 20))
+        ], [
+            sg.Table(
+                time_worked,
+                headings=headers,
+                col_widths=width_cols,
+                key='-TIME-WORKED-',
+                **table_period_setting),
+            sg.Button('Добавить\nвремя', key='-ADD-TIME-', size=(10, 3), pad=10),
+            sg.Input(task.id, key='task', visible=False)
+        ]]
     else:
         table = [[]]
     statuses = list(data.get('statuses', []))
