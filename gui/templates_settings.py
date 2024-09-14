@@ -207,7 +207,7 @@ multiline_setting = {
 }
 
 error_popup_setting = {
-    'title': 'Ошибка',
+    # 'title': 'Ошибка',
     # 'button_color': None,
     'background_color': '#92AECE',
     'text_color': 'red',

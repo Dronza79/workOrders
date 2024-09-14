@@ -85,7 +85,7 @@ def get_card_worker(data):
                     get_list_task_for_worker(tasks),
                     table_heads,
                     col_widths=width_cols,
-                    num_rows=5,
+                    num_rows=3,
                     key='-DOUBLE-TASKS-',
                     **table_setting),
             ]
@@ -122,6 +122,7 @@ def get_card_worker(data):
 
 
 def get_card_task(data):
+    print(f'get_card_task {data=}')
     time_worked = [
         [f'{period.date:%d.%m.%y}',
          f'{period.date:%a}',
@@ -130,15 +131,6 @@ def get_card_task(data):
     headers = ['Дата', 'Дн.нед.', 'Время']
     width_cols = [10, 5, 5]
     if task := data.get('task'):
-        task = task.get()
-        # table = [[
-        #              sg.HorizontalSeparator(pad=(0, 20))
-        #          ], [
-        #              sg.Multiline(time_worked if task else '', key='-TIME-WORKED-', disabled=True, size=(30, 8),
-        #                           font='_ 12'),
-        #              sg.Button('Добавить\nвремя', key='-ADD-TIME-', size=(10, 3), pad=10),
-        #              sg.Input(task.id, key='task', visible=False)
-        #          ]]
         table = [[
             sg.HorizontalSeparator(pad=(0, 20))
         ], [

@@ -95,6 +95,7 @@ def get_worker_data(idx=None):
 
 
 def get_task_data(idx=None):
+    print(f'get_task_data {idx=}')
     query = {'statuses': Status.select()}
     if idx:
         query['task'] = (
@@ -103,7 +104,8 @@ def get_task_data(idx=None):
             .join_from(Task, Order)
             .join_from(Task, Worker)
             .where(Task.id == idx)
-            # .group_by(Task.id)
+            .group_by(Task.id)
+            .get()
         )
         periods = Period.select().where(Period.task_id == idx)
         query['passed'] = sum(periods)
@@ -195,3 +197,14 @@ def delete_or_restore_worker(idx):
 def get_period(pos, task):
     task = Task.select().join(Period, peewee.JOIN.LEFT_OUTER).where(Task.id == int(task)).get()
     return task.time_worked[pos]
+
+
+def update_delete_period(data, action):
+    print(f'update_delete_period {data=}')
+    idx = int(data.pop('period_id'))
+    if action == '-SAVE-PER-':
+        if data:
+            return Period.update(**data).where(Period.id == idx).execute()
+        return None
+    elif action == '-DEL-PER-':
+        return Period.delete().where(Period.id == idx).execute()
