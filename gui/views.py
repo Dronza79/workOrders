@@ -134,7 +134,7 @@ class StartWindowCard:
                 self.window.size = (w, h - 110)
             else:
                 self.window.size = (w, h - 360)
-        self.window.extend_layout(self.window['body'], card)
+        self.window.extend_layout(self.window['body'], [card])
         self.move_center()
 
     def actualizing_passed_period(self):

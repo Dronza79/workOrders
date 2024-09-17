@@ -48,14 +48,19 @@ def get_card_window(form):
         else "Карточка заказа"
     )
     layout = [
-        [sg.Col([[]], key='body')],
-        [sg.Push(), sg.B('Сохранить', key='-SAVE-'), sg.B('Отменить', key='-CANCEL-'), sg.Push()]
+        [sg.Col([], key='body')],
+        [
+            sg.Push(),
+            sg.B('Сохранить', key='-SAVE-'),
+            sg.B('Отменить', key='-CANCEL-'),
+            sg.Push(),
+        ]
     ]
     return sg.Window(title, layout,
-                     resizable=True,
+                     # resizable=True,
                      finalize=True,
                      sbar_frame_color='#64778D',
-                     size=(450, 570),
+                     # size=(450, 570),
                      margins=(10, 10),
                      # modal=True
                      )
