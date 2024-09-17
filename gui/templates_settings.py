@@ -49,7 +49,7 @@ table_period_setting = {
     'num_rows': 5,
     'alternating_row_color': '#0E7477',
     'expand_y': True,
-    # 'expand_x': True,
+    'expand_x': True,
     'vertical_scroll_only': True,
     'enable_events': True,
     'row_height': 20,
@@ -80,7 +80,7 @@ table_period_setting = {
     # 'enable_click_events': True,
     # 'right_click_selects': False,
     # 'bind_return_key': False,
-    # 'pad': None,
+    'pad': 0,
     # 'tooltip': None,
     # 'right_click_menu': None,
     # 'visible': True,
@@ -144,7 +144,7 @@ tab_setting = {
 }
 
 input_setting = {
-    'size': (20, 1),
+    'size': (23, 1),
     # 'auto_size_text': True,
     # 'enable_events': False,
     # 'relief': sg.RELIEF_SOLID,
@@ -168,7 +168,7 @@ input_setting = {
 
 drop_down_setting = {
     # 'default_value': "Не выбрано",
-    'size': (19, 1),
+    'size': (22, 1),
     # 'auto_size_text': None,
     # 'background_color': None,
     # 'text_color': None,
@@ -213,7 +213,7 @@ multiline_setting = {
     # 'disabled': False,
     # 'autoscroll': False,
     # 'border_width': None,
-    'size': (24, 3),
+    'size': (22, 3),
     # 'auto_size_text': None,
     # 'background_color': None,
     # 'text_color': None,
@@ -229,7 +229,7 @@ multiline_setting = {
     # 'echo_stdout_stderr': False,
     # 'focus': False,
     'font': '_ 12',
-    # 'pad': None,
+    'pad': 0,
     # 'tooltip': None,
     # 'justification': None,
     # 'no_scrollbar': False,

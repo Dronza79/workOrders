@@ -79,8 +79,8 @@ def get_card_worker(data):
                 **delete_button_setting
             )
         ]])
-        table = ([[
-            sg.Frame('', [
+        table = [[
+            sg.Frame('Связанные задачи:', [
                 [sg.Input(worker.id, key='worker_id', visible=False)],
                 [sg.Table(
                     get_list_task_for_worker(tasks),
@@ -90,49 +90,50 @@ def get_card_worker(data):
                     key='-DOUBLE-TASKS-',
                     **table_tasks_setting)]
             ], size=(330, 150), **frame_setting)
-        ]])
+        ]]
     else:
         buttons = []
         table = []
 
     return [sg.pin(sg.Col([[
-            sg.Frame('Персональные данные:', [[sg.Col([
-                [
-                    sg.Input('worker', key='type', visible=False),
-                    sg.T("Фамилия:", **text_setting),
-                    sg.Push(),
-                    sg.Input(worker.surname.upper() if worker else '', key='surname', **input_setting)
-                ], [
-                    sg.Text("Имя:", **text_setting),
-                    sg.Push(),
-                    sg.Input(worker.name if worker else '', key='name', **input_setting)
-                ], [
-                    sg.T("Отчество:", **text_setting),
-                    sg.Push(),
-                    sg.Input(worker.second_name if worker else '', key='second_name', **input_setting)
-                ],
-            ], pad=15, vertical_alignment='center')]], **frame_setting)], [
-            sg.Frame('Служебные данные:', [[sg.Col([
-                [
-                    sg.T('Табельный номер:', **text_setting),
-                    sg.Push(),
-                    sg.Input(worker.table_num if worker else '', key='table_num', **input_setting)
-                ], [
-                    sg.T('Должность:', **text_setting),
-                    sg.Push(),
-                    sg.Combo(
-                        job_list,
-                        key='function',
-                        default_value=worker.function if worker else 'Не выбрано',
-                        **drop_down_setting)
-                ],
-            ] + buttons, pad=10)]], **frame_setting)],  # конец второго фрейма
-            *table
-        ], pad=0))]
+        sg.Frame('Персональные данные:', [[sg.Col([
+            [
+                sg.Input('worker', key='type', visible=False),
+                sg.T("Фамилия:", **text_setting),
+                sg.Push(),
+                sg.Input(worker.surname.upper() if worker else '', key='surname', **input_setting)
+            ], [
+                sg.Text("Имя:", **text_setting),
+                sg.Push(),
+                sg.Input(worker.name if worker else '', key='name', **input_setting)
+            ], [
+                sg.T("Отчество:", **text_setting),
+                sg.Push(),
+                sg.Input(worker.second_name if worker else '', key='second_name', **input_setting)
+            ],
+        ], pad=15, vertical_alignment='center')]], **frame_setting)], [
+        sg.Frame('Служебные данные:', [[sg.Col([
+                                                   [
+                                                       sg.T('Табельный номер:', **text_setting),
+                                                       sg.Push(),
+                                                       sg.Input(worker.table_num if worker else '', key='table_num',
+                                                                **input_setting)
+                                                   ], [
+                sg.T('Должность:', **text_setting),
+                sg.Push(),
+                sg.Combo(
+                    job_list,
+                    key='function',
+                    default_value=worker.function if worker else 'Не выбрано',
+                    **drop_down_setting)
+            ],
+                                               ] + buttons, pad=10)]], **frame_setting)],  # конец второго фрейма
+        *table
+    ], pad=0))]
 
 
 def get_card_task(data):
-    print(f'get_card_task {data=}')
+    # print(f'get_card_task {data=}')
     time_worked = [
         [f'{period.date:%d.%m.%y}',
          f'{period.date:%a}',
@@ -142,59 +143,57 @@ def get_card_task(data):
     width_cols = [10, 5, 5]
     if task := data.get('task'):
         table = [[
-            sg.HorizontalSeparator(pad=(0, 20))
-        ], [
-            sg.Table(
-                time_worked,
-                headings=headers,
-                col_widths=width_cols,
-                key='-TIME-WORKED-',
-                **table_period_setting),
-            sg.Button('Добавить\nвремя', key='-ADD-TIME-', size=(10, 3), pad=10),
-            sg.Input(task.id, key='task', visible=False)
+            sg.Frame('Табель времени:', [
+                [sg.Input(task.id, key='task', visible=False)],
+                [
+                    sg.Table(
+                        time_worked,
+                        headings=headers,
+                        col_widths=width_cols,
+                        key='-TIME-WORKED-',
+                        **table_period_setting),
+                    sg.Button(
+                        'Добавить\nвремя',
+                        key='-ADD-TIME-',
+                        size=(10, 3), pad=10)
+                ]
+            ], size=(330, 150), **frame_setting)
         ]]
     else:
-        table = [[]]
+        table = []
     statuses = list(data.get('statuses', []))
     workers = list(data.get('workers', []))
     all_order = list(data.get('all_orders', []))
 
-    return [[
-        sg.Col([
+    return [sg.pin(sg.Col([[
+        sg.Frame('Заказ:', [[sg.Col([[
+            sg.Input('task', key='type', visible=False),
+            sg.T("Номер заказа:", **text_setting),
+            sg.Push(),
+            sg.Combo(
+                all_order,
+                key='order',
+                default_value=task.order if task else 'Не выбрано',
+                disabled=True if task else False,
+                enable_events=True,
+                **drop_down_setting)
+        ], [
+            sg.T("Тип объекта:", **text_setting),
+            sg.Push(),
+            sg.Input(task.order.type_obj if task else '', key='type_obj', readonly=True, **input_setting)
+        ], [
+            sg.T("Наименование:", **text_setting),
+            sg.Push(),
+            sg.Input(task.order.title if task else '', key='title', readonly=True, **input_setting)
+        ], [
+            sg.T("Конструктив:", **text_setting),
+            sg.Push(),
+            sg.Input(task.order.article if task else '', key='article', readonly=True, **input_setting)
+        ]], pad=10)]], **frame_setting)], [
+        sg.Frame('Задача:', [[sg.Col([
             [
-                sg.Input('task', key='type', visible=False),
-                sg.T("Производственный заказ:", **text_setting),
-                sg.Combo(
-                    all_order,
-                    key='order',
-                    default_value=task.order if task else 'Не выбрано',
-                    disabled=True if task else False,
-                    enable_events=True,
-                    **drop_down_setting)
-            ], [
-                sg.T("Тип объекта:", **text_setting),
-                sg.Input(task.order.type_obj if task else '', key='type_obj', readonly=True, **input_setting)
-            ], [
-                sg.T("Наименование объекта:", **text_setting),
-                sg.Input(task.order.title if task else '', key='title', readonly=True, **input_setting)
-            ], [
-                sg.T("Конструктив:", **text_setting),
-                sg.Input(task.order.article if task else '', key='article', readonly=True, **input_setting)
-            ], [
-                sg.T("Норматив выполнения:", **text_setting),
-                sg.Input(task.deadline if task else '', key='deadline', **input_setting)
-            ], [
-                sg.T("Отработано:", **text_setting),
-                sg.Input(data.get('passed', 0), key='-PASSED-', readonly=True, **input_setting)
-            ], [
-                sg.T("Статус:", **text_setting),
-                sg.Combo(
-                    statuses,
-                    key='status',
-                    default_value=task.status if task else statuses[0],
-                    **drop_down_setting)
-            ], [
                 sg.T("Исполнитель:", **text_setting),
+                sg.Push(),
                 sg.Combo(
                     workers,
                     key='worker',
@@ -202,11 +201,29 @@ def get_card_task(data):
                     disabled=True if task else False,
                     **drop_down_setting)
             ], [
+                sg.T("Отработано:", **text_setting),
+                sg.Push(),
+                sg.Input(data.get('passed', 0), key='-PASSED-', readonly=True, **input_setting)
+            ], [
+                sg.T("Норматив:", **text_setting),
+                sg.Push(),
+                sg.Input(task.deadline if task else '', key='deadline', **input_setting)
+            ], [
+                sg.T("Статус:", **text_setting),
+                sg.Push(),
+                sg.Combo(
+                    statuses,
+                    key='status',
+                    default_value=task.status if task else statuses[0],
+                    **drop_down_setting)
+            ], [
                 sg.T("Комментарии:", **text_setting),
+                sg.Push(),
                 sg.Multiline(task.comment if task and task.comment else '', key='comment', **multiline_setting)
-            ], *table
-        ], pad=0)
-    ]]
+            ]
+        ], pad=10)]], **frame_setting)]] +
+                          table, pad=0))
+            ]
 
 
 def get_card_order(data):
@@ -215,38 +232,43 @@ def get_card_order(data):
         tasks = data.get('tasks', [])
         table_heads = ['№', 'Статус', 'Норма', 'Вып.', 'Работник', 'Коммент']
         width_cols = [3, 8, 5, 5, 12, 14]
-        table = (
-            [sg.HorizontalSeparator(pad=(0, 20))],
-            [sg.Input(order.id, key='order_id', visible=False)],
-            [
-                sg.Table(
-                    get_list_task_for_order(tasks),
-                    table_heads,
-                    col_widths=width_cols,
-                    num_rows=5,
-                    key='-DOUBLE-TASKS-',
-                    **table_setting
-                )
-            ]
-        )
+        table = [[
+            sg.Frame('Связанные задачи:', [
+                [sg.Input(order.id, key='order_id', visible=False)],
+                [
+                    sg.Table(
+                        get_list_task_for_order(tasks),
+                        table_heads,
+                        col_widths=width_cols,
+                        num_rows=5,
+                        key='-DOUBLE-TASKS-',
+                        **table_setting
+                    )
+                ]
+            ], size=(330, 160), **frame_setting)
+        ]]
     else:
         table = []
         order = None
-    return [[
-        sg.Col([
-            [
-                sg.Input('order', key='type', visible=False),
-                sg.T("Производственный заказ:", **text_setting),
-                sg.Input(order.to_order if data else '', key='no', **input_setting)
-            ], [
-                sg.T("Тип объекта:", **text_setting),
-                sg.Input(order.type_obj if data else '', key='type_obj', **input_setting)
-            ], [
-                sg.T("Наименование объекта:", **text_setting),
-                sg.Input(order.title if data else '', key='title', **input_setting)
-            ], [
-                sg.T("Конструктив:", **text_setting),
-                sg.Input(order.article if data else '', key='article', **input_setting)
-            ], *table
-        ], pad=0)
-    ]]
+
+    return [sg.pin(sg.Col([[
+        sg.Frame('Заказ:', [[sg.Col([[
+            sg.Input('order', key='type', visible=False),
+            sg.T("Номер заказа:", **text_setting),
+            sg.Push(),
+            sg.Input(order.to_order if data else '', key='no', **input_setting)
+        ], [
+            sg.T("Тип объекта:", **text_setting),
+            sg.Push(),
+            sg.Input(order.type_obj if data else '', key='type_obj', **input_setting)
+        ], [
+            sg.T("Наименование:", **text_setting),
+            sg.Push(),
+            sg.Input(order.title if data else '', key='title', **input_setting)
+        ], [
+            sg.T("Конструктив:", **text_setting),
+            sg.Push(),
+            sg.Input(order.article if data else '', key='article', **input_setting)
+        ]], pad=10)]], **frame_setting)
+    ]] + table, pad=0))
+    ]
