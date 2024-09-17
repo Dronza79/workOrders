@@ -15,7 +15,7 @@ from database.queries import (
 from database.utils import validation_data, validation_period_data
 from .components import get_card_worker, get_card_task, get_card_order, get_list_task_for_worker, \
     get_list_task_for_order
-from .templates_settings import error_popup_setting
+from .templates_settings import error_popup_setting, info_popup_setting
 from .windows import get_main_window, get_card_window, popup_get_period
 
 
@@ -28,7 +28,7 @@ class StartWindowCard:
         self.parent = parent
         self.window = get_card_window(form=self.key)
         self.windows_extend()
-        print(f'{raw_data=} {key=} {self.idx=}')
+        # print(f'{raw_data=} {key=} {self.idx=}')
         self.run()
 
     def run(self):
@@ -46,14 +46,15 @@ class StartWindowCard:
             elif ev == '-ADD-TIME-':
                 _, period_data = popup_get_period(self.window)
                 if period_data:
-                    # tsk = get_task_data(self.value.get('task')).get('task').get()
                     period_data.update(get_task_data(self.value.get('task')))
                     errors, valid_data = validation_period_data(period_data)
                     if errors:
                         sg.popup('\n'.join(errors), title='Ошибка', **error_popup_setting)
                     else:
                         if create_new_period(valid_data):
-                            sg.popup('Запись сохранена', title='Информация', **error_popup_setting)
+                            sg.popup_timed('Сохранено', **info_popup_setting)
+                            # sg.popup('Запись сохранена', title='Информация', **error_popup_setting)
+                            # sg.popup_auto_close('Запись сохранена', title='Информация', **error_popup_setting)
                             self.actualizing_passed_period()
             elif ev == '-TIME-WORKED-':
                 period = get_period(pos=self.value.get(ev)[0], task=self.value.get('task'))
@@ -65,10 +66,14 @@ class StartWindowCard:
                         sg.popup('\n'.join(errors), title='Ошибка', **error_popup_setting)
                     else:
                         if update_delete_period(valid_data, ev_per):
-                            sg.popup('Изменения сохранены', title='Информация', **error_popup_setting)
+                            sg.popup_timed('Сохранено', **info_popup_setting)
+                            # sg.popup('Изменения сохранены', title='Информация', **error_popup_setting)
+                            # sg.popup_auto_close('Изменения сохранены', title='Информация', **error_popup_setting)
                             self.actualizing_passed_period()
                         else:
-                            sg.popup('Изменения не вносились!', title='Информация', **error_popup_setting)
+                            sg.popup_timed('Изменения не вносились!', **info_popup_setting)
+                            # sg.popup('Изменения не вносились!', title='Информация', **error_popup_setting)
+                            # sg.popup_auto_close('Изменения не вносились!', title='Информация', **error_popup_setting)
 
             elif ev == '-DOUBLE-TASKS-':
                 if self.value['type'] == 'worker':
@@ -91,19 +96,20 @@ class StartWindowCard:
             elif ev == '-SAVE-':
                 errors, valid_data = validation_data(self.value, self.idx)
                 if errors:
-                    sg.popup('\n'.join(errors), **error_popup_setting)
+                    sg.popup('\n'.join(errors), title='Ошибка', **error_popup_setting)
                 else:
                     if valid_data:
                         result = create_or_update_entity(key=self.value.get('type'), data=valid_data, idx=self.idx)
                         if result:
-                            sg.popup('Запись сохранена', title='Ошибка', **error_popup_setting)
+                            sg.popup_timed('Сохранено', **info_popup_setting)
                             break
                     else:
-                        sg.popup('Изменения не вносились', title='Информация', **error_popup_setting)
+                        sg.popup_timed('Изменения не вносились', **info_popup_setting)
+                        # sg.popup('Изменения не вносились', title='Информация', **error_popup_setting)
             elif ev in ['-DELETE-', '-RESTORE-']:
                 res = delete_or_restore_worker(int(self.value.get('worker_id')))
                 if res:
-                    sg.popup('Запись сохранена', title='Информация', **error_popup_setting)
+                    sg.popup_timed('Сохранено', **info_popup_setting)
                     break
         self.window.close()
 

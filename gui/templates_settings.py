@@ -1,4 +1,4 @@
-from PySimpleGUI import POPUP_BUTTONS_OK
+import peewee
 
 table_setting = {
     'auto_size_columns': False,
@@ -269,6 +269,26 @@ error_popup_setting = {
     # 'any_key_closes': False,
     # 'image': None,
     'modal': True
+}
+
+info_popup_setting = {
+    'button_type': 5,
+    # 'button_color': None,
+    'background_color': '#92AECE',
+    # 'text_color': None,
+    'auto_close': True,
+    'auto_close_duration': 1,
+    'non_blocking': True,
+    # 'icon': None,
+    # 'line_width': None,
+    'font': '_ 12',
+    'no_titlebar': True,
+    # 'grab_anywhere': False,
+    # 'keep_on_top': None,
+    # 'location': (None, None),
+    # 'relative_location': (None, None),
+    # 'image': None,
+    # 'modal': True
 }
 
 delete_button_setting = {
