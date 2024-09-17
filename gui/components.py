@@ -113,12 +113,12 @@ def get_card_worker(data):
             ],
         ], pad=15, vertical_alignment='center')]], **frame_setting)], [
         sg.Frame('Служебные данные:', [[sg.Col([
-                                                   [
-                                                       sg.T('Табельный номер:', **text_setting),
-                                                       sg.Push(),
-                                                       sg.Input(worker.table_num if worker else '', key='table_num',
-                                                                **input_setting)
-                                                   ], [
+            [
+                sg.T('Табельный номер:', **text_setting),
+                sg.Push(),
+                sg.Input(worker.table_num if worker else '', key='table_num',
+                         **input_setting)
+            ], [
                 sg.T('Должность:', **text_setting),
                 sg.Push(),
                 sg.Combo(
@@ -126,8 +126,7 @@ def get_card_worker(data):
                     key='function',
                     default_value=worker.function if worker else 'Не выбрано',
                     **drop_down_setting)
-            ],
-                                               ] + buttons, pad=10)]], **frame_setting)],  # конец второго фрейма
+            ]] + buttons, pad=10)]], **frame_setting)],
         *table
     ], pad=0))]
 
