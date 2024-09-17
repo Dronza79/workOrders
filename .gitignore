@@ -3,3 +3,4 @@
 pac/
 *.db
 /t.py
+/exemple.py
