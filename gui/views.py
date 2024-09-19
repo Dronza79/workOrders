@@ -1,4 +1,3 @@
-from datetime import datetime
 from operator import itemgetter
 
 import PySimpleGUI as sg
@@ -28,7 +27,6 @@ class StartWindowCard:
         self.parent = parent
         self.window = get_card_window(form=self.key)
         self.windows_extend()
-        # print(f'{raw_data=} {key=} {self.idx=}')
         self.run()
 
     def run(self):
@@ -53,8 +51,6 @@ class StartWindowCard:
                     else:
                         if create_new_period(valid_data):
                             sg.popup_timed('Сохранено', **info_popup_setting)
-                            # sg.popup('Запись сохранена', title='Информация', **error_popup_setting)
-                            # sg.popup_auto_close('Запись сохранена', title='Информация', **error_popup_setting)
                             self.actualizing_passed_period()
             elif ev == '-TIME-WORKED-':
                 period = get_period(pos=self.value.get(ev)[0], task=self.value.get('task'))
@@ -67,13 +63,9 @@ class StartWindowCard:
                     else:
                         if update_delete_period(valid_data, ev_per):
                             sg.popup_timed('Сохранено', **info_popup_setting)
-                            # sg.popup('Изменения сохранены', title='Информация', **error_popup_setting)
-                            # sg.popup_auto_close('Изменения сохранены', title='Информация', **error_popup_setting)
                             self.actualizing_passed_period()
                         else:
                             sg.popup_timed('Изменения не вносились!', **info_popup_setting)
-                            # sg.popup('Изменения не вносились!', title='Информация', **error_popup_setting)
-                            # sg.popup_auto_close('Изменения не вносились!', title='Информация', **error_popup_setting)
 
             elif ev == '-DOUBLE-TASKS-':
                 if self.value['type'] == 'worker':
@@ -105,7 +97,6 @@ class StartWindowCard:
                             break
                     else:
                         sg.popup_timed('Изменения не вносились', **info_popup_setting)
-                        # sg.popup('Изменения не вносились', title='Информация', **error_popup_setting)
             elif ev in ['-DELETE-', '-RESTORE-']:
                 res = delete_or_restore_worker(int(self.value.get('worker_id')))
                 if res:
@@ -175,6 +166,7 @@ class StartMainWindow:
     def run(self):
         while True:
             ev, val = self.window.read()
+            ev = ev if isinstance(ev, tuple) else ev.split('::')[-1]
             print(f'MainWindow {ev=} {val=}')
             if ev == sg.WIN_CLOSED:
                 break
@@ -186,10 +178,12 @@ class StartMainWindow:
                 StartWindowCard(
                     raw_data=self.table[ev][val[ev].pop()] if val.get(ev) else None,
                     key=val.get('-TG-'),
-                    parent=self.window
-                )
+                    parent=self.window)
                 self.actualizing()
-
+            elif ev == '-THEME-':
+                if sg.main_global_pysimplegui_settings():
+                    self.window.close()
+                    StartMainWindow()
         self.window.close()
 
     def sorting_list(self, key_table, column):

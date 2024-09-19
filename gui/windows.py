@@ -7,6 +7,8 @@ from .templates_settings import tab_setting
 
 
 def get_main_window():
+    menu_def = [['Файл', ['Вывести отчет в Exel::-EXEL-', 'Сделать бекап::-BACKUP-']],
+                ['Параметры', ['Выбрать тему::-THEME-', 'Выбрать базу::-SET-DB-']]]
     layout = [[
         sg.TabGroup([[
             sg.Tab(
@@ -33,7 +35,8 @@ def get_main_window():
     ], [
         sg.Button('Добавить', key='-ADD-'),
         sg.Button('Обновить', key='-UPDATE-'),
-    ]]
+    ],
+    [sg.Menu(menu_def, key='-MENU-')]]
     return sg.Window('Учет нарядов', layout,
                      resizable=True,
                      finalize=True,
