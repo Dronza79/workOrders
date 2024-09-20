@@ -101,3 +101,37 @@ def popup_get_period(parent, period=None):
     window.move(loc_x + size_w // 2 - size[0] // 2, loc_y + size_h // 2 - size[1] // 2)
     window['-CB-'].calendar_location = loc_x + size_w // 2 - size[0] // 2, loc_y + size_h // 2 - size[1] // 2
     return window.read(close=True)
+
+
+def popup_choice_worker_for_exel(parent):
+    date_now = datetime.datetime.now().date()
+    layout = [
+        [
+            sg.Input(
+                default_text=f'{period.date:%d.%m.%Y}' if period else f'{date_now:%d.%m.%Y}',
+                key='date', size=(10, 1)),
+            sg.CalendarButton('Календарь', key='-CB-', begin_at_sunday_plus=1, target='date', format='%d.%m.%Y')
+        ], [
+            sg.T('Продолжительность', font='_ 10'),
+            sg.Combo(
+                [i for i in range(1, 13)],
+                default_value=period.value if period else 1,
+                key='value', font='_ 12'),
+            sg.T('ч.', font='_ 12')
+        ], [sg.Button('Сохранить', key='-SAVE-PER-')] +
+           (
+               [
+                   sg.Button('Удалить', key='-DEL-PER-'),
+                   sg.Input(period.id, key='period_id', visible=False)
+               ] if period else []
+           ) +
+           [sg.Exit('Отмена')]
+    ]
+    window = sg.Window('Добавить время', layout, finalize=True, modal=True)
+    size_w, size_h = parent.current_size_accurate()
+    loc_x, loc_y = parent.current_location()
+    window.refresh()
+    size = window.current_size_accurate()
+    window.move(loc_x + size_w // 2 - size[0] // 2, loc_y + size_h // 2 - size[1] // 2)
+    window['-CB-'].calendar_location = loc_x + size_w // 2 - size[0] // 2, loc_y + size_h // 2 - size[1] // 2
+    return window.read(close=True)

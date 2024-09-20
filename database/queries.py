@@ -11,7 +11,7 @@ def get_subquery_worker():
     return (
         Period.select(Period, Task, Order, Worker)
         .join_from(Period, Task).join_from(Period, Order)
-        .join_from(Period, Worker).where(Task.status_id != 2)
+        .join_from(Period, Worker).where(Task.status_id != 3)
         .order_by(Period.date).group_by(Period.id)
     ), (
         Task.select(Task, Worker, Order, Status, peewee.fn.SUM(Period.value).alias('total_time'))
@@ -48,7 +48,7 @@ def get_all_orders():
         Order.select()
         .where(
             Order.id.not_in(Task.select(Task.order)) |
-            Order.id.in_(Task.select(Task.order).join(Status).where(Task.status.state.in_([sv[1], sv[3]])))
+            Order.id.in_(Task.select(Task.order).join(Status).where(Task.status.state.in_([sv[1], sv[2]])))
         )
         .group_by(Order.id)
     )
@@ -113,11 +113,13 @@ def get_task_data(idx=None):
     else:
         query['workers'] = Worker.select(Worker, Vacancy.post).join(Vacancy)
         query['all_orders'] = (
-            Order.select()
+            Order.select(Order, peewee.fn.SUM(Period.value).alias('passed'))
+            .join_from(Order, Period, peewee.JOIN.LEFT_OUTER)
             .where(
                 Order.no.not_in(Task.select(Task.order)) |
-                Order.no.in_(Task.select(Task.order).join(Status).where(Task.status.state.in_([sv[1], sv[3]])))
+                Order.no.in_(Task.select(Task.order).join(Status).where(Task.status.state.in_([sv[1], sv[2]])))
             )
+            .group_by(Order.id)
         )
 
     return query
@@ -171,7 +173,7 @@ def get_close_tasks():
 def get_open_tasks():
     return (
         get_all_tasks()
-        .where(Status.state != sv[2])
+        .where(Status.state != sv[3])
         .group_by(Task.id)
     )
 

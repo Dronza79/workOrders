@@ -8,8 +8,8 @@ from .settings import get_database
 
 STATUS_VARIABLES = {
     1: 'В работе',
-    2: 'Завершен',
-    3: 'Приостановлен',
+    2: 'Приостановлен',
+    3: 'Завершен',
 }
 
 FUNC_VARIABLES = {
@@ -43,7 +43,6 @@ class Vacancy(BaseModel):
 class Worker(BaseModel):
     surname = CharField(verbose_name='Фамилия', constraints=[Check('surname != ""')])
     name = CharField(verbose_name='Имя', constraints=[Check('name != ""')])
-    # second_name = CharField(null=True, verbose_name='Отчество', default='')
     second_name = CharField(verbose_name='Отчество', default='')
     table_num = CharField(unique=True, verbose_name='Табельный номер', constraints=[Check('table_num != ""')])
     function = ForeignKeyField(Vacancy, verbose_name='Должность', on_delete='CASCADE')

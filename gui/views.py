@@ -40,6 +40,7 @@ class StartWindowCard:
                 self.window['type_obj'].update(order.type_obj)
                 self.window['title'].update(order.title)
                 self.window['article'].update(order.article)
+                self.window['-PASSED-'].update(order.passed)
                 self.window.refresh()
             elif ev == '-ADD-TIME-':
                 _, period_data = popup_get_period(self.window)
@@ -166,7 +167,7 @@ class StartMainWindow:
     def run(self):
         while True:
             ev, val = self.window.read()
-            ev = ev if isinstance(ev, tuple) else ev.split('::')[-1]
+            ev = ev if isinstance(ev, tuple) or ev == sg.WIN_CLOSED else ev.split('::')[-1]
             print(f'MainWindow {ev=} {val=}')
             if ev == sg.WIN_CLOSED:
                 break
