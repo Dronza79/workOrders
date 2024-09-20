@@ -25,15 +25,15 @@ with get_database().atomic():
     data_order = []
     order = 28130
     for i in tit:
-        for _ in range(random.randint(1, 3)):
+        for _ in range(random.randint(5, 10)):
             obj = {}
             order += 1
             obj['title'] = i
             item = 'РУ-20кВ' if i == 'завод ЗИЛ' else random.choice(type_ob)
             obj['type_obj'] = item
-            num = (random.randint(260, 272) if item == 'РУ-6кВ'
-                   else '00' + str(random.randint(2, 8)) if item == 'РУ-20кВ'
-            else random.randint(625, 637))
+            num = (random.randint(260, 279) if item == 'РУ-6кВ'
+                   else '00' + str(random.randint(2, 9)) if item == 'РУ-20кВ'
+            else random.randint(624, 637))
             tunum = random.choice(['00', '03'])
             hed = random.randint(10, 45) if tunum == '03' else '00'
             obj['article'] = (f"ENF{'20' if item == 'РУ-20кВ' else '06' if item == 'РУ-6кВ' else '10'}"
