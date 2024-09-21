@@ -15,7 +15,7 @@ from database.utils import validation_data, validation_period_data
 from .components import get_card_worker, get_card_task, get_card_order, get_list_task_for_worker, \
     get_list_task_for_order
 from .templates_settings import error_popup_setting, info_popup_setting
-from .windows import get_main_window, get_card_window, popup_get_period
+from .windows import get_main_window, get_card_window, popup_get_period, popup_choice_worker_for_exel
 
 
 class StartWindowCard:
@@ -185,6 +185,9 @@ class StartMainWindow:
                 if sg.main_global_pysimplegui_settings():
                     self.window.close()
                     StartMainWindow()
+            elif ev == '-EXEL-':
+                valid_data = popup_choice_worker_for_exel(self.window)
+                print(valid_data)
         self.window.close()
 
     def sorting_list(self, key_table, column):

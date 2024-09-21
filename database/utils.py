@@ -91,7 +91,7 @@ def validation_data(raw_data, idx=None):
         if idx:
             task = Task.get(Task.id == idx)
         for key, value in {'order': Order, 'status': Status, 'worker': Worker}.items():
-            print(f'{key=} {value=} {raw_data[key]=}')
+            # print(f'{key=} {value=} {raw_data[key]=}')
             if not isinstance(raw_data[key], value) and not idx:
                 errors.append(f'Ошибка:\nПоле {dep[key]} не выбрано!\n')
             else:
@@ -132,3 +132,34 @@ def validation_period_data(raw_data, idx=None):
 
     return errors, valid_data
 
+
+def validation_data_for_exel(raw_data):
+    print(f'{raw_data=}')
+    valid_data = {}
+    errors = []
+    dep = {
+        '-from-': '"от:"',
+        '-to-': '"по:"',
+    }
+    if not isinstance(raw_data['-worker-'], Worker):
+        errors.append('Ошибка.\nВы выбрали что то не то)!')
+    else:
+        valid_data['worker'] = raw_data['-worker-']
+    for key in dep:
+        print(f'{key=}')
+        print(f'{raw_data[key]=}')
+        if not raw_data[key]:
+            errors.append(f'Ошибка:\nПоле {dep[key]} не заполнено!\n')
+        elif not re.findall(r'\b\d{2}\.\d{2}\.\d{4}\b', raw_data[key]):
+            errors.append(f'Ошибка:\nПоле {dep[key]} заполнено не по формату!\nВоспользуйтесь кнопкой "Календарь"')
+            break
+        elif key == '-to-':
+            date_from = dt.strptime(raw_data['-from-'], '%d.%m.%Y').date()
+            date_to = dt.strptime(raw_data['-to-'], '%d.%m.%Y').date()
+            if date_from >= date_to:
+                errors.append(f'Ошибка:\nДата "от:" не может быть позже\nили равна дате "по:"')
+            else:
+                valid_data['from'] = date_from
+                valid_data['to'] = date_to
+
+    return errors, valid_data

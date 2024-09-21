@@ -2,8 +2,10 @@ import datetime
 
 import PySimpleGUI as sg
 
+from database.queries import get_all_workers
+from database.utils import validation_data_for_exel
 from .components import get_sector_workers, get_sector_tasks, get_sector_orders
-from .templates_settings import tab_setting
+from .templates_settings import tab_setting, calendar_button_setting, drop_down_setting, error_popup_setting
 
 
 def get_main_window():
@@ -35,8 +37,9 @@ def get_main_window():
     ], [
         sg.Button('Добавить', key='-ADD-'),
         sg.Button('Обновить', key='-UPDATE-'),
-    ],
-    [sg.Menu(menu_def, key='-MENU-')]]
+    ], [
+        sg.Menu(menu_def, key='-MENU-')
+    ]]
     return sg.Window('Учет нарядов', layout,
                      resizable=True,
                      finalize=True,
@@ -96,42 +99,54 @@ def popup_get_period(parent, period=None):
     window = sg.Window('Добавить время', layout, finalize=True, modal=True)
     size_w, size_h = parent.current_size_accurate()
     loc_x, loc_y = parent.current_location()
-    window.refresh()
     size = window.current_size_accurate()
-    window.move(loc_x + size_w // 2 - size[0] // 2, loc_y + size_h // 2 - size[1] // 2)
-    window['-CB-'].calendar_location = loc_x + size_w // 2 - size[0] // 2, loc_y + size_h // 2 - size[1] // 2
+    window_location = loc_x + size_w // 2 - size[0] // 2, loc_y + size_h // 2 - size[1] // 2
+    window.move(*window_location)
+    window.refresh()
+    window['-CB-'].calendar_location = window.current_location()
     return window.read(close=True)
 
 
 def popup_choice_worker_for_exel(parent):
-    date_now = datetime.datetime.now().date()
+    # date_now = datetime.datetime.now().date()
+    workers = get_all_workers()
     layout = [
         [
-            sg.Input(
-                default_text=f'{period.date:%d.%m.%Y}' if period else f'{date_now:%d.%m.%Y}',
-                key='date', size=(10, 1)),
-            sg.CalendarButton('Календарь', key='-CB-', begin_at_sunday_plus=1, target='date', format='%d.%m.%Y')
-        ], [
-            sg.T('Продолжительность', font='_ 10'),
+            sg.T('Работник:', font='_ 10'),
             sg.Combo(
-                [i for i in range(1, 13)],
-                default_value=period.value if period else 1,
-                key='value', font='_ 12'),
-            sg.T('ч.', font='_ 12')
-        ], [sg.Button('Сохранить', key='-SAVE-PER-')] +
-           (
-               [
-                   sg.Button('Удалить', key='-DEL-PER-'),
-                   sg.Input(period.id, key='period_id', visible=False)
-               ] if period else []
-           ) +
-           [sg.Exit('Отмена')]
+                [worker for worker in workers],
+                default_value=workers[0],
+                key='-worker-', **drop_down_setting),
+        ], [
+            sg.T('от', font='_ 10'),
+            sg.Input(
+                key='-from-', size=(10, 1)),
+            sg.CalendarButton(key='-B-FROM-',
+                              # target='-from-',
+                              **calendar_button_setting)
+        ], [
+            sg.T('по', font='_ 10'),
+            sg.Input(
+                key='-to-', size=(10, 1)),
+            sg.CalendarButton(key='-B-TO-',
+                              # target='-to-',
+                              **calendar_button_setting)
+        ], [sg.Button('Создать', key='-CREATE-'), sg.Exit('Отмена')]
     ]
-    window = sg.Window('Добавить время', layout, finalize=True, modal=True)
+    window = sg.Window('Выбрать...', layout, finalize=True, margins=(10, 10), modal=True)
     size_w, size_h = parent.current_size_accurate()
     loc_x, loc_y = parent.current_location()
-    window.refresh()
     size = window.current_size_accurate()
-    window.move(loc_x + size_w // 2 - size[0] // 2, loc_y + size_h // 2 - size[1] // 2)
-    window['-CB-'].calendar_location = loc_x + size_w // 2 - size[0] // 2, loc_y + size_h // 2 - size[1] // 2
-    return window.read(close=True)
+    window_location = loc_x + size_w // 2 - size[0] // 2, loc_y + size_h // 2 - size[1] // 2
+    window.move(*window_location)
+    window.refresh()
+    window['-B-FROM-'].calendar_location = window.current_location()
+    window['-B-TO-'].calendar_location = window.current_location()
+    while True:
+        errors, valid_data = validation_data_for_exel(window.read()[1])
+        if errors:
+            sg.popup('\n'.join(errors), title='Ошибка', **error_popup_setting)
+        else:
+            window.close()
+            break
+    return valid_data
