@@ -339,7 +339,7 @@ frame_setting = {
     # 'right_click_menu': None,
     'expand_x': True,
     'expand_y': True,
-    # 'grab': None,
+    'grab': True,
     # 'visible': True,
     'element_justification': 'left',
     'vertical_alignment': 'center'
