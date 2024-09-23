@@ -214,40 +214,40 @@ def update_delete_period(data, action):
         return Period.delete().where(Period.id == idx).execute()
 
 
-import datetime
-import peewee
-from database.models import Worker, Task, Period, Order, Vacancy, Status
-def get_query_for_exel():
-    # import logging
-    # logger = logging.getLogger('peewee')
-    # logger.addHandler(logging.StreamHandler())
-    # logger.setLevel(logging.DEBUG)
-
-    date_from = datetime.datetime(2024, 8, 3).date()
-    date_to = datetime.datetime(2024, 8, 14).date()
-
-    worker = Worker.select(Worker, Vacancy.post).join(Vacancy).get()
-    periods = Period.select(Period, Task).join(Task).where(Period.date >= date_from, Period.date <= date_to)
-    sub = Period.select(Period.task).where(Period.date >= date_from, Period.date <= date_to)
-    before = Period.select(Period, Task).join(Task).where(Period.date < date_from)
-    tasks = (
-            Task.select(Task, Order, Status, peewee.fn.SUM(Period.value).alias('passed'))
-            .join_from(Task, Order)
-            .join_from(Task, Status)
-            .join_from(Task, Period, peewee.JOIN.LEFT_OUTER)
-            .where(Task.worker == worker, Task.id.in_(sub))
-            .group_by(Task.id)
-        )
-    bef_task = Task.select().where(Task.id.in_(Task.select(Task.id).where(Task.worker == worker, Task.id.in_(sub))))
-
-    return {
-        'worker': worker,
-        'task': peewee.prefetch(tasks, periods),
-        'before': peewee.prefetch(bef_task, before)
-    }
-query = get_query_for_exel()
-for i, task in enumerate(query['task']):
-    print(f'{"="*10}{sum(query["before"][i].time_worked)=}::{task}::{sum(task.time_worked)}{"="*10}')
-    # print(f'{"="*10}{task.passed=}::{task}::{sum(task.time_worked)}{"="*10}')
-    for per in task.time_worked:
-        print(f'{per}')
+# import datetime
+# import peewee
+# from database.models import Worker, Task, Period, Order, Vacancy, Status
+# def get_query_for_exel():
+#     # import logging
+#     # logger = logging.getLogger('peewee')
+#     # logger.addHandler(logging.StreamHandler())
+#     # logger.setLevel(logging.DEBUG)
+#
+#     date_from = datetime.datetime(2024, 8, 3).date()
+#     date_to = datetime.datetime(2024, 8, 14).date()
+#
+#     worker = Worker.select(Worker, Vacancy.post).join(Vacancy).get()
+#     periods = Period.select(Period, Task).join(Task).where(Period.date >= date_from, Period.date <= date_to)
+#     sub = Period.select(Period.task).where(Period.date >= date_from, Period.date <= date_to)
+#     before = Period.select(Period, Task).join(Task).where(Period.date < date_from)
+#     tasks = (
+#             Task.select(Task, Order, Status, peewee.fn.SUM(Period.value).alias('passed'))
+#             .join_from(Task, Order)
+#             .join_from(Task, Status)
+#             .join_from(Task, Period, peewee.JOIN.LEFT_OUTER)
+#             .where(Task.worker == worker, Task.id.in_(sub))
+#             .group_by(Task.id)
+#         )
+#     bef_task = Task.select().where(Task.id.in_(Task.select(Task.id).where(Task.worker == worker, Task.id.in_(sub))))
+#
+#     return {
+#         'worker': worker,
+#         'task': peewee.prefetch(tasks, periods),
+#         'before': peewee.prefetch(bef_task, before)
+#     }
+# query = get_query_for_exel()
+# for i, task in enumerate(query['task']):
+#     print(f'{"="*10}{sum(query["before"][i].time_worked)=}::{task}::{sum(task.time_worked)}{"="*10}')
+#     # print(f'{"="*10}{task.passed=}::{task}::{sum(task.time_worked)}{"="*10}')
+#     for per in task.time_worked:
+#         print(f'{per}')
