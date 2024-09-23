@@ -1,3 +1,5 @@
+import datetime
+
 import peewee
 
 from .models import (
@@ -210,3 +212,23 @@ def update_delete_period(data, action):
         return None
     elif action == '-DEL-PER-':
         return Period.delete().where(Period.id == idx).execute()
+
+
+import datetime
+import peewee
+from database.models import Worker, Task, Period, Order, Vacancy, Status
+from database.app_logger import add_logger_peewee
+@add_logger_peewee
+def get_query_for_exel():
+    worker = Worker[1]
+    query = {}
+    date_from = datetime.datetime(2024, 8, 1).date()
+    date_to = datetime.datetime(2024, 8, 11).date()
+
+    return (
+        Worker.select(Worker, Task, Status, Period, Vacancy)
+        .join_from(Worker, Vacancy)
+        .join_from(Worker, Task, peewee.JOIN.LEFT_OUTER)
+        .join_from(Task, Status)
+        .join_from(Task, Period, peewee.JOIN.LEFT_OUTER)
+        .where((Worker.id == worker.id) & (Period.date >= date_from) & (Period.date <= date_to)))

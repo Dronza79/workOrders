@@ -5,7 +5,8 @@ import PySimpleGUI as sg
 from database.queries import get_all_workers
 from database.utils import validation_data_for_exel
 from .components import get_sector_workers, get_sector_tasks, get_sector_orders
-from .templates_settings import tab_setting, calendar_button_setting, drop_down_setting, error_popup_setting
+from .templates_settings import tab_setting, calendar_button_setting, drop_down_setting, error_popup_setting, \
+    frame_setting
 
 
 def get_main_window():
@@ -72,6 +73,15 @@ def get_card_window(form):
                      )
 
 
+def move_window(parent, window):
+    size_w, size_h = parent.current_size_accurate()
+    loc_x, loc_y = parent.current_location()
+    size = window.current_size_accurate()
+    window_location = loc_x + size_w // 2 - size[0] // 2, loc_y + size_h // 2 - size[1] // 2
+    window.move(*window_location)
+    window.refresh()
+
+
 def popup_get_period(parent, period=None):
     date_now = datetime.datetime.now().date()
     layout = [
@@ -97,20 +107,14 @@ def popup_get_period(parent, period=None):
            [sg.Exit('Отмена')]
     ]
     window = sg.Window('Добавить время', layout, finalize=True, modal=True)
-    size_w, size_h = parent.current_size_accurate()
-    loc_x, loc_y = parent.current_location()
-    size = window.current_size_accurate()
-    window_location = loc_x + size_w // 2 - size[0] // 2, loc_y + size_h // 2 - size[1] // 2
-    window.move(*window_location)
-    window.refresh()
+    move_window(parent, window)
     window['-CB-'].calendar_location = window.current_location()
     return window.read(close=True)
 
 
 def popup_choice_worker_for_exel(parent):
-    # date_now = datetime.datetime.now().date()
     workers = get_all_workers()
-    layout = [
+    layout = [[sg.Frame('', [[sg.Col([
         [
             sg.T('Работник:', font='_ 10'),
             sg.Combo(
@@ -122,31 +126,31 @@ def popup_choice_worker_for_exel(parent):
             sg.Input(
                 key='-from-', size=(10, 1)),
             sg.CalendarButton(key='-B-FROM-',
-                              # target='-from-',
                               **calendar_button_setting)
         ], [
             sg.T('по', font='_ 10'),
             sg.Input(
                 key='-to-', size=(10, 1)),
             sg.CalendarButton(key='-B-TO-',
-                              # target='-to-',
                               **calendar_button_setting)
-        ], [sg.Button('Создать', key='-CREATE-'), sg.Exit('Отмена')]
+        ]], pad=15, vertical_alignment='center')]], **frame_setting)],
+        [sg.Push(), sg.Button('Создать...', key='-CREATE-', size=(15, 1), pad=((0, 0), (0, 10))), sg.Push()]
     ]
-    window = sg.Window('Выбрать...', layout, finalize=True, margins=(10, 10), modal=True)
-    size_w, size_h = parent.current_size_accurate()
-    loc_x, loc_y = parent.current_location()
-    size = window.current_size_accurate()
-    window_location = loc_x + size_w // 2 - size[0] // 2, loc_y + size_h // 2 - size[1] // 2
-    window.move(*window_location)
-    window.refresh()
+    window = sg.Window('Отчет Exel...', layout, finalize=True, margins=(10, 10), modal=True)
+    move_window(parent, window)
     window['-B-FROM-'].calendar_location = window.current_location()
     window['-B-TO-'].calendar_location = window.current_location()
     while True:
-        errors, valid_data = validation_data_for_exel(window.read()[1])
+        ev, val = window.read()
+        # valid_data = None
+        if ev == sg.WIN_CLOSED:
+            window.close()
+            return
+        errors, valid_data = validation_data_for_exel(val)
         if errors:
             sg.popup('\n'.join(errors), title='Ошибка', **error_popup_setting)
         else:
             window.close()
             break
+
     return valid_data
