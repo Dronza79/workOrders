@@ -167,7 +167,7 @@ def get_all_tasks():
 def get_close_tasks():
     return (
         get_all_tasks()
-        .where(Status.state == sv[2])
+        .where(Status.state == sv[3])
         .group_by(Task.id)
     )
 
