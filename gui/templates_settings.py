@@ -128,6 +128,30 @@ table_tasks_setting = {
     # 'visible': True,
 }
 
+tab_group_setting = {
+    # 'tab_location': None,
+    'title_color': 'white',
+    'tab_background_color': '#64778D',
+    'selected_title_color': 'black',
+    'selected_background_color': '#F0F3F7',
+    # 'background_color': None,
+    # 'focus_color': None,
+    # 'font': None,
+    # 'change_submits': False,
+    'enable_events': True,
+    # 'pad': None,
+    # 'border_width': None,
+    # 'tab_border_width': None,
+    # 'theme': None,
+    # 'key': None,
+    # 'size': (None, None),
+    # 'tooltip': None,
+    # 'right_click_menu': None,
+    'expand_x': True,
+    'expand_y': True,
+    # 'visible': True,
+}
+
 tab_setting = {
     # 'title_color': None,
     # 'background_color': None,

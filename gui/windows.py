@@ -6,7 +6,7 @@ from database.queries import get_all_workers
 from database.utils import validation_data_for_exel
 from .components import get_sector_workers, get_sector_tasks, get_sector_orders
 from .templates_settings import tab_setting, calendar_button_setting, drop_down_setting, error_popup_setting, \
-    frame_setting
+    frame_setting, tab_group_setting
 
 
 def get_main_window():
@@ -34,7 +34,7 @@ def get_main_window():
                 'Исключенные работники',
                 get_sector_workers(code='-DISMISS-'),
                 key='-DSMS-', **tab_setting),
-        ]], key='-TG-', expand_x=True, expand_y=True, enable_events=True)
+        ]], key='-TG-', **tab_group_setting)
     ], [
         sg.Button('Добавить', key='-ADD-'),
         sg.Button('Обновить', key='-UPDATE-'),
