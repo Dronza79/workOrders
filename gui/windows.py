@@ -44,6 +44,7 @@ def get_main_window():
     return sg.Window('Учет нарядов', layout,
                      resizable=True,
                      finalize=True,
+                     right_click_menu=["", ['Найти...::-FIND-']],
                      sbar_frame_color='#64778D', margins=(10, 10)
                      )
 
