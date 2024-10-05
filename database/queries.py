@@ -3,7 +3,7 @@ from datetime import datetime
 import peewee
 
 from .models import (
-    Worker, Vacancy, Task, Status, Period, Order,
+    Worker, Vacancy, Task, Status, Period, Order, TypeTask,
 )
 
 now_date = datetime.now().date()
@@ -61,10 +61,7 @@ def get_all_orders():
         Order.select()
         .where(
             Order.id.not_in(Task.select(Task.order)) |
-            Order.id.in_(
-                Task.select(Task.order).join_from(Task, Status).join_from(Task, Period, peewee.JOIN.LEFT_OUTER)
-                # .where(~Status.is_archived, Period.date.year == now_date.year, Period.date.month == now_date.month))
-                .where(~Status.is_archived))
+            Order.id.in_(Task.select(Task.order).join_from(Task, Status).where(~Status.is_archived))
         )
         .group_by(Order.id)
     )
@@ -96,12 +93,10 @@ def get_worker_data(idx=None):
             .join_from(Task, Worker)
             .join_from(Task, Period, peewee.JOIN.LEFT_OUTER)
             .join_from(Task, Order)
-            # .where(Worker.id == idx, Period.date.year == now_date.year, Period.date.month == now_date.month)
             .where(Worker.id == idx, ~Status.is_archived)
             .group_by(Task.id)
             .order_by(-Status.is_positive, -peewee.fn.MAX(Period.date))
         )
-        # query = peewee.prefetch(person, tasks).pop()
     else:
         person = None
         tasks = None
@@ -114,24 +109,25 @@ def get_worker_data(idx=None):
 
 def get_task_data(idx=None):
     print(f'get_task_data {idx=}')
-    query = {'statuses': Status.select()}
+    query = {
+        'statuses': Status.select(),
+        'types': TypeTask.select()
+    }
     if idx:
         query['task'] = (
-            Task.select(Task, Status, Worker, Order)
+            Task.select(Task, Status, Worker, Order, TypeTask)
             .join_from(Task, Status)
             .join_from(Task, Order)
             .join_from(Task, Worker)
+            .join_from(Task, TypeTask)
             .where(Task.id == idx)
-            .group_by(Task.id)
+            # .group_by(Task.id)
             .get()
         )
-        periods = Period.select().where(
-            Period.task_id == idx,
-            Period.date.year == now_date.year,
-            Period.date.month == now_date.month
-        )
+        periods = Period.select().where(Period.task_id == idx)
+
         query['passed'] = sum(periods)
-        query['time_worked'] = periods
+        query['time_worked'] = periods.where(Period.date.year == now_date.year, Period.date.month == now_date.month)
     else:
         query['workers'] = Worker.select(Worker, Vacancy.post).join(Vacancy)
         query['all_orders'] = (
