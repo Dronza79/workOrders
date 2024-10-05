@@ -67,7 +67,6 @@ class StartWindowCard:
                             self.actualizing_passed_period()
                         else:
                             sg.popup_timed('Изменения не вносились!', **info_popup_setting)
-
             elif ev == '-DOUBLE-TASKS-':
                 if self.value['type'] == 'worker':
                     entity = get_worker_data(int(self.value.get('worker_id'))).get('tasks')
@@ -103,6 +102,14 @@ class StartWindowCard:
                 if res:
                     sg.popup_timed('Сохранено', **info_popup_setting)
                     break
+            elif ev == 'type_task':
+                types = self.value[ev]
+                if types.has_extension:
+                    self.window['-ORDER-TASK-'].update(visible=True)
+                else:
+                    self.window['-ORDER-TASK-'].update(visible=False)
+                    self.window['-PASSED-'].update(0)
+                    self.window.refresh()
         self.window.close()
 
     def move_center(self):

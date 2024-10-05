@@ -213,6 +213,13 @@ drop_down_setting = {
     # 'metadata': None
 }
 
+drop_down_type_task_setting = {
+    'size': (25, 1),
+    'pad': ((0, 0), (5, 5)),
+    'readonly': True,
+    'font': ('_', 11),
+}
+
 text_setting = {
     # 'size': 10,
     'auto_size_text': None,
