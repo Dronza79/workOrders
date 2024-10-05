@@ -164,6 +164,10 @@ def get_card_task(data):
     workers = list(data.get('workers', []))
     all_order = list(data.get('all_orders', []))
     all_types = list(data.get('types', []))
+    if task and task.is_type.has_extension:
+        extension = True
+    else:
+        extension = False
 
     return [sg.pin(sg.Col([
         [
@@ -234,7 +238,10 @@ def get_card_task(data):
                     sg.T("Конструктив:", **text_setting),
                     sg.Push(),
                     sg.Input(task.order.article if task else '', key='article', readonly=True, **input_setting)
-                ]], pad=10)]], key='-ORDER-TASK-', visible=False, **frame_setting))
+                ]], pad=10)]],
+                            key='-ORDER-TASK-',
+                            visible=extension,
+                            **frame_setting))
         ]] + table, pad=0))]
 
 

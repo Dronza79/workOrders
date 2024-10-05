@@ -4,3 +4,4 @@ pac/
 *.db
 /t.py
 /exemple.py
+/db-current.sqlite3
