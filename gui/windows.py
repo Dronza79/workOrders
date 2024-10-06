@@ -10,8 +10,16 @@ from .templates_settings import tab_setting, calendar_button_setting, drop_down_
 
 
 def get_main_window():
-    menu_def = [['Файл', ['Вывести отчет в Exel::-EXEL-', 'Сделать бекап::-BACKUP-']],
-                ['Параметры', ['Выбрать тему::-THEME-', 'Выбрать базу::-SET-DB-']]]
+    menu_def = [[
+        'Файл', [
+            f'Вывести отчет в Exel{sg.MENU_KEY_SEPARATOR}-EXEL-',
+            f'Сделать бекап{sg.MENU_KEY_SEPARATOR}-BACKUP-'
+        ]], [
+        'Параметры', [
+            f'Выбрать тему{sg.MENU_KEY_SEPARATOR}-THEME-',
+            f'Выбрать базу{sg.MENU_KEY_SEPARATOR}-SET-DB-'
+        ]]
+    ]
     layout = [[
         sg.TabGroup([[
             sg.Tab(

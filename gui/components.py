@@ -64,6 +64,7 @@ def get_card_worker(data):
     tasks = data.get('tasks')
     table_heads = ['№', 'Статус', 'Объект', 'Артикул', 'ПРка', 'Норма', 'Вып.', 'Коммент']
     width_cols = [3, 8, 12, 20, 10, 5, 5, 14]
+    rcm = ['', [f'Добавить задачу...{sg.MENU_KEY_SEPARATOR}-ADD-TASK-']]
     if worker:
         buttons = ([[
             sg.Button(
@@ -80,7 +81,7 @@ def get_card_worker(data):
             )
         ]])
         table = [[
-            sg.Frame('Связанные задачи:', [
+            sg.Frame('Задачи выполняемые работником:', [
                 [sg.Input(worker.id, key='worker_id', visible=False)],
                 [sg.Table(
                     get_list_task_for_worker(tasks),
@@ -89,7 +90,7 @@ def get_card_worker(data):
                     num_rows=3,
                     key='-DOUBLE-TASKS-',
                     **table_tasks_setting)]
-            ], size=(330, 150), **frame_setting)
+            ], size=(330, 150), right_click_menu=rcm, **frame_setting)
         ]]
     else:
         buttons = []
@@ -251,8 +252,9 @@ def get_card_order(data):
         tasks = data.get('tasks', [])
         table_heads = ['№', 'Статус', 'Норма', 'Вып.', 'Работник', 'Коммент']
         width_cols = [3, 8, 5, 5, 12, 14]
+        rcm = ['', [f'Добавить задачу...{sg.MENU_KEY_SEPARATOR}-ADD-TASK-']]
         table = [[
-            sg.Frame('Связанные задачи:', [
+            sg.Frame('Задачи с этой ПРкой:', [
                 [sg.Input(order.id, key='order_id', visible=False)],
                 [
                     sg.Table(
@@ -264,7 +266,7 @@ def get_card_order(data):
                         **table_setting
                     )
                 ]
-            ], size=(330, 160), **frame_setting)
+            ], size=(330, 160), right_click_menu=rcm, **frame_setting)
         ]]
     else:
         table = []

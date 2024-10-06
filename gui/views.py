@@ -32,6 +32,7 @@ class StartWindowCard:
     def run(self):
         while True:
             ev, self.value = self.window.read()
+            ev = ev if isinstance(ev, tuple) or ev == sg.WIN_CLOSED else ev.split(sg.MENU_KEY_SEPARATOR)[-1]
             print(f'WindowCard {ev=} {self.value=}')
             if ev in [sg.WIN_CLOSED, '-CANCEL-']:
                 break
@@ -67,15 +68,19 @@ class StartWindowCard:
                             self.actualizing_passed_period()
                         else:
                             sg.popup_timed('Изменения не вносились!', **info_popup_setting)
-            elif ev == '-DOUBLE-TASKS-':
+            elif ev in ['-DOUBLE-TASKS-', '-ADD-TASK-']:
                 if self.value['type'] == 'worker':
                     entity = get_worker_data(int(self.value.get('worker_id'))).get('tasks')
                     list_comprehension = get_list_task_for_worker
                 else:
                     entity = get_order_data(int(self.value.get('order_id'))).get('tasks')
                     list_comprehension = get_list_task_for_order
+                if ev == '-ADD-TASK-':
+                    raw_data = None
+                else:
+                    raw_data = ['', entity[self.value[ev].pop()].id]
                 StartWindowCard(
-                    raw_data=['', entity[self.value[ev].pop()].id],
+                    raw_data=raw_data,
                     key='-TSK-',
                     parent=self.window
                 )
@@ -174,7 +179,7 @@ class StartMainWindow:
     def run(self):
         while True:
             ev, val = self.window.read()
-            ev = ev if isinstance(ev, tuple) or ev == sg.WIN_CLOSED else ev.split('::')[-1]
+            ev = ev if isinstance(ev, tuple) or ev == sg.WIN_CLOSED else ev.split(sg.MENU_KEY_SEPARATOR)[-1]
             print(f'MainWindow {ev=} {val=}')
             if ev == sg.WIN_CLOSED:
                 break
