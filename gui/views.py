@@ -200,26 +200,36 @@ class StartMainWindow:
             elif ev == '-EXEL-':
                 valid_data = popup_choice_worker_for_exel(self.window)
                 print(valid_data)
+            elif ev == '-FIND-':
+                if val.get('-TG-') in ['-WRK-', '-DSMS-']:
+                    key_table = '-WORKERS-'
+                elif val.get('-TG-') in ['-TSK-', '-CLS-']:
+                    key_table = '-TASKS-'
+                else:
+                    key_table = '-ORDERS-'
+                self.filter_list(key_table, sg.popup_get_text('Искомое значение:'))
         self.window.close()
 
     def sorting_list(self, key_table, column):
-        if self.sort_col == column:
+        if column == self.sort_col:
             self.sort = not self.sort
+        else:
+            self.sort = False
+        self.sort_col = column
         self.table[key_table] = sorted(self.table[key_table], key=itemgetter(column), reverse=self.sort)
         self.window[key_table].update(values=self.table[key_table])
-        if self.sort_col == column:
-            self.sort = not self.sort
-        self.sort_col = column
+
+    def filter_list(self, key_table, find):
+        def func(string):
+            return any(map(lambda x: find.lower() in str(x).lower(), string))
+        self.table[key_table] = list(filter(func, self.table[key_table]))
+        self.window[key_table].update(values=self.table[key_table])
 
     def actualizing(self):
         self.get_format_list_workers()
         self.get_format_list_orders()
         self.get_format_list_tasks()
-        self.window['-WORKERS-'].update(values=self.table['-WORKERS-'])
-        self.window['-ORDERS-'].update(values=self.table['-ORDERS-'])
-        self.window['-TASKS-'].update(values=self.table['-TASKS-'])
-        self.window['-CLOSE-'].update(values=self.table['-CLOSE-'])
-        self.window['-DISMISS-'].update(values=self.table['-DISMISS-'])
+        [self.window[key].update(values=self.table[key]) for key in self.table]
 
     @staticmethod
     def _format_list_workers(lst_workers):

@@ -59,7 +59,7 @@ def get_main_window():
 
 def get_card_window(form):
     title = (
-        'Карточка работника' if form == '-WRK-'
+        'Карточка работника' if form in ['-WRK-', '-DSMS-']
         else "Карточка задачи" if form in ['-CLS-', '-TSK-']
         else "Карточка заказа"
     )
