@@ -27,13 +27,13 @@ def get_main_window():
                 get_sector_workers(code='-WORKERS-'),
                 key='-WRK-', **tab_setting),
             sg.Tab(
-                'Список открытых заказов (ПРки)',
-                get_sector_orders(),
-                key='-ORD-', **tab_setting),
-            sg.Tab(
                 'Список выполняемых работ',
                 get_sector_tasks(code='-TASKS-'),
                 key='-TSK-', **tab_setting),
+            sg.Tab(
+                'Список открытых заказов (ПРки)',
+                get_sector_orders(),
+                key='-ORD-', **tab_setting),
             sg.Tab(
                 'Архив выполненных работ',
                 get_sector_tasks(code='-CLOSE-'),

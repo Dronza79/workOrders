@@ -31,8 +31,8 @@ def get_sector_orders():
 
 def get_sector_tasks(code=''):
     heads = [
-        '№', 'Номер ПР', 'Норма', 'Вып.', "Работник", 'Статус']
-    width_cols = [3, 10, 5, 5, 13, 8]
+        '№', 'Тип работы', 'Статус', "Работник", 'Норма', 'Вып.', 'Номер ПР', 'Тип', 'Объект', "Название"]
+    width_cols = [1, 13, 10, 10, 3, 3, 5, 8, 10, 10]
     return [[
         sg.Table(
             values=[], headings=heads, key=code,
@@ -132,8 +132,8 @@ def get_card_worker(data):
     ], pad=0))]
 
 
-def get_card_task(data):
-    # print(f'get_card_task {data=}')
+def get_card_task(data, prefill):
+    print(f'get_card_task({data=}, {prefill=})')
     time_worked = [
         [f'{period.date:%d.%m.%y}',
          f'{period.date:%a}',
@@ -165,7 +165,17 @@ def get_card_task(data):
     workers = list(data.get('workers', []))
     all_order = list(data.get('all_orders', []))
     all_types = list(data.get('types', []))
-    if task and task.is_type.has_extension:
+    prefill_worker = None
+    prefill_order = None
+    if prefill:
+        if prefill[0] == 'worker':
+            prefill_worker = list(filter(lambda x: x.id == int(prefill[1]), workers)).pop()
+        else:
+            prefill_order = list(filter(lambda x: x.id == int(prefill[1]), all_order)).pop()
+
+    # print(f'{prefill_worker=} {prefill_order=}')
+
+    if (task and task.is_type.has_extension) or prefill_order:
         extension = True
     else:
         extension = False
@@ -179,7 +189,7 @@ def get_card_task(data):
                     sg.Combo(
                         workers,
                         key='worker',
-                        default_value=task.worker if task else 'Не выбрано',
+                        default_value=task.worker if task else prefill_worker if prefill_worker else 'Не выбрано',
                         disabled=True if task else False,
                         **drop_down_setting)
                 ], [
@@ -187,7 +197,7 @@ def get_card_task(data):
                     sg.Push(),
                     sg.Combo(
                         all_types,
-                        key='type_task',
+                        key='is_type',
                         default_value=task.is_type if task else 'Не выбрано',
                         disabled=True if task else False,
                         enable_events=True,
@@ -223,22 +233,28 @@ def get_card_task(data):
                     sg.Combo(
                         all_order,
                         key='order',
-                        default_value=task.order if task else 'Не выбрано',
-                        disabled=True if task else False,
+                        default_value=task.order if task and task.order else prefill_order if prefill_order else 'Не выбрано',
+                        disabled=True if task else True if prefill_order else False,
                         enable_events=True,
                         **drop_down_setting)
                 ], [
                     sg.T("Тип объекта:", **text_setting),
                     sg.Push(),
-                    sg.Input(task.order.type_obj if task else '', key='type_obj', readonly=True, **input_setting)
+                    sg.Input(
+                        task.order.type_obj if task and task.order else prefill_order.type_obj if prefill_order else '',
+                        key='type_obj', readonly=True, **input_setting)
                 ], [
                     sg.T("Наименование:", **text_setting),
                     sg.Push(),
-                    sg.Input(task.order.title if task else '', key='title', readonly=True, **input_setting)
+                    sg.Input(
+                        task.order.title if task and task.order else prefill_order.title if prefill_order else '',
+                        key='title', readonly=True, **input_setting)
                 ], [
                     sg.T("Конструктив:", **text_setting),
                     sg.Push(),
-                    sg.Input(task.order.article if task else '', key='article', readonly=True, **input_setting)
+                    sg.Input(
+                        task.order.article if task and task.order else prefill_order.article if prefill_order else '',
+                        key='article', readonly=True, **input_setting)
                 ]], pad=10)]],
                             key='-ORDER-TASK-',
                             visible=extension,

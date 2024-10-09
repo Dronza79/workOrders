@@ -21,12 +21,12 @@ from .windows import get_main_window, get_card_window, popup_get_period, popup_c
 class StartWindowCard:
     value = None
 
-    def __init__(self, parent, raw_data=None, key=None):
-        self.idx = int(raw_data[-1]) if raw_data else None
+    def __init__(self, parent, idx=None, key=None, prefill=None):
+        self.idx = int(idx) if idx else None
         self.key = key
         self.parent = parent
         self.window = get_card_window(form=self.key)
-        self.windows_extend()
+        self.windows_extend(prefill)
         self.run()
 
     def run(self):
@@ -76,13 +76,20 @@ class StartWindowCard:
                     entity = get_order_data(int(self.value.get('order_id'))).get('tasks')
                     list_comprehension = get_list_task_for_order
                 if ev == '-ADD-TASK-':
-                    raw_data = None
+                    idx = None
+                    choice = self.value['type']
+                    prefill = (
+                        choice,
+                        self.value['order_id'] if choice == 'order' else self.value['worker_id'],
+                    )
                 else:
-                    raw_data = ['', entity[self.value[ev].pop()].id]
+                    idx = entity[self.value[ev].pop()].id
+                    prefill = None
                 StartWindowCard(
-                    raw_data=raw_data,
+                    idx=idx,
                     key='-TSK-',
-                    parent=self.window
+                    parent=self.window,
+                    prefill=prefill
                 )
                 if self.value['type'] == 'worker':
                     entity = get_worker_data(int(self.value.get('worker_id'))).get('tasks')
@@ -107,7 +114,7 @@ class StartWindowCard:
                 if res:
                     sg.popup_timed('Сохранено', **info_popup_setting)
                     break
-            elif ev == 'type_task':
+            elif ev == 'is_type':
                 types = self.value[ev]
                 if types.has_extension:
                     self.window['-ORDER-TASK-'].update(visible=True)
@@ -124,26 +131,26 @@ class StartWindowCard:
         size = self.window.current_size_accurate()
         self.window.move(loc_x + size_w // 2 - size[0] // 2, loc_y + size_h // 2 - size[1] // 2)
 
-    def windows_extend(self):
+    def windows_extend(self, prefill):
         card = []
         w, h = self.window.current_size_accurate()
         if self.key in ['-WRK-', '-DSMS-']:
             data = get_worker_data(idx=self.idx)
             card = get_card_worker(data)
-            if not self.idx:
-                self.window.size = (w, h - 270)
+            # if not self.idx:
+            #     self.window.size = (w, h - 270)
         elif self.key in ['-CLS-', '-TSK-']:
             data = get_task_data(idx=self.idx)
-            card = get_card_task(data)
-            if not self.idx:
-                self.window.size = (w, h - 190)
+            card = get_card_task(data, prefill)
+            # if not self.idx:
+            #     self.window.size = (w, h - 190)
         elif self.key == '-ORD-':
             data = get_order_data(idx=self.idx)
             card = get_card_order(data)
-            if self.idx:
-                self.window.size = (w, h - 110)
-            else:
-                self.window.size = (w, h - 360)
+            # if self.idx:
+            #     self.window.size = (w, h - 110)
+            # else:
+            #     self.window.size = (w, h - 360)
         self.window.extend_layout(self.window['body'], [card])
         self.move_center()
 
@@ -189,7 +196,7 @@ class StartMainWindow:
                 self.sorting_list(ev[0], ev[2][1])
             elif ev in ['-WORKERS-', '-ORDERS-', '-TASKS-', '-CLOSE-', '-ADD-', '-DISMISS-']:
                 StartWindowCard(
-                    raw_data=self.table[ev][val[ev].pop()] if val.get(ev) else None,
+                    idx=self.table[ev][val[ev].pop()][-1] if val.get(ev) else None,
                     key=val.get('-TG-'),
                     parent=self.window)
                 self.actualizing()
@@ -240,7 +247,7 @@ class StartMainWindow:
             period = worker.time_worked
             if period:
                 period = period[-1]
-                total_worked = period.task.total_time
+                total_worked = sum(period.task.time_worked)
             else:
                 period = None
                 total_worked = None
@@ -293,11 +300,15 @@ class StartMainWindow:
         for i, task in enumerate(list_task, start=1):
             formatted_data = [
                 i,
-                str(task.order),
-                task.deadline,
-                task.total_worked,
-                f'{task.worker.surname} {task.worker.name[:1]}.{task.worker.second_name[:1]}.',
+                str(task.is_type),
                 str(task.status),
+                f'{task.worker.surname} {task.worker.name[:1]}.{task.worker.second_name[:1]}.',
+                task.deadline,
+                task.passed if task.passed else 0,
+                str(task.order) if task.order else '--',
+                task.order.type_obj if task.order else '--',
+                task.order.title if task.order else '--',
+                task.order.name if task.order and task.order.name else '--',
                 task.id,
             ]
             lst.append(formatted_data)
