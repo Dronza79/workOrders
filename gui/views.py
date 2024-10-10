@@ -36,13 +36,16 @@ class StartWindowCard:
             print(f'WindowCard {ev=} {self.value=}')
             if ev in [sg.WIN_CLOSED, '-CANCEL-']:
                 break
-            elif ev == 'order':
-                order = self.value.get(ev)
-                self.window['type_obj'].update(order.type_obj)
-                self.window['title'].update(order.title)
-                self.window['article'].update(order.article)
-                self.window['-PASSED-'].update(order.passed)
-                self.window.refresh()
+            elif ev in ['order', 'worker']:
+                search = self.value.get(ev)
+                if not isinstance(search, str):
+                    self.window['type_obj'].update(search.type_obj)
+                    self.window['title'].update(search.title)
+                    self.window['article'].update(search.article)
+                    self.window['-PASSED-'].update(search.passed)
+                else:
+                    new_data = list(filter(lambda obj: search.lower() in str(obj).lower(), self.window[ev].Values))
+                    self.window[ev].update(new_data[0], values=new_data)
             elif ev == '-ADD-TIME-':
                 _, period_data = popup_get_period(self.window)
                 if period_data:
@@ -133,24 +136,15 @@ class StartWindowCard:
 
     def windows_extend(self, prefill):
         card = []
-        w, h = self.window.current_size_accurate()
         if self.key in ['-WRK-', '-DSMS-']:
             data = get_worker_data(idx=self.idx)
             card = get_card_worker(data)
-            # if not self.idx:
-            #     self.window.size = (w, h - 270)
         elif self.key in ['-CLS-', '-TSK-']:
             data = get_task_data(idx=self.idx)
             card = get_card_task(data, prefill)
-            # if not self.idx:
-            #     self.window.size = (w, h - 190)
         elif self.key == '-ORD-':
             data = get_order_data(idx=self.idx)
             card = get_card_order(data)
-            # if self.idx:
-            #     self.window.size = (w, h - 110)
-            # else:
-            #     self.window.size = (w, h - 360)
         self.window.extend_layout(self.window['body'], [card])
         self.move_center()
 
@@ -174,6 +168,13 @@ class StartMainWindow:
         '-TASKS-': [],
         '-CLOSE-': [],
         '-DISMISS-': [],
+    }
+    mapping = {
+        '-WRK-': '-WORKERS-',
+        '-DSMS-': '-DISMISS-',
+        '-TSK-': '-TASKS-',
+        '-CLS-': '-CLOSE-',
+        '-ORD-': '-ORDERS-'
     }
     sort = False
     sort_col = None
@@ -208,12 +209,7 @@ class StartMainWindow:
                 valid_data = popup_choice_worker_for_exel(self.window)
                 print(valid_data)
             elif ev == '-FIND-':
-                if val.get('-TG-') in ['-WRK-', '-DSMS-']:
-                    key_table = '-WORKERS-'
-                elif val.get('-TG-') in ['-TSK-', '-CLS-']:
-                    key_table = '-TASKS-'
-                else:
-                    key_table = '-ORDERS-'
+                key_table = self.mapping.get(val.get('-TG-'))
                 self.filter_list(key_table, sg.popup_get_text('Искомое значение:'))
         self.window.close()
 
@@ -227,8 +223,11 @@ class StartMainWindow:
         self.window[key_table].update(values=self.table[key_table])
 
     def filter_list(self, key_table, find):
+        print(f'filter_list({key_table=}, {find=})')
+
         def func(string):
             return any(map(lambda x: find.lower() in str(x).lower(), string))
+
         self.table[key_table] = list(filter(func, self.table[key_table]))
         self.window[key_table].update(values=self.table[key_table])
 

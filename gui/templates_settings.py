@@ -207,10 +207,18 @@ drop_down_setting = {
     # 'expand_x': False,
     # 'expand_y': False,
     # 'tooltip': None,
-    'readonly': True,
+    # 'readonly': True,
     'font': ('_', 12),
     # 'visible': True,
     # 'metadata': None
+}
+
+search_drop_down_setting = {
+    'size': (22, 1),
+    'bind_return_key': True,
+    'enable_events': True,
+    'pad': ((0, 0), (5, 5)),
+    'font': ('_', 12),
 }
 
 drop_down_type_task_setting = {
