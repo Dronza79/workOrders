@@ -32,17 +32,19 @@ with get_database().atomic():
             item = 'РУ-20кВ' if i == 'завод ЗИЛ' else random.choice(type_ob)
             obj['type_obj'] = item
             num = (random.randint(260, 279) if item == 'РУ-6кВ'
-                   else '00' + str(random.randint(2, 9)) if item == 'РУ-20кВ'
-            else random.randint(624, 637))
+                   else '00' + str(random.randint(2, 9)) if item == 'РУ-20кВ' else random.randint(624, 637))
             tunum = random.choice(['00', '03'])
             hed = random.randint(10, 45) if tunum == '03' else '00'
             obj['article'] = (f"ENF{'20' if item == 'РУ-20кВ' else '06' if item == 'РУ-6кВ' else '10'}"
                               f"_{num}_{tunum}_0{hed}_00")
             obj['article'] += '-' + str(random.randint(10, 50)) if tunum == "00" else ''
             obj['no'] = order
+            obj['name'] = 'отсек вторичных цепей' if tunum == '03' else 'Шкаф фидера ОМЕГА'
             data_order.append(obj)
 
-    Order.insert_many(data_order).execute()
+    for i in range(0, len(data_order), 50):
+        Order.insert_many(data_order[i:i + 50]).execute()
+
 
 data_task = []
 with get_database().atomic():
@@ -128,7 +130,7 @@ for worker in query:
     if worker.function_id < 3:
         for task in worker.tasks:
             while ((date < datetime.datetime.now().date()) and
-            # while ((date < datetime.date(2024, 9, 6)) and
+                   # while ((date < datetime.date(2024, 9, 6)) and
                    (sum(task.time_worked) < task.deadline - 8)):
                 if date.isoweekday() != 7:
                     per = Period.create(
