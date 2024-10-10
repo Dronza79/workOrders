@@ -12,7 +12,7 @@ now_date = datetime.now().date()
 def get_subquery_worker():
     return (
         Period.select(Period, Task, Order, Worker, Status)
-        .join_from(Period, Task).join_from(Period, Order)
+        .join_from(Period, Task).join_from(Period, Order, peewee.JOIN.LEFT_OUTER)
         .join_from(Period, Worker).join_from(Task, Status)
         .where(
             ~Status.is_archived,
@@ -21,8 +21,8 @@ def get_subquery_worker():
         )
         .order_by(Period.date)
     ), (
-        Task.select(Task, Worker, Order, Status, peewee.fn.SUM(Period.value).alias('total_time'))
-        .join_from(Task, Period, peewee.JOIN.LEFT_OUTER).join_from(Task, Order)
+        Task.select(Task, Worker, Order, Status, Period, peewee.fn.SUM(Period.value).alias('total_time'))
+        .join_from(Task, Period, peewee.JOIN.LEFT_OUTER).join_from(Task, Order, peewee.JOIN.LEFT_OUTER)
         .join_from(Task, Worker).join_from(Task, Status)
         .where(
             ~Status.is_archived,
@@ -92,7 +92,7 @@ def get_worker_data(idx=None):
             .join_from(Task, Status)
             .join_from(Task, Worker)
             .join_from(Task, Period, peewee.JOIN.LEFT_OUTER)
-            .join_from(Task, Order)
+            .join_from(Task, Order, peewee.JOIN.LEFT_OUTER)
             .where(Worker.id == idx, ~Status.is_archived)
             .group_by(Task.id)
             .order_by(-Status.is_positive, -peewee.fn.MAX(Period.date))
@@ -108,7 +108,7 @@ def get_worker_data(idx=None):
 
 
 def get_task_data(idx=None):
-    print(f'get_task_data {idx=}')
+    # print(f'get_task_data {idx=}')
     query = {
         'statuses': Status.select(),
         'types': TypeTask.select()
@@ -117,7 +117,7 @@ def get_task_data(idx=None):
         query['task'] = (
             Task.select(Task, Status, Worker, Order, TypeTask)
             .join_from(Task, Status)
-            .join_from(Task, Order)
+            .join_from(Task, Order, peewee.JOIN.LEFT_OUTER)
             .join_from(Task, Worker)
             .join_from(Task, TypeTask)
             .where(Task.id == idx)
@@ -126,16 +126,18 @@ def get_task_data(idx=None):
         )
         periods = Period.select().where(Period.task_id == idx)
 
-        query['passed'] = sum(periods)
-        query['time_worked'] = periods.where(Period.date.year == now_date.year, Period.date.month == now_date.month)
+        query['passed_task'] = sum(query['task'].time_worked)
+        query['passed_order'] = sum(query['task'].order.time_worked if query['task'].order else [])
+        # query['time_worked'] = periods.where(Period.date.year == now_date.year, Period.date.month == now_date.month)
+        query['time_worked'] = periods
     else:
         query['workers'] = Worker.select(Worker, Vacancy.post).join(Vacancy)
         query['all_orders'] = (
             Order.select(Order, peewee.fn.SUM(Period.value).alias('passed'))
             .join_from(Order, Period, peewee.JOIN.LEFT_OUTER)
             .where(
-                Order.no.not_in(Task.select(Task.order)) |
-                Order.no.in_(Task.select(Task.order).join(Status).where(~Status.is_archived))
+                Order.id.not_in(Task.select(Task.order)) |
+                Order.id.in_(Task.select(Task.order).join(Status).where(~Status.is_archived))
             )
             .group_by(Order.id)
         )
@@ -154,7 +156,7 @@ def get_order_data(idx=None):
                 )
                 .join_from(Task, Status)
                 .join_from(Task, Worker)
-                .join_from(Task, Order)
+                .join_from(Task, Order, peewee.JOIN.LEFT_OUTER)
                 .join_from(Task, Period, peewee.JOIN.LEFT_OUTER)
                 .where(Task.order_id == idx)
                 .group_by(Task.id)
@@ -166,24 +168,19 @@ def get_order_data(idx=None):
 
 def get_all_tasks():
     return (
-        Task.select(
-            Task.id, Task.deadline, peewee.fn.SUM(Period.value).alias('total_worked'),
-            Order.no,
-            Status.state,
-            Period.value,
-            Worker.surname, Worker.name, Worker.second_name
-        )
+        Task.select(Task, Order, Status, Period, Worker, TypeTask, peewee.fn.SUM(Period.value).alias('passed'))
         .join_from(Task, Status)
         .join_from(Task, Worker)
-        .join_from(Task, Order)
-        .join_from(Order, Period, peewee.JOIN.LEFT_OUTER)
+        .join_from(Task, TypeTask)
+        .join_from(Task, Order, peewee.JOIN.LEFT_OUTER)
+        .join_from(Task, Period, peewee.JOIN.LEFT_OUTER)
     )
 
 
 def get_close_tasks():
     return (
         get_all_tasks()
-        .where(Status.is_archived)
+        .where(Task.is_active, Status.is_archived)
         .group_by(Task.id)
     )
 
@@ -191,7 +188,7 @@ def get_close_tasks():
 def get_open_tasks():
     return (
         get_all_tasks()
-        .where(~Status.is_archived)
+        .where(Task.is_active, ~Status.is_archived)
         .group_by(Task.id)
     )
 
