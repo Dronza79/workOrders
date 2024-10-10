@@ -10,7 +10,7 @@ table_setting = {
     'vertical_scroll_only': False,
     'enable_events': True,
     'row_height': 35,
-    'font': '_ 12',
+    # 'font': '_ 12',
     'header_font': '_ 9',
     'header_border_width': 1,
     # 'visible_column_map': None,

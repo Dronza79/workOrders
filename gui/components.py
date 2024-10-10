@@ -14,18 +14,20 @@ def get_sector_workers(code=''):
             headings=heads,
             key=code,
             col_widths=width_cols,
+            font='_ 12',
             **table_setting)
     ]]
 
 
 def get_sector_orders():
     heads = [
-        '№', 'Номер ПР', 'Тип', 'Объект', "Конструктив", 'Работник']
-    width_cols = [3, 10, 12, 12, 22, 11]
+        '№', 'Номер ПР', 'Тип', 'Объект', "Конструктив", "Название", 'Норма', 'Выполн.', 'Статус']
+    width_cols = [2, 12, 12, 12, 21, 18, 2, 2, 10]
     return [[
         sg.Table(
             values=[], headings=heads, key='-ORDERS-',
             col_widths=width_cols,
+            font='_ 11',
             **table_setting)
     ]]
 
@@ -33,11 +35,12 @@ def get_sector_orders():
 def get_sector_tasks(code=''):
     heads = [
         '№', 'Тип работы', 'Статус', "Работник", 'Норма', 'Вып.', 'Номер ПР', 'Тип', 'Объект', "Название"]
-    width_cols = [2, 13, 8, 10, 3, 3, 8, 10, 10, 10]
+    width_cols = [2, 8, 8, 10, 3, 3, 8, 11, 12, 12]
     return [[
         sg.Table(
             values=[], headings=heads, key=code,
             col_widths=width_cols,
+            font='_ 12',
             **table_setting)
     ]]
 

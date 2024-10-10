@@ -20,6 +20,7 @@ from .windows import get_main_window, get_card_window, popup_get_period, popup_c
 
 class StartWindowCard:
     value = None
+    old_data = None
 
     def __init__(self, parent, idx=None, key=None, prefill=None):
         self.idx = int(idx) if idx else None
@@ -34,18 +35,21 @@ class StartWindowCard:
             ev, self.value = self.window.read()
             ev = ev if isinstance(ev, tuple) or ev == sg.WIN_CLOSED else ev.split(sg.MENU_KEY_SEPARATOR)[-1]
             print(f'WindowCard {ev=} {self.value=}')
-            if ev in [sg.WIN_CLOSED, '-CANCEL-']:
+            if ev in [sg.WIN_CLOSED, '-CANCEL-', 'Escape:27']:
                 break
             elif ev in ['order', 'worker']:
                 search = self.value.get(ev)
-                if not isinstance(search, str):
+                if isinstance(search, str):
+                    self.old_data = self.window[ev].Values
+                    new_data = list(filter(lambda obj: search.lower() in str(obj).lower(), self.old_data))
+                    self.window[ev].update(new_data[0], values=new_data)
+                elif ev == 'order':
                     self.window['type_obj'].update(search.type_obj)
                     self.window['title'].update(search.title)
                     self.window['article'].update(search.article)
                     self.window['-PASSED-'].update(search.passed)
                 else:
-                    new_data = list(filter(lambda obj: search.lower() in str(obj).lower(), self.window[ev].Values))
-                    self.window[ev].update(new_data[0], values=new_data)
+                    self.window[ev].update(self.value[ev], values=self.old_data)
             elif ev == '-ADD-TIME-':
                 _, period_data = popup_get_period(self.window)
                 if period_data:
@@ -285,7 +289,10 @@ class StartMainWindow:
                     order.type_obj,
                     order.title,
                     order.article,
-                    f'{worker.surname} {worker.name[:1]}.{worker.second_name[:1]}.' if worker else '---',
+                    order.name if order.name else '--',
+                    order.deadline if order.deadline else '--',
+                    order.passed if order.passed else '--',
+                    f'{tasks[-1].status}.' if tasks else '---',
                     order.id
                 )
 

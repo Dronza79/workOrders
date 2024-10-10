@@ -67,13 +67,14 @@ def get_card_window(form):
         [sg.Col([], key='body')],
         [
             sg.Push(),
-            sg.B('Сохранить', key='-SAVE-'),
-            sg.B('Отменить', key='-CANCEL-'),
+            sg.Button('Сохранить', key='-SAVE-', focus=True, bind_return_key=True),
+            sg.Button('Отменить', key='-CANCEL-'),
             sg.Push(),
         ]
     ]
     return sg.Window(title, layout,
                      # resizable=True,
+                     return_keyboard_events=True,
                      finalize=True,
                      sbar_frame_color='#64778D',
                      # size=(450, 570),
