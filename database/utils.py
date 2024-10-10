@@ -1,7 +1,7 @@
 import re
 from datetime import datetime as dt
 
-from database.models import Worker, Vacancy, Order, Task, Status, Period
+from database.models import Worker, Vacancy, Order, Task, Status, Period, TypeTask
 
 
 def validation_data(raw_data, idx=None):
@@ -49,10 +49,15 @@ def validation_data(raw_data, idx=None):
             'type_obj': 'Тип объекта',
             'title': 'Наименование объекта',
             'article': 'Конструктив',
+            'name': 'Название заказа',
         }
         order = None
         if idx:
             order = Order.get(Order.id == idx)
+            if raw_data['name'] and raw_data['name'] != order.name:
+                valid_data['name'] = raw_data['name']
+        if not idx and raw_data['name']:
+            valid_data['name'] = raw_data['name']
         for key in ['no', 'type_obj', 'title', 'article']:
             if len(raw_data[key]) < 3:
                 errors.append(f'Ошибка:\nПоле {dep[key]} не заполнено!\n')
@@ -63,7 +68,7 @@ def validation_data(raw_data, idx=None):
                     errors.append(f'Ошибка:\nПоле {dep[key]} заполнено не по формату!\n')
                 else:
                     if (idx and getattr(order, key) != raw_data[key]) or not idx:
-                        valid_data[key] = raw_data[key].upper()
+                        valid_data[key] = raw_data[key].strip().upper()
             elif key == 'no':
                 if not re.findall(r'\d+', raw_data[key]):
                     errors.append(f'Ошибка:\nПоле {dep[key]} заполнено не по формату!\n')
@@ -77,10 +82,11 @@ def validation_data(raw_data, idx=None):
                             valid_data[key] = int(re.findall(r'\d+', raw_data[key]).pop())
             else:
                 if (idx and getattr(order, key) != raw_data[key]) or not idx:
-                    valid_data[key] = raw_data[key]
+                    valid_data[key] = raw_data[key].strip()
 
     elif entity == 'task':
         dep = {
+            'is_type': 'Тип задачи',
             'order': 'Производственный заказ',
             'worker': 'Исполнитель',
             'status': 'Статус',
@@ -89,14 +95,22 @@ def validation_data(raw_data, idx=None):
         }
         task = None
         if idx:
-            task = Task.get(Task.id == idx)
-        for key, value in {'order': Order, 'status': Status, 'worker': Worker}.items():
+            task = Task.get_by_id(idx)
+        for key, value in {'order': Order, 'status': Status, 'worker': Worker, 'is_type': TypeTask}.items():
             # print(f'{key=} {value=} {raw_data[key]=}')
-            if not isinstance(raw_data[key], value) and not idx:
-                errors.append(f'Ошибка:\nПоле {dep[key]} не выбрано!\n')
-            else:
-                if (idx and key not in ['order', 'worker'] and getattr(task, key) != raw_data[key]) or not idx:
+            if idx:
+                if key == 'status' and task.status != raw_data[key]:
                     valid_data[key] = raw_data[key]
+            else:
+                if not isinstance(raw_data[key], value) and key != 'order':
+                    errors.append(f'Ошибка:\nПоле {dep[key]} не выбрано!\n')
+                elif key == 'order':
+                    if isinstance(raw_data[key], value):
+                        valid_data[key] = raw_data[key]
+                else:
+                    valid_data[key] = raw_data[key]
+
+        print(f'{valid_data=}')
         if not raw_data['deadline'].isdigit():
             errors.append(f'Ошибка:\nПоле {dep["deadline"]} допускаются только цифры!\n')
         else:

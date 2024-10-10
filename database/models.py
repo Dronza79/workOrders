@@ -13,10 +13,10 @@ STATUS_VARIABLES = [
 ]
 
 TYPE_VARIABLES = [
-    {'title': 'Погрузо-разгрузочная работа', 'has_extension': False},
-    {'title': 'Подсобная работа', 'has_extension': False},
-    {'title': 'Сборочная работа', 'has_extension': True},
-    {'title': 'Монтажная работа', 'has_extension': True},
+    {'title': 'Погрузка', 'has_extension': False},
+    {'title': 'Подсобка', 'has_extension': False},
+    {'title': 'Сборка', 'has_extension': True},
+    {'title': 'Монтаж', 'has_extension': True},
 ]
 
 FUNC_VARIABLES = [
@@ -113,14 +113,14 @@ class Task(BaseModel):
     deadline = SmallIntegerField(verbose_name='Норматив выполнения')
     comment = TextField(verbose_name='Комментарий', default='')
 
-    def __str__(self):
-        return f'{self.order} ({self.status.state})'
+    # def __str__(self):
+    #     return f'{self.id} ({self.status.state})'
 
 
 class Period(BaseModel):
     worker = ForeignKeyField(Worker, verbose_name='Работник', backref='time_worked', on_delete='CASCADE')
     task = ForeignKeyField(Task, backref='time_worked', verbose_name='Задача', on_delete='CASCADE')
-    order = ForeignKeyField(Order, backref='time_worked', verbose_name='Задача', on_delete='CASCADE')
+    order = ForeignKeyField(Order, backref='time_worked', null=True, verbose_name='Задача', on_delete='CASCADE')
     date = DateField(default=datetime.datetime.now, verbose_name='Дата')
     value = SmallIntegerField(verbose_name="Продолжительность")
 
@@ -136,3 +136,9 @@ class Period(BaseModel):
 
     def get_day_week(self):
         return f'{self.date:%a}', int(f'{self.date:%w}')
+# import peewee
+# from database.models import Task, Period, Status, Worker, Order
+# for i, task in enumerate(Task.select(), start=1):
+#     print(i, task.id)
+
+# tasks = Task.select(Task, Period, peewee.fn.SUM(Period.value).alias('passed')).join_from(Task, Period, peewee.JOIN.LEFT_OUTER).group_by(Task.id)

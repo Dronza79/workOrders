@@ -58,7 +58,12 @@ def get_all_dismiss():
 
 def get_all_orders():
     orders = (
-        Order.select()
+        Order.select(
+            Order, peewee.fn.SUM(Period.value).alias('passed'),
+            peewee.fn.MAX(Task.deadline).alias('deadline')
+        )
+        .join_from(Order, Period, peewee.JOIN.LEFT_OUTER)
+        .join_from(Order, Task, peewee.JOIN.LEFT_OUTER)
         .where(
             Order.id.not_in(Task.select(Task.order)) |
             Order.id.in_(Task.select(Task.order).join_from(Task, Status).where(~Status.is_archived))
@@ -66,11 +71,8 @@ def get_all_orders():
         .group_by(Order.id)
     )
 
-    tasks = (
-        Task.select(Task, Worker.surname, Worker.name, Worker.second_name)
-        .join_from(Task, Worker)
-        .group_by(Task.id)
-    )
+    tasks = Task.select().join(Status).where(Task.is_active, ~Status.is_archived)
+
 
     return peewee.prefetch(orders, tasks)
 
