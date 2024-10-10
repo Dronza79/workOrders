@@ -140,5 +140,8 @@ class Period(BaseModel):
 # from database.models import Task, Period, Status, Worker, Order
 # for i, task in enumerate(Task.select(), start=1):
 #     print(i, task.id)
-
+# import peewee
 # tasks = Task.select(Task, Period, peewee.fn.SUM(Period.value).alias('passed')).join_from(Task, Period, peewee.JOIN.LEFT_OUTER).group_by(Task.id)
+
+# for i, task in enumerate(Task.select(Task, Period).join(Period, peewee.JOIN.LEFT_OUTER).objects(), start=1):
+#     print(f'{i}, {task=}, {task.task=}, {task.date=}, {task.value=}')
