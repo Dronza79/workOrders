@@ -25,7 +25,7 @@ with get_database().atomic():
     data_order = []
     order = 28130
     for i in tit:
-        for _ in range(random.randint(5, 10)):
+        for _ in range(random.randint(9, 22)):
             obj = {}
             order += 1
             obj['title'] = i
@@ -118,16 +118,17 @@ query = (
     Worker.select(Worker, Task, Order, Period)
     .join_from(Worker, Task, peewee.JOIN.LEFT_OUTER)
     .join_from(Task, Period, peewee.JOIN.LEFT_OUTER)
-    .join_from(Task, Order)
-    # .group_by(Worker)
+    .join_from(Task, Order, peewee.JOIN.LEFT_OUTER)
+    .group_by(Worker)
 )
 delta = datetime.timedelta(days=1)
-print(list(query))
+print(f'{list(query)=}')
 for worker in query:
-    date = datetime.date(2024, 8, 1)
+    date = datetime.date(2024, 9, 1)
     if worker.function_id < 3:
         for task in worker.tasks:
-            while ((date < datetime.date(2024, 9, 6)) and
+            while ((date < datetime.datetime.now().date()) and
+            # while ((date < datetime.date(2024, 9, 6)) and
                    (sum(task.time_worked) < task.deadline - 8)):
                 if date.isoweekday() != 7:
                     per = Period.create(
@@ -154,3 +155,14 @@ for worker in query:
                         )
                         print(per)
                 date += delta
+
+# sub = Period.select(fn.SUM(Period.value)).where(Period.task == Task.id)
+# query = Task.update(status=Status.select().where(Status.is_archived).get()).where(~Task.order, Task.deadline - 8 <= sub)
+# query.execute()
+
+for order in Order.select().join(Task).group_by(Order).having(peewee.fn.MAX(Task.deadline)):
+    if order.tasks[-1].deadline - 8 <= sum(order.time_worked):
+        print(f'{list(order.tasks)=}')
+        (Task.update(status=Status.select().where(Status.is_archived).get())
+         .where(Task.id.in_([task.id for task in order.tasks])).execute()
+         )
