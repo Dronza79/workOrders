@@ -1,5 +1,3 @@
-import peewee
-
 table_setting = {
     'auto_size_columns': False,
     'justification': 'left',

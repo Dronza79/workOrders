@@ -15,7 +15,7 @@ from database.utils import validation_data, validation_period_data
 from .components import get_card_worker, get_card_task, get_card_order, get_list_task_for_worker, \
     get_list_task_for_order
 from .templates_settings import error_popup_setting, info_popup_setting
-from .windows import get_main_window, get_card_window, popup_get_period, popup_choice_worker_for_exel
+from .windows import get_main_window, get_card_window, popup_get_period, popup_choice_worker_for_exel, popup_find_string
 
 
 class StartWindowCard:
@@ -154,13 +154,14 @@ class StartWindowCard:
 
     def actualizing_passed_period(self):
         data = get_task_data(self.value.get('task'))
+        print(f'{data=}')
         time_worked = [
             [
                 f'{period.date if period else "":%d.%m.%y}',
                 f'{period.date if period else "":%a}',
                 f'{period.value if period else ""} ч.',
             ] for period in data.get('time_worked', [])]
-        self.window['-PASSED-'].update(data.get('passed'))
+        self.window['-PASSED-'].update(data.get('passed_order'))
         self.window['-TIME-WORKED-'].update(time_worked)
         self.window.refresh()
 
@@ -195,7 +196,7 @@ class StartMainWindow:
             print(f'MainWindow {ev=} {val=}')
             if ev == sg.WIN_CLOSED:
                 break
-            elif ev in ['-TG-', '-UPDATE-']:
+            elif ev in ['-TG-', '-UPDATE-', 'Escape:27']:
                 self.actualizing()
             elif isinstance(ev, tuple) and ev[2][0] == -1:
                 self.sorting_list(ev[0], ev[2][1])
@@ -212,9 +213,10 @@ class StartMainWindow:
             elif ev == '-EXEL-':
                 valid_data = popup_choice_worker_for_exel(self.window)
                 print(valid_data)
-            elif ev == '-FIND-':
+            elif ev in ['-FIND-', '??:70', 'f:70']:
                 key_table = self.mapping.get(val.get('-TG-'))
-                self.filter_list(key_table, sg.popup_get_text('Искомое значение:'))
+                if search := popup_find_string(self.window):
+                    self.filter_list(key_table, search)
         self.window.close()
 
     def sorting_list(self, key_table, column):
@@ -292,7 +294,7 @@ class StartMainWindow:
                     order.name if order.name else '--',
                     order.deadline if order.deadline else '--',
                     order.passed if order.passed else '--',
-                    f'{tasks[-1].status}.' if tasks else '---',
+                    f'{tasks[-1].status}' if tasks else '---',
                     order.id
                 )
 
