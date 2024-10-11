@@ -73,7 +73,6 @@ def get_all_orders():
 
     tasks = Task.select().join(Status).where(Task.is_active, ~Status.is_archived)
 
-
     return peewee.prefetch(orders, tasks)
 
 
@@ -126,7 +125,7 @@ def get_task_data(idx=None):
             # .group_by(Task.id)
             .get()
         )
-        periods = Period.select().where(Period.task_id == idx)
+        periods = Period.select().where(Period.task_id == idx).order_by(Period.date)
 
         query['passed_task'] = sum(query['task'].time_worked)
         query['passed_order'] = sum(query['task'].order.time_worked if query['task'].order else [])
@@ -228,40 +227,49 @@ def update_delete_period(data, action):
     elif action == '-DEL-PER-':
         return Period.delete().where(Period.id == idx).execute()
 
+
+def get_query_for_exel(worker, date_from, date_to):
+    current_periods = Period.select(Period, Task).join(Task).where(Period.date >= date_from, Period.date <= date_to)
+    prev_periods = Period.select(Period, Task).join(Task).where(Period.date < date_from)
+
+    sub = Period.select(Period.task).where(Period.date >= date_from, Period.date <= date_to)
+
+    tasks = (
+        Task.select(Task, Order, Status, Worker)
+        .join_from(Task, Order)
+        .join_from(Task, Status)
+        .join_from(Task, Worker)
+        .where(Task.worker == worker, Task.id.in_(sub))
+    )
+
+    prev = Task.select().join(Worker).where(Task.worker == worker, Task.id.in_(sub))
+
+    return {
+        'current_task': peewee.prefetch(tasks, current_periods),
+        'prev_task': peewee.prefetch(prev, prev_periods)
+    }
+
+
 # import datetime
 # import peewee
+# import locale
 # from database.models import Worker, Task, Period, Order, Vacancy, Status
-# def get_query_for_exel():
-#     # import logging
-#     # logger = logging.getLogger('peewee')
-#     # logger.addHandler(logging.StreamHandler())
-#     # logger.setLevel(logging.DEBUG)
+# import logging
 #
-#     date_from = datetime.datetime(2024, 8, 3).date()
-#     date_to = datetime.datetime(2024, 8, 14).date()
+# logger = logging.getLogger('peewee')
+# logger.addHandler(logging.StreamHandler())
+# logger.setLevel(logging.DEBUG)
+# locale.setlocale(locale.LC_ALL, ('ru_RU', 'UTF-8'))
+
+# date_from = datetime.datetime(2024, 9, 1).date()
+# date_to = datetime.datetime(2024, 9, 30).date()
 #
-#     worker = Worker.select(Worker, Vacancy.post).join(Vacancy).get()
-#     periods = Period.select(Period, Task).join(Task).where(Period.date >= date_from, Period.date <= date_to)
-#     sub = Period.select(Period.task).where(Period.date >= date_from, Period.date <= date_to)
-#     before = Period.select(Period, Task).join(Task).where(Period.date < date_from)
-#     tasks = (
-#             Task.select(Task, Order, Status, peewee.fn.SUM(Period.value).alias('passed'))
-#             .join_from(Task, Order)
-#             .join_from(Task, Status)
-#             .join_from(Task, Period, peewee.JOIN.LEFT_OUTER)
-#             .where(Task.worker == worker, Task.id.in_(sub))
-#             .group_by(Task.id)
-#         )
-#     bef_task = Task.select().where(Task.id.in_(Task.select(Task.id).where(Task.worker == worker, Task.id.in_(sub))))
+# worker = Worker.select(Worker, Vacancy.post).join(Vacancy).where(Worker.id == 1).get()
 #
-#     return {
-#         'worker': worker,
-#         'task': peewee.prefetch(tasks, periods),
-#         'before': peewee.prefetch(bef_task, before)
-#     }
-# query = get_query_for_exel()
-# for i, task in enumerate(query['task']):
-#     print(f'{"="*10}{sum(query["before"][i].time_worked)=}::{task}::{sum(task.time_worked)}{"="*10}')
-#     # print(f'{"="*10}{task.passed=}::{task}::{sum(task.time_worked)}{"="*10}')
-#     for per in task.time_worked:
-#         print(f'{per}')
+# query = get_query_for_exel(worker, date_from, date_to)
+# current_task = query['current_task']
+# prev_task = query['prev_task']
+# for i, task in enumerate(current_task):
+#     print(f'{f" до:{sum(prev_task[i].time_worked)} ч.=={task}=={sum(task.time_worked)} ч.":=^50}')
+#     for period in task.time_worked:
+#         print(f'{period}')

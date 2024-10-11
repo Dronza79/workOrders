@@ -65,7 +65,8 @@ class Worker(BaseModel):
         return (
             f'{self.surname} '
             f'{self.name[:1]}.'
-            f'{self.second_name[:1]+"." if self.second_name else ""} ({self.function.post})')
+            # f'{self.second_name[:1]+"." if self.second_name else ""} ({self.function.post})')
+            f'{self.second_name[:1]+"." if self.second_name else ""} ({self.table_num})')
 
 
 class Status(BaseModel):
@@ -85,8 +86,7 @@ class Order(BaseModel):
     name = CharField(verbose_name='Наименование заказа', null=True)
 
     def __str__(self):
-        num = 6 - len(str(self.no))
-        return f'ПР-{"0" * num}{self.no}'
+        return f'ПР-{self.no:06}'
 
     @property
     def to_order(self):
@@ -113,8 +113,8 @@ class Task(BaseModel):
     deadline = SmallIntegerField(verbose_name='Норматив выполнения')
     comment = TextField(verbose_name='Комментарий', default='')
 
-    # def __str__(self):
-    #     return f'{self.id} ({self.status.state})'
+    def __str__(self):
+        return f'Задача №{self.id} от {self.create_at:%d.%m.%y}'
 
 
 class Period(BaseModel):
@@ -125,7 +125,7 @@ class Period(BaseModel):
     value = SmallIntegerField(verbose_name="Продолжительность")
 
     def __str__(self):
-        return f'id:{self.id} {self.date:%d.%m.%y} ({self.date:%a}) - {self.value} ч.'
+        return f'{self.date:%d.%m.%y} ({self.date:%a}) - {self.value} ч.'
 
     def __add__(self, other):  # обычное сложение с правым элементом
         return int(self.value + other.value) if isinstance(other, self.__class__) else (
@@ -136,12 +136,5 @@ class Period(BaseModel):
 
     def get_day_week(self):
         return f'{self.date:%a}', int(f'{self.date:%w}')
-# import peewee
-# from database.models import Task, Period, Status, Worker, Order
-# for i, task in enumerate(Task.select(), start=1):
-#     print(i, task.id)
-# import peewee
-# tasks = Task.select(Task, Period, peewee.fn.SUM(Period.value).alias('passed')).join_from(Task, Period, peewee.JOIN.LEFT_OUTER).group_by(Task.id)
 
-# for i, task in enumerate(Task.select(Task, Period).join(Period, peewee.JOIN.LEFT_OUTER).objects(), start=1):
-#     print(f'{i}, {task=}, {task.task=}, {task.date=}, {task.value=}')
+
