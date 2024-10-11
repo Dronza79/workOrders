@@ -39,7 +39,7 @@ with get_database().atomic():
                               f"_{num}_{tunum}_0{hed}_00")
             obj['article'] += '-' + str(random.randint(10, 50)) if tunum == "00" else ''
             obj['no'] = order
-            obj['name'] = 'отсек вторичных цепей' if tunum == '03' else 'Шкаф фидера ОМЕГА'
+            obj['name'] = 'Отсек вторичных цепей' if tunum == '03' else 'Шкаф фидера ОМЕГА'
             data_order.append(obj)
 
     for i in range(0, len(data_order), 50):
