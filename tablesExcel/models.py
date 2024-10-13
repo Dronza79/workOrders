@@ -1,5 +1,5 @@
 from openpyxl import Workbook
-from openpyxl.styles import Side, Border
+from openpyxl.styles import Side, Border, Alignment
 from openpyxl.utils import get_column_interval
 from openpyxl.worksheet.page import PageMargins
 
@@ -46,17 +46,13 @@ class PersonalMonthExelTable:
         lst_range_cell += ['AD21:AE21', 'AD22:AE22', 'AD23:AE23']
         [self._work_sheet.merge_cells(range_string) for range_string in lst_range_cell]
 
-        # границы ячеек
+        # границы и выравнивание в ячейках
         table = self._work_sheet['A6:AE20'] + self._work_sheet['AD21:AE23']
         thins = Side(border_style="thin", color="000000")
-        # print(f'{table=}')
-
-        # for cell in table:
-        #
-        #     print(f'{cell=}')
-        #     cell.border = Border(top=thins, bottom=thins, left=thins, right=thins)
-        self._work_sheet['A6'].border = Border(top=thins, bottom=thins, left=thins, right=thins)
-        self._work_sheet['C11'].border = Border(top=thins, bottom=thins, left=thins, right=thins)
+        for line in table:
+            for cell in line:
+                cell.alignment = Alignment(horizontal='center', vertical='center')
+                cell.border = Border(top=thins, bottom=thins, left=thins, right=thins)
 
         cm = 1 / 2.54
 
@@ -68,8 +64,8 @@ class PersonalMonthExelTable:
         self._work_sheet.page_margins = PageMargins(
             left=.7 * cm,
             right=.7 * cm,
-            top=int(2 * cm),
-            bottom=int(.9 * cm),
+            top=2 * cm,
+            bottom=.9 * cm,
             footer=0.25 * cm
         )
         self._work_sheet.print_options.horizontalCentered = True  # выравнивание таблицы на листе по центру
