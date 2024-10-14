@@ -228,11 +228,19 @@ def update_delete_period(data, action):
         return Period.delete().where(Period.id == idx).execute()
 
 
-def get_query_for_exel(worker, date_from, date_to):
-    current_periods = Period.select(Period, Task).join(Task).where(Period.date >= date_from, Period.date <= date_to)
-    prev_periods = Period.select(Period, Task).join(Task).where(Period.date < date_from)
+def get_query_for_exel(worker, month):
+    current_periods = (
+        Period.select(Period, Task).join(Task)
+        .where(Period.date.year == now_date.year, Period.date.month == month.number)
+        .order_by(Period.date)
+    )
+    prev_periods = (
+        Period.select(Period, Task).join(Task)
+        .where(Period.date.year == now_date.year, Period.date.month < month.number)
+        .order_by(Period.date)
+    )
 
-    sub = Period.select(Period.task).where(Period.date >= date_from, Period.date <= date_to)
+    sub = Period.select(Period.task).where(Period.date.year == now_date.year, Period.date.month == month.number)
 
     tasks = (
         Task.select(Task, Order, Status, Worker)
@@ -246,7 +254,9 @@ def get_query_for_exel(worker, date_from, date_to):
 
     return {
         'current_task': peewee.prefetch(tasks, current_periods),
-        'prev_task': peewee.prefetch(prev, prev_periods)
+        'prev_task': peewee.prefetch(prev, prev_periods),
+        'worker': worker,
+        'month': month
     }
 
 

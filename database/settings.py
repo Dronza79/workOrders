@@ -5,7 +5,7 @@ from peewee import SqliteDatabase
 BASE_DIR = Path('.').resolve()
 
 
-class DBSetting:
+class DBPath:
     def __init__(self):
         import datetime
         year = datetime.datetime.now().year
@@ -20,7 +20,7 @@ class DBSetting:
         self._path = Path(value).resolve()
 
 
-path = DBSetting()
+path = DBPath()
 
 
 def get_database():

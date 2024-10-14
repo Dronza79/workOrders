@@ -138,3 +138,29 @@ class Period(BaseModel):
         return f'{self.date:%a}', int(f'{self.date:%w}')
 
 
+class Month:
+    __slots__ = ['__number', '__name']
+    __ratio = {
+        1: 'Январь', 2: 'Февраль', 3: 'Март',
+        4: 'Апрель', 5: 'Май', 6: 'Июнь',
+        7: 'Июль', 8: 'Август', 9: 'Сентябрь',
+        10: 'Октябрь', 11: 'Ноябрь', 12: 'Декабрь',
+    }
+
+    def __init__(self, number):
+        error = None
+        if not isinstance(number, int):
+            error = f"'{self.__class__.__name__}' объект должен иметь значение в виде целого числа"
+        if not 1 <= number <= 12:
+            error = f"'{self.__class__.__name__}' объект не может иметь значение меньше 1 и больше 12 "
+        if error:
+            raise AttributeError(error)
+        self.__number = number
+        self.__name = self.__ratio.get(number)
+
+    def __str__(self):
+        return self.__name
+
+    @property
+    def number(self):
+        return self.__number
