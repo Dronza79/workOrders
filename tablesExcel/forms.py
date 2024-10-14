@@ -1,9 +1,12 @@
+import datetime
+
 from openpyxl import Workbook
-from openpyxl.cell import Cell
-from openpyxl.styles import Side, Border, Alignment
+from openpyxl.styles import Side, Border, Alignment, Font
 from openpyxl.utils import get_column_interval
 from openpyxl.worksheet.page import PageMargins
 from openpyxl.worksheet.worksheet import Worksheet
+
+from .template_text import TEMPLATE_ALIGNMENT_RIGHT
 
 
 # from tablesExcel.forms import PersonalMonthExelTable
@@ -15,7 +18,6 @@ class PersonalMonthExelTable:
     def __init__(self):
         self._book: Workbook = Workbook()
         self._worksheet: Worksheet = self._book.active
-        self._cell = self._worksheet.cell
         self._worksheet.title = '1'
         self.prefill_worksheet()
 
@@ -70,13 +72,36 @@ class PersonalMonthExelTable:
             for cell in line:
                 cell.border = Border(bottom=thins)
 
-        cm = 1 / 2.54
+        # предзаполнение текста заголовка и подписей экселя
+        for i, adr in enumerate(['Q1', 'K3', 'P3', 'G22', 'M22', 'G25', 'M25']):
+            cell = self._worksheet[adr]
+            cell.font = Font(name='Times', size='14')
+            cell.value = TEMPLATE_ALIGNMENT_RIGHT[i]
+            cell.alignment = Alignment(horizontal='right', vertical='center')
+        for adr in ['C3', 'G28']:
+            cell = self._worksheet[adr]
+            cell.font = Font(name='Times', size='14')
+            cell.value = TEMPLATE_ALIGNMENT_RIGHT[-1]
+            cell.alignment = Alignment(horizontal='right', vertical='center')
+        self._worksheet['T1'].alignment = Alignment(horizontal='left', vertical='center')
+        self._worksheet['T1'].value = f'{datetime.datetime.now().year} года'
+        self._worksheet['T1'].font = Font(name='Times', size='14')
+
+        # заполнение надстрочных пояснений
+        for adr in ['D4', 'S4', 'H23', 'H26', 'H29']:
+            self._worksheet[adr].font = Font(vertAlign='superscript', name='Times', size='14')
+            if adr != 'S4':
+                self._worksheet[adr].alignment = Alignment(horizontal='left')
+            else:
+                self._worksheet[adr].alignment = Alignment(horizontal='center')
+
 
         #  Настройка вывода на печать
         self._worksheet.page_setup.orientation = 'landscape'  # формат листа альбомный
         self._worksheet.page_setup.paperSize = '9'  # лист А4
 
         # Отступы листа
+        cm = 1 / 2.54
         self._worksheet.page_margins = PageMargins(
             left=.7 * cm,
             right=.7 * cm,
