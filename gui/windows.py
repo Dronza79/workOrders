@@ -156,7 +156,7 @@ def popup_choice_worker_for_exel(parent):
         if ev == sg.WIN_CLOSED:
             window.close()
             return
-        if ev == '-worker-':
+        if ev == '-worker-' and isinstance(val[ev], str):
             new_list_workers = [worker for worker in workers if val[ev].lower() in str(worker).lower()]
             window[ev].update(new_list_workers[0] if new_list_workers else [], values=new_list_workers)
         if ev == '-CREATE-':
