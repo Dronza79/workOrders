@@ -211,6 +211,13 @@ drop_down_setting = {
     # 'metadata': None
 }
 
+drop_down_read_only_setting = {
+    'size': (22, 1),
+    'pad': ((0, 0), (5, 5)),
+    'readonly': True,
+    'font': ('_', 12),
+}
+
 search_drop_down_setting = {
     'size': (22, 1),
     'bind_return_key': True,

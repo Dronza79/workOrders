@@ -2,11 +2,14 @@ import datetime
 
 import PySimpleGUI as sg
 
+from database.models import Month
 from database.queries import get_all_workers
 from database.utils import validation_data_for_exel
 from .components import get_sector_workers, get_sector_tasks, get_sector_orders
-from .templates_settings import tab_setting, calendar_button_setting, drop_down_setting, error_popup_setting, \
-    frame_setting, tab_group_setting, input_setting
+from .templates_settings import (
+    tab_setting, drop_down_setting, error_popup_setting,
+    frame_setting, tab_group_setting, input_setting, drop_down_read_only_setting, search_drop_down_setting
+)
 
 
 def get_main_window():
@@ -131,42 +134,39 @@ def popup_choice_worker_for_exel(parent):
     layout = [[sg.Frame('', [[sg.Col([
         [
             sg.T('Работник:', font='_ 10'),
+            sg.Push(),
             sg.Combo(
                 [worker for worker in workers],
-                default_value=workers[0],
-                key='-worker-', **drop_down_setting),
+                key='-worker-', **search_drop_down_setting),
         ], [
-            sg.T('от', font='_ 10'),
-            sg.Input(
-                key='-from-', size=(10, 1)),
-            sg.CalendarButton(key='-B-FROM-',
-                              **calendar_button_setting)
-        ], [
-            sg.T('по', font='_ 10'),
-            sg.Input(
-                key='-to-', size=(10, 1)),
-            sg.CalendarButton(key='-B-TO-',
-                              **calendar_button_setting)
+            sg.T('Отчетный месяц:', font='_ 10'),
+            sg.Push(),
+            sg.Combo(
+                [Month(num) for num in range(1, 13)],
+                default_value=Month(datetime.datetime.now().month),
+                key='-month-', **drop_down_read_only_setting),
         ]], pad=15, vertical_alignment='center')]], **frame_setting)],
               [sg.Push(), sg.Button('Создать...', key='-CREATE-', size=(15, 1), pad=((0, 0), (0, 10))), sg.Push()]
               ]
     window = sg.Window('Отчет Exel...', layout, finalize=True, margins=(10, 10), modal=True)
     move_window(parent, window)
-    window['-B-FROM-'].calendar_location = window.current_location()
-    window['-B-TO-'].calendar_location = window.current_location()
     while True:
         ev, val = window.read()
-        # valid_data = None
+        # print(f'popup_choice_worker_for_exel {ev=} {val=}')
         if ev == sg.WIN_CLOSED:
             window.close()
             return
-        errors, valid_data = validation_data_for_exel(val)
-        if errors:
-            sg.popup('\n'.join(errors), title='Ошибка', **error_popup_setting)
-        else:
-            window.close()
-            del window
-            break
+        if ev == '-worker-':
+            new_list_workers = [worker for worker in workers if val[ev].lower() in str(worker).lower()]
+            window[ev].update(new_list_workers[0] if new_list_workers else [], values=new_list_workers)
+        if ev == '-CREATE-':
+            errors, valid_data = validation_data_for_exel(val)
+            if errors:
+                sg.popup('\n'.join(errors), title='Ошибка', **error_popup_setting)
+            else:
+                window.close()
+                del window
+                break
 
     return valid_data
 
@@ -174,7 +174,8 @@ def popup_choice_worker_for_exel(parent):
 def popup_find_string(parent):
     layout = [
         [
-            sg.Image(background_color='#99B7D8', size=(32, 32), source=b'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsIAAA7CARUoSoAAAAKfSURBVFhHxZbdiw1hHMefIbZzFEXnaLlRi43adkMuXJCVrOJGSZK8S7b2D5A7NteuqL2htDeSUt7CDYWQUijthUVK6yVse7Zla3x+z/MbO3NmjzPzcNanPv2eeeac+T7zPPMWmH9EWCzPoBTdRjgSjH4ct+06eA8gLJYIDFbR3IircRHOQTnmF3yCfUFl6AG1JrkHwJmWKXtwN7ZJXx2OMYhT2k6ReQAEN1OO4iGcL3052Mwgbmg7Qd0BEDyb0qOWpK+KAXyIz3AIZRkOYAdG9DOAXdpO8McBEL6TcgJbbMcEn/AS9uNjDj4qnRH8bznlKTbZDmPu8pt12k4wTWsCDrAYr9CUgHi4nOFxbOOAR1AOnAhXvuKYa1q+aU2RGgDBeylyBW+1HROcwQ4Ce/GD66rJWpSli7itNUViCQifRXmN8bWWsH2ETnoRVcMx5lHu41LbYcwbXMH/5dZMkZgBfjRCOee2LC+wM3u4PBvMBYzCQ+yuFV4TzmIL9ujZZCIslAv8/jKGMffr7sZCUDPeiwWPoTyoGg9B7TigweJ33KC7GwtBnfhZg8Vh3KS7GwtBXVjRYPE9rtHdmcn9MhIIWkKRx+9c22HMO+zian/pNrMz6ZMwA70YhVdwu0+4F5x9C8an/qTu8sJnBuRFU3BNy3WtXvgM4KfWiOlavfAZgKz1sGtaVmr1IvcAuNjeUu64LcsO3gHes+B7F5zVKvBhGsgHqRdeA2AWblIuui1zjc9weQ5MLdx+TdgeFkoztev/8TeD8L0GLMzAerxlguA59Sq26q7GQ9g2HMfoiSj26e7MeM0AQfIeOI3Vt598NefCdwkW4ELX/I18903NDMAgvnJNyw88yO0p/bnw+h4QWIZllMMod8B5wh9Jfz6M+QUWludk9x6IfQAAAABJRU5ErkJggg=='),
+            sg.Image(background_color='#99B7D8', size=(32, 32),
+                     source=b'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsIAAA7CARUoSoAAAAKfSURBVFhHxZbdiw1hHMefIbZzFEXnaLlRi43adkMuXJCVrOJGSZK8S7b2D5A7NteuqL2htDeSUt7CDYWQUijthUVK6yVse7Zla3x+z/MbO3NmjzPzcNanPv2eeeac+T7zPPMWmH9EWCzPoBTdRjgSjH4ct+06eA8gLJYIDFbR3IircRHOQTnmF3yCfUFl6AG1JrkHwJmWKXtwN7ZJXx2OMYhT2k6ReQAEN1OO4iGcL3052Mwgbmg7Qd0BEDyb0qOWpK+KAXyIz3AIZRkOYAdG9DOAXdpO8McBEL6TcgJbbMcEn/AS9uNjDj4qnRH8bznlKTbZDmPu8pt12k4wTWsCDrAYr9CUgHi4nOFxbOOAR1AOnAhXvuKYa1q+aU2RGgDBeylyBW+1HROcwQ4Ce/GD66rJWpSli7itNUViCQifRXmN8bWWsH2ETnoRVcMx5lHu41LbYcwbXMH/5dZMkZgBfjRCOee2LC+wM3u4PBvMBYzCQ+yuFV4TzmIL9ujZZCIslAv8/jKGMffr7sZCUDPeiwWPoTyoGg9B7TigweJ33KC7GwtBnfhZg8Vh3KS7GwtBXVjRYPE9rtHdmcn9MhIIWkKRx+9c22HMO+zian/pNrMz6ZMwA70YhVdwu0+4F5x9C8an/qTu8sJnBuRFU3BNy3WtXvgM4KfWiOlavfAZgKz1sGtaVmr1IvcAuNjeUu64LcsO3gHes+B7F5zVKvBhGsgHqRdeA2AWblIuui1zjc9weQ5MLdx+TdgeFkoztev/8TeD8L0GLMzAerxlguA59Sq26q7GQ9g2HMfoiSj26e7MeM0AQfIeOI3Vt598NefCdwkW4ELX/I18903NDMAgvnJNyw88yO0p/bnw+h4QWIZllMMod8B5wh9Jfz6M+QUWludk9x6IfQAAAABJRU5ErkJggg=='),
             sg.Text('Найти...', background_color='#99B7D8', font="_ 14", text_color="red"),
             sg.Input(
                 key='-IN-',
