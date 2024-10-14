@@ -13,8 +13,6 @@ from .template_text import TEMPLATE_ALIGNMENT_RIGHT, TEMPLATE_CLARIFICATION, TEM
 
 
 class PersonalMonthExelTable:
-    _queryset = None
-
     def __init__(self):
         self._book: Workbook = Workbook()
         self._worksheet: Worksheet = self._book.active
@@ -28,8 +26,9 @@ class PersonalMonthExelTable:
         self._worksheet = self._book.create_sheet(f'{len(self._book.sheetnames) + 1}')
         self.prefill_worksheet()
 
-    def fill_data(self):
-        self._worksheet['N9'].value = 100
+    def fill_data(self, num_string):
+
+        pass
 
     def prefill_worksheet(self):
 
@@ -143,6 +142,3 @@ class PersonalMonthExelTable:
         self._worksheet.page_setup.fitToPage = True
         self._worksheet.page_setup.fitToWidth = 1
         self._worksheet.page_setup.fitToHeight = 1
-
-    def prefill_cell(self):
-        pass

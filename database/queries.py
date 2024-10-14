@@ -3,7 +3,7 @@ from datetime import datetime
 import peewee
 
 from .models import (
-    Worker, Vacancy, Task, Status, Period, Order, TypeTask,
+    Worker, Vacancy, Task, Status, Period, Order, TypeTask
 )
 
 now_date = datetime.now().date()
@@ -255,28 +255,27 @@ def get_query_for_exel(worker, month):
     return {
         'current_task': peewee.prefetch(tasks, current_periods),
         'prev_task': peewee.prefetch(prev, prev_periods),
-        'worker': worker,
-        'month': month
     }
 
 
 # import datetime
 # import peewee
 # import locale
-# from database.models import Worker, Task, Period, Order, Vacancy, Status
-# import logging
+# from database.models import Worker, Task, Period, Order, Vacancy, Status, Month
+# from database.queries import get_query_for_exel
+# # import logging
 #
-# logger = logging.getLogger('peewee')
-# logger.addHandler(logging.StreamHandler())
-# logger.setLevel(logging.DEBUG)
-# locale.setlocale(locale.LC_ALL, ('ru_RU', 'UTF-8'))
-
+# # logger = logging.getLogger('peewee')
+# # logger.addHandler(logging.StreamHandler())
+# # logger.setLevel(logging.DEBUG)
+# # locale.setlocale(locale.LC_ALL, ('ru_RU', 'UTF-8'))
+# #
 # date_from = datetime.datetime(2024, 9, 1).date()
 # date_to = datetime.datetime(2024, 9, 30).date()
 #
 # worker = Worker.select(Worker, Vacancy.post).join(Vacancy).where(Worker.id == 1).get()
 #
-# query = get_query_for_exel(worker, date_from, date_to)
+# query = get_query_for_exel(worker, Month(datetime.datetime.now().month))
 # current_task = query['current_task']
 # prev_task = query['prev_task']
 # for i, task in enumerate(current_task):
