@@ -211,3 +211,20 @@ def popup_find_string(parent):
             break
     window.close()
     return search
+
+
+def popup_output():
+    layout = [[
+        sg.Col([[
+            sg.Output(size=(50, 20), pad=0, echo_stdout_stderr=True, expand_x=True, expand_y=True)
+        ]])
+    ]]
+    window = sg.Window('Отображение', layout, return_keyboard_events=True)
+    while True:
+        ev, val = window.read(timeout=100)
+        # print(f'popup_output {ev=}, {val=}')
+        if ev == sg.WIN_CLOSED:
+            break
+        return
+    window.close()
+    return

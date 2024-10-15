@@ -419,3 +419,26 @@ calendar_button_setting = {
     # 'no_titlebar': True,
     # 'location': (None, None),
 }
+
+output_setting = {
+    'size': (50, 20),
+    # 'end': None,
+    # 'sep': None,
+    # 'location': (None, None),
+    # 'relative_location': (None, None),
+    'font': '_ 12',
+    'no_titlebar': True,
+    # 'no_button': False,
+    # 'grab_anywhere': False,
+    # 'keep_on_top': None,
+    'do_not_reroute_stdout': False,
+    'echo_stdout': True,
+    # 'text_color': None,
+    # 'background_color': None,
+    # 'colors': None,
+    # 'c': None,
+    'erase_all': False,
+    # 'resizable': True,
+    # 'blocking': None,
+    # 'wait': True
+}

@@ -1,3 +1,4 @@
+import os
 from operator import itemgetter
 
 import PySimpleGUI as sg
@@ -12,10 +13,12 @@ from database.queries import (
     delete_or_restore_worker, get_period, update_delete_period
 )
 from database.utils import validation_data, validation_period_data
+from tablesExcel.processor import get_personal_table_result
 from .components import get_card_worker, get_card_task, get_card_order, get_list_task_for_worker, \
     get_list_task_for_order
 from .templates_settings import error_popup_setting, info_popup_setting
-from .windows import get_main_window, get_card_window, popup_get_period, popup_choice_worker_for_exel, popup_find_string
+from .windows import get_main_window, get_card_window, popup_get_period, popup_choice_worker_for_exel, \
+    popup_find_string, popup_output
 
 
 class StartWindowCard:
@@ -212,7 +215,11 @@ class StartMainWindow:
                     StartMainWindow()
             elif ev == '-EXEL-':
                 valid_data = popup_choice_worker_for_exel(self.window)
-                print(valid_data)
+                # popup_output()
+                file_path = get_personal_table_result(**valid_data)
+                sg.popup_timed('Исполнено', **info_popup_setting)
+                os.startfile(file_path, 'open')
+
             elif ev in ['-FIND-', '??:70', 'f:70']:
                 key_table = self.mapping.get(val.get('-TG-'))
                 if search := popup_find_string(self.window):
@@ -281,10 +288,6 @@ class StartMainWindow:
         if all_orders:
             for i, order in enumerate(all_orders, start=1):
                 tasks = order.tasks
-                if tasks:
-                    worker = tasks[0].worker
-                else:
-                    worker = None
                 formatted_data = (
                     i,
                     str(order),
@@ -297,7 +300,6 @@ class StartMainWindow:
                     f'{tasks[-1].status}' if tasks else '---',
                     order.id
                 )
-
                 self.table['-ORDERS-'].append(formatted_data)
 
     @staticmethod
