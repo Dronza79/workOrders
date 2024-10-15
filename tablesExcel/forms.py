@@ -1,7 +1,7 @@
 import datetime
 
 from openpyxl import Workbook
-from openpyxl.styles import Side, Border, Alignment, Font
+from openpyxl.styles import Side, Border, Alignment, Font, PatternFill
 from openpyxl.utils import get_column_interval
 from openpyxl.worksheet.page import PageMargins
 from openpyxl.worksheet.worksheet import Worksheet
@@ -19,16 +19,50 @@ class PersonalMonthExelTable:
         self._worksheet.title = '1'
         self.prefill_worksheet()
 
-    def save(self):
-        self._book.save('test.xlsx')
+    def save(self, file_name='test'):
+        try:
+            name = f'{file_name}.xlsx'
+            self._book.save(name)
+        except PermissionError:
+            name = f'{file_name}-copy.xlsx'
+            self._book.save(name)
+        return name
 
     def add_worksheet(self):
         self._worksheet = self._book.create_sheet(f'{len(self._book.sheetnames) + 1}')
         self.prefill_worksheet()
 
-    def fill_data(self, num_string):
-
-        pass
+    def fill_data(self, worker, month, calc, target, data_task, data_old_task):
+        offset = 0
+        self._worksheet.cell(4, 28).value = target
+        self._worksheet.cell(4, 28).alignment = Alignment(horizontal='center', vertical='center')
+        self._worksheet.cell(1, 18).value = str(month).lower()
+        self._worksheet.cell(4, 4).value = worker.get_short_name()
+        self._worksheet.cell(4, 4).alignment = Alignment(horizontal='center', vertical='center')
+        self._worksheet.cell(4, 12).value = worker.table_num
+        self._worksheet.cell(4, 12).alignment = Alignment(horizontal='center', vertical='center')
+        self._worksheet.cell(4, 17).value = worker.function.post
+        self._worksheet.cell(4, 17).alignment = Alignment(horizontal='center', vertical='center')
+        self._worksheet.cell(28, 13).value = worker.get_short_name()
+        self._worksheet.cell(21, 30).value = sum(calc.get('first_half', 0))
+        self._worksheet.cell(23, 30).value = sum(calc.get('second_half', 0))
+        for i, task in enumerate(data_task):
+            self._worksheet.cell(9 + offset + i, 1).value = i + 1
+            data_string = f'{task.is_type} '
+            data_string += f'{task.order}\n' if task.order else '\n'
+            data_string += f'{task.order.type_obj} {task.order.title} {task.order.name}\n' if task.order else ''
+            data_string += f'{task.order.article}' if task.order else f'{task.comment}'
+            self._worksheet.cell(9 + offset + i, 2).value = data_string
+            self._worksheet.cell(9 + offset + i, 2).alignment += Alignment(wrapText=True)
+            self._worksheet.cell(9 + offset + i, 12).value = task.deadline - sum(data_old_task[i].time_worked)
+            self._worksheet.cell(9 + offset + i, 32).value = sum(data_old_task[i].time_worked)
+            self._worksheet.cell(9 + offset + i, 30).value = sum(task.time_worked)
+            for period in task.time_worked:
+                if period.date.day <= 15:
+                    self._worksheet.cell(9 + offset + i, 13 + period.date.day).value = period.value
+                else:
+                    self._worksheet.cell(9 + offset + i + 1, period.date.day - 2).value = period.value
+            offset += 1
 
     def prefill_worksheet(self):
 
@@ -55,6 +89,7 @@ class PersonalMonthExelTable:
         lst_range_cell += ['A17:A18', 'B17:K18', 'L17:M18', 'AD17:AE18']
         lst_range_cell += ['A19:A20', 'B19:K20', 'L19:M20', 'AD19:AE20']
         lst_range_cell += ['W21:AC22', 'W23:AC24', 'AD21:AE22', 'AD23:AE24', 'AD25:AE26', 'AB25:AC26']
+        lst_range_cell += ['D4:G4', 'l4:M4', 'Q4:U4', 'AB4:AC4', 'R1:S1']
         [self._worksheet.merge_cells(range_string) for range_string in lst_range_cell]
 
         # границы и выравнивание в ячейках таблицы
@@ -66,23 +101,24 @@ class PersonalMonthExelTable:
                 cell.border = Border(top=thins, bottom=thins, left=thins, right=thins)
 
         # нижнее подчеркивание
-        underline = (self._worksheet['D3:G3'] + self._worksheet['L3:M3'] + self._worksheet['Q3:U3'] +
+        underline = (self._worksheet['D4:G4'] + self._worksheet['L4:M4'] + self._worksheet['Q4:U4'] +
                      self._worksheet['R1:S1'] + self._worksheet['H22:M22'] + self._worksheet['H25:M25'] +
-                     self._worksheet['H28:M28'])
+                     self._worksheet['H28:M28'] + self._worksheet['AB4:AC4'])
         for line in underline:
             for cell in line:
                 cell.border = Border(bottom=thins)
 
         # предзаполнение текста заголовка и подписей экселя
-        for i, adr in enumerate(['Q1', 'K3', 'P3', 'G22', 'M22', 'G25', 'M25']):
+        for i, adr in enumerate(['Q1', 'K4', 'P4', 'AA4', 'G22', 'M22', 'G25', 'M25', 'M28']):
             cell = self._worksheet[adr]
             if adr in ['M22', 'M25', 'M28']:
                 cell.font = Font(size='11')
             else:
                 cell.font = Font(size='14')
-            cell.value = TEMPLATE_ALIGNMENT_RIGHT[i]
+            if adr != 'M28':
+                cell.value = TEMPLATE_ALIGNMENT_RIGHT[i]
             cell.alignment = Alignment(horizontal='right', vertical='center')
-        for adr in ['C3', 'G28']:
+        for adr in ['C4', 'G28']:
             cell = self._worksheet[adr]
             cell.font = Font(size='14')
             cell.value = TEMPLATE_ALIGNMENT_RIGHT[-1]
@@ -92,11 +128,11 @@ class PersonalMonthExelTable:
         self._worksheet['T1'].font = Font(size='14')
 
         # заполнение надстрочных пояснений
-        for adr in ['D4', 'S4', 'H23', 'H26', 'H29']:
+        for adr in ['D5', 'S5', 'H23', 'H26', 'H29']:
             self._worksheet[adr].font = Font(vertAlign='superscript', size='14')
-            if adr != 'S4':
+            if adr != 'S5':
                 self._worksheet[adr].alignment = Alignment(horizontal='left', vertical='center')
-                if adr == 'D4':
+                if adr == 'D5':
                     self._worksheet[adr].value = TEMPLATE_CLARIFICATION[0]
                 else:
                     self._worksheet[adr].value = TEMPLATE_CLARIFICATION[-1]
@@ -118,9 +154,15 @@ class PersonalMonthExelTable:
                 cell = self._worksheet.cell(8, num - 2)
             cell.value = num
             cell.font = Font(size='9')
+        self._worksheet['AD25'] = '=SUM(AD21:AE24)'
 
-        # перемещение строк на одну вниз
-        self._worksheet.move_range('A3:U4', rows=1)
+        # заливка ячеек таблицы
+        range_cell = []
+        for adr in ['N7:AC7', 'N9:AC9', 'N11:AC11', 'N13:AC13', 'N15:AC15', 'N17:AC17', 'N19:AC19']:
+            range_cell += self._worksheet[adr]
+        for line in range_cell:
+            for cell in line:
+                cell.fill = PatternFill(fill_type='solid', fgColor="DDDDDD")
 
         #  Настройка вывода на печать
         self._worksheet.page_setup.orientation = 'landscape'  # формат листа альбомный
