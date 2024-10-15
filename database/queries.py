@@ -36,8 +36,9 @@ def get_subquery_worker():
 
 def get_all_workers():
     persons = (
-        Worker
-        .select(Worker.id, Worker.table_num, Worker.surname, Worker.name, Worker.second_name, Vacancy.post)
+        Worker.select(
+            Worker.id, Worker.table_num, Worker.surname, Worker.name,
+            Worker.second_name, Vacancy.post)
         .join(Vacancy).where(Worker.is_active)
     )
 
@@ -240,13 +241,20 @@ def get_query_for_exel(worker, month):
         .order_by(Period.date)
     )
 
+    worker_periods = (
+        Period.select(Period, Worker).join(Worker)
+        .where(Period.worker == worker, Period.date.year == now_date.year, Period.date.month == month.number)
+        .order_by(Period.date)
+    )
+
     sub = Period.select(Period.task).where(Period.date.year == now_date.year, Period.date.month == month.number)
 
     tasks = (
-        Task.select(Task, Order, Status, Worker)
+        Task.select(Task, Order, Status, Worker, TypeTask)
         .join_from(Task, Order)
         .join_from(Task, Status)
         .join_from(Task, Worker)
+        .join_from(Task, TypeTask)
         .where(Task.worker == worker, Task.id.in_(sub))
     )
 
@@ -255,6 +263,8 @@ def get_query_for_exel(worker, month):
     return {
         'current_task': peewee.prefetch(tasks, current_periods),
         'prev_task': peewee.prefetch(prev, prev_periods),
+        'first_half': worker_periods.where(Period.date.day <= month.get_means()),
+        'second_half': worker_periods.where(Period.date.day > month.get_means()),
     }
 
 

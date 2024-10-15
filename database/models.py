@@ -68,6 +68,9 @@ class Worker(BaseModel):
             # f'{self.second_name[:1]+"." if self.second_name else ""} ({self.function.post})')
             f'{self.second_name[:1]+"." if self.second_name else ""} ({self.table_num})')
 
+    def get_short_name(self):
+        return f'{self.surname} {self.name[:1]}.{self.second_name[:1]+"." if self.second_name else ""}'
+
 
 class Status(BaseModel):
     state = CharField(verbose_name='Наименование')
@@ -139,12 +142,12 @@ class Period(BaseModel):
 
 
 class Month:
-    __slots__ = ['__number', '__name']
+    __slots__ = ['__number', '__name', '__days', '__mean']
     __ratio = {
-        1: 'Январь', 2: 'Февраль', 3: 'Март',
-        4: 'Апрель', 5: 'Май', 6: 'Июнь',
-        7: 'Июль', 8: 'Август', 9: 'Сентябрь',
-        10: 'Октябрь', 11: 'Ноябрь', 12: 'Декабрь',
+        1: ('Январь', 31), 2: ('Февраль', 28), 3: ('Март', 31),
+        4: ('Апрель', 30), 5: ('Май', 31), 6: ('Июнь', 30),
+        7: ('Июль', 31), 8: ('Август', 31), 9: ('Сентябрь', 30),
+        10: ('Октябрь', 31), 11: ('Ноябрь', 30), 12: ('Декабрь', 31),
     }
 
     def __init__(self, number):
@@ -156,7 +159,8 @@ class Month:
         if error:
             raise AttributeError(error)
         self.__number = number
-        self.__name = self.__ratio.get(number)
+        self.__name = self.__ratio.get(number)[0]
+        self.__days = self.__ratio.get(number)[1]
 
     def __str__(self):
         return self.__name
@@ -164,3 +168,16 @@ class Month:
     @property
     def number(self):
         return self.__number
+
+    @property
+    def days(self):
+        return self.__days
+
+    def get_means(self):
+        return int(self.__days) // 2
+
+    def lower(self):
+        return self.__name.lower()
+
+    def capitalize(self):
+        return self.__name.capitalize()
