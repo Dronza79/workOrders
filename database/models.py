@@ -1,3 +1,4 @@
+import calendar
 import datetime
 import re
 
@@ -124,7 +125,7 @@ class Period(BaseModel):
     worker = ForeignKeyField(Worker, verbose_name='Работник', backref='time_worked', on_delete='CASCADE')
     task = ForeignKeyField(Task, backref='time_worked', verbose_name='Задача', on_delete='CASCADE')
     order = ForeignKeyField(Order, backref='time_worked', null=True, verbose_name='Задача', on_delete='CASCADE')
-    date = DateField(default=datetime.datetime.now, verbose_name='Дата')
+    date = DateField(default=datetime.datetime.now().date, verbose_name='Дата')
     value = SmallIntegerField(verbose_name="Продолжительность")
 
     def __str__(self):
@@ -142,12 +143,12 @@ class Period(BaseModel):
 
 
 class Month:
-    __slots__ = ['__number', '__name', '__days', '__mean']
+    __slots__ = ['__number', '__name', '__days', '__mean', '__start_idx']
     __ratio = {
-        1: ('Январь', 31), 2: ('Февраль', 28), 3: ('Март', 31),
-        4: ('Апрель', 30), 5: ('Май', 31), 6: ('Июнь', 30),
-        7: ('Июль', 31), 8: ('Август', 31), 9: ('Сентябрь', 30),
-        10: ('Октябрь', 31), 11: ('Ноябрь', 30), 12: ('Декабрь', 31),
+        1: 'Январь', 2: 'Февраль', 3: 'Март',
+        4: 'Апрель', 5: 'Май', 6: 'Июнь',
+        7: 'Июль', 8: 'Август', 9: 'Сентябрь',
+        10: 'Октябрь', 11: 'Ноябрь', 12: 'Декабрь',
     }
 
     def __init__(self, number):
@@ -159,8 +160,8 @@ class Month:
         if error:
             raise AttributeError(error)
         self.__number = number
-        self.__name = self.__ratio.get(number)[0]
-        self.__days = self.__ratio.get(number)[1]
+        self.__name = self.__ratio.get(number)
+        self.__start_idx, self.__days = calendar.monthrange(datetime.datetime.now().year, number)
 
     def __str__(self):
         return self.__name
@@ -172,6 +173,10 @@ class Month:
     @property
     def days(self):
         return self.__days
+
+    @property
+    def start_day_idx(self):
+        return self.__start_idx
 
     def get_means(self):
         return int(self.__days) // 2
