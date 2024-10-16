@@ -34,6 +34,13 @@ class PersonalMonthExelTable:
 
     def fill_data(self, worker, month, calc, target, data_task, data_old_task):
         offset = 0
+        for num in range(1, month.days + 1):
+            if num < 16:
+                cell = self._worksheet.cell(7, 13 + num)
+            else:
+                cell = self._worksheet.cell(8, num - 2)
+            cell.value = num
+            cell.font = Font(size='9')
         self._worksheet.cell(4, 28).value = target
         self._worksheet.cell(4, 28).alignment = Alignment(horizontal='center', vertical='center')
         self._worksheet.cell(1, 18).value = str(month).lower()
@@ -147,19 +154,12 @@ class PersonalMonthExelTable:
             self._worksheet[adr].alignment += Alignment(wrapText=True)
             if adr in ['W21', 'W23', 'AB25']:
                 self._worksheet[adr].alignment += Alignment(horizontal='right', vertical='center')
-        for num in range(1, 32):
-            if num < 16:
-                cell = self._worksheet.cell(7, 13 + num)
-            else:
-                cell = self._worksheet.cell(8, num - 2)
-            cell.value = num
-            cell.font = Font(size='9')
         self._worksheet['AD25'] = '=SUM(AD21:AE24)'
 
         # заливка ячеек таблицы
         range_cell = []
-        for adr in ['N7:AC7', 'N9:AC9', 'N11:AC11', 'N13:AC13', 'N15:AC15', 'N17:AC17', 'N19:AC19']:
-            range_cell += self._worksheet[adr]
+        for adr in range(8, 21, 2):
+            range_cell += self._worksheet[f'N{adr}:AC{adr}']
         for line in range_cell:
             for cell in line:
                 cell.fill = PatternFill(fill_type='solid', fgColor="DDDDDD")
