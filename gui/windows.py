@@ -19,8 +19,8 @@ def get_main_window():
             f'Указать базу{sg.MENU_KEY_SEPARATOR}-SET-DB-'
         ]], [
         'Отчеты Exel', [
-            f'Персональный отчет за период{sg.MENU_KEY_SEPARATOR}-EXEL-',
-            f'Общий отчет за месяц{sg.MENU_KEY_SEPARATOR}-MONTH-',
+            f'Табель работ за период{sg.MENU_KEY_SEPARATOR}-EXEL-',
+            f'Общий табель за месяц{sg.MENU_KEY_SEPARATOR}-MONTH-',
         ]], [
         'Параметры', [
             f'Выбрать тему{sg.MENU_KEY_SEPARATOR}-THEME-',
