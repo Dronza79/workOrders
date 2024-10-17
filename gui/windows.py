@@ -8,7 +8,8 @@ from database.utils import validation_data_for_exel
 from .components import get_sector_workers, get_sector_tasks, get_sector_orders
 from .templates_settings import (
     tab_setting, drop_down_setting, error_popup_setting,
-    frame_setting, tab_group_setting, input_setting, drop_down_read_only_setting, search_drop_down_setting
+    frame_setting, tab_group_setting, input_setting, drop_down_read_only_setting, search_drop_down_setting, logo,
+    title_bar_setting, menu_bar_setting
 )
 
 
@@ -19,48 +20,54 @@ def get_main_window():
             f'Указать базу{sg.MENU_KEY_SEPARATOR}-SET-DB-'
         ]], [
         'Отчеты Exel', [
-            f'Табель работ за период{sg.MENU_KEY_SEPARATOR}-EXEL-',
-            f'Общий табель за месяц{sg.MENU_KEY_SEPARATOR}-MONTH-',
+            f'Работы за месяц...{sg.MENU_KEY_SEPARATOR}-EXEL-',
+            f'Общий табель за месяц...{sg.MENU_KEY_SEPARATOR}-MONTH-',
         ]], [
         'Параметры', [
-            f'Выбрать тему{sg.MENU_KEY_SEPARATOR}-THEME-',
+            f'Выбрать тему...{sg.MENU_KEY_SEPARATOR}-THEME-',
         ]]
     ]
-    layout = [[
-        sg.TabGroup([[
-            sg.Tab(
-                'Список работников',
-                get_sector_workers(code='-WORKERS-'),
-                key='-WRK-', **tab_setting),
-            sg.Tab(
-                'Список выполняемых работ',
-                get_sector_tasks(code='-TASKS-'),
-                key='-TSK-', **tab_setting),
-            sg.Tab(
-                'Список открытых заказов (ПРки)',
-                get_sector_orders(),
-                key='-ORD-', **tab_setting),
-            sg.Tab(
-                'Архив выполненных работ',
-                get_sector_tasks(code='-CLOSE-'),
-                key='-CLS-', **tab_setting),
-            sg.Tab(
-                'Исключенные работники',
-                get_sector_workers(code='-DISMISS-'),
-                key='-DSMS-', **tab_setting),
-        ]], key='-TG-', **tab_group_setting)
-    ], [
-        sg.Button('Добавить', key='-ADD-'),
-        sg.Button('Обновить', key='-UPDATE-'),
-    ], [
-        sg.Menu(menu_def, key='-MENU-')
-    ]]
+    layout = [
+        [
+            sg.Titlebar('Программа учета работ', icon=logo, **title_bar_setting)
+        ], [
+            sg.MenubarCustom(menu_def, key='-MENU-', **menu_bar_setting)
+        ], [
+            sg.TabGroup([[
+                sg.Tab(
+                    'Список работников',
+                    get_sector_workers(code='-WORKERS-'),
+                    key='-WRK-', **tab_setting),
+                sg.Tab(
+                    'Список выполняемых работ',
+                    get_sector_tasks(code='-TASKS-'),
+                    key='-TSK-', **tab_setting),
+                sg.Tab(
+                    'Список открытых заказов (ПРки)',
+                    get_sector_orders(),
+                    key='-ORD-', **tab_setting),
+                sg.Tab(
+                    'Архив выполненных работ',
+                    get_sector_tasks(code='-CLOSE-'),
+                    key='-CLS-', **tab_setting),
+                sg.Tab(
+                    'Исключенные работники',
+                    get_sector_workers(code='-DISMISS-'),
+                    key='-DSMS-', **tab_setting),
+            ]], key='-TG-', **tab_group_setting)
+        ], [
+            sg.Button('Добавить', key='-ADD-', pad=((10, 5), (5, 10))),
+            sg.Button('Обновить', key='-UPDATE-', pad=((5, 0), (5, 10))),
+        ], [
+            # sg.Menu(menu_def, key='-MENU-')
+        ]]
     return sg.Window('Учет нарядов', layout,
                      resizable=True,
                      finalize=True,
                      return_keyboard_events=True,
                      right_click_menu=["", ['Найти...::-FIND-']],
-                     sbar_frame_color='#64778D', margins=(10, 10)
+                     sbar_frame_color='#64778D',
+                     # margins=(20, 20)
                      )
 
 
@@ -71,11 +78,14 @@ def get_card_window(form):
         else "Карточка заказа"
     )
     layout = [
-        [sg.Col([], key='body')],
         [
+            sg.Titlebar(title, icon=logo, **title_bar_setting)
+        ], [
+            sg.Col([], key='body')
+        ], [
             sg.Push(),
-            sg.Button('Сохранить', key='-SAVE-', focus=True, bind_return_key=True),
-            sg.Button('Отменить', key='-CANCEL-'),
+            sg.Button('Сохранить', key='-SAVE-', focus=True, bind_return_key=True, pad=((0, 5), (0, 20))),
+            sg.Button('Отменить', key='-CANCEL-', pad=((5, 0), (0, 20))),
             sg.Push(),
         ]
     ]
@@ -83,7 +93,8 @@ def get_card_window(form):
                      # resizable=True,
                      return_keyboard_events=True,
                      finalize=True,
-                     sbar_frame_color='#64778D',
+                     keep_on_top=True,
+                     # sbar_frame_color='#64778D',
                      # size=(450, 570),
                      margins=(10, 10),
                      # modal=True
@@ -103,6 +114,8 @@ def popup_get_period(parent, period=None):
     date_now = datetime.datetime.now().date()
     layout = [
         [
+            sg.Titlebar('Добавить время', icon=logo, **title_bar_setting)
+        ], [
             sg.Input(
                 default_text=f'{period.date:%d.%m.%Y}' if period else f'{date_now:%d.%m.%Y}',
                 key='date', size=(10, 1)),
@@ -125,31 +138,40 @@ def popup_get_period(parent, period=None):
     ]
     window = sg.Window('Добавить время', layout, finalize=True, modal=True)
     move_window(parent, window)
+    parent.alpha_channel = .95
     window['-CB-'].calendar_location = window.current_location()
-    return window.read(close=True)
+    result = window.read(close=True)
+    parent.alpha_channel = 1
+    return result
 
 
 def popup_choice_worker_for_exel(parent):
     workers = get_all_workers()
-    layout = [[sg.Frame('', [[sg.Col([
+    layout = [
         [
-            sg.T('Работник:', font='_ 10'),
-            sg.Push(),
-            sg.Combo(
-                [worker for worker in workers],
-                key='-worker-', **search_drop_down_setting),
+            sg.Titlebar('Отчет Exel...', icon=logo, **title_bar_setting)
         ], [
-            sg.T('Отчетный месяц:', font='_ 10'),
-            sg.Push(),
-            sg.Combo(
-                [Month(num) for num in range(1, 13)],
-                default_value=Month(datetime.datetime.now().month),
-                key='-month-', **drop_down_read_only_setting),
-        ]], pad=15, vertical_alignment='center')]], **frame_setting)],
-              [sg.Push(), sg.Button('Создать...', key='-CREATE-', size=(15, 1), pad=((0, 0), (0, 10))), sg.Push()]
-              ]
-    window = sg.Window('Отчет Exel...', layout, finalize=True, margins=(10, 10), modal=True)
+            sg.Frame('', [[sg.Col([[
+                sg.T('Работник:', font='_ 10'),
+                sg.Push(),
+                sg.Combo(
+                    [worker for worker in workers],
+                    key='-worker-', **search_drop_down_setting),
+            ], [
+                sg.T('Отчетный месяц:', font='_ 10'),
+                sg.Push(),
+                sg.Combo(
+                    [Month(num) for num in range(1, 13)],
+                    default_value=Month(datetime.datetime.now().month),
+                    key='-month-', **drop_down_read_only_setting),
+            ]], pad=15, vertical_alignment='center')]], relief=sg.RELIEF_SOLID, border_width=0, **frame_setting)
+        ], [
+            sg.Push(), sg.Button('Создать...', key='-CREATE-', size=(15, 1), pad=((0, 0), (0, 10))), sg.Push()
+        ]
+    ]
+    window = sg.Window('Отчет Exel...', layout, finalize=True, margins=(20, 20), modal=True)
     move_window(parent, window)
+    parent.alpha_channel = .95
     while True:
         ev, val = window.read()
         # print(f'popup_choice_worker_for_exel {ev=} {val=}')
@@ -168,15 +190,23 @@ def popup_choice_worker_for_exel(parent):
                 del window
                 break
 
+    parent.alpha_channel = 1
     return valid_data
 
 
 def popup_find_string(parent):
     layout = [
+        # [
+        #     sg.Titlebar('Найти...', icon=logo, **title_bar_setting)
+        # ],
         [
-            sg.Image(background_color='#99B7D8', size=(32, 32),
-                     source=b'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsIAAA7CARUoSoAAAAKfSURBVFhHxZbdiw1hHMefIbZzFEXnaLlRi43adkMuXJCVrOJGSZK8S7b2D5A7NteuqL2htDeSUt7CDYWQUijthUVK6yVse7Zla3x+z/MbO3NmjzPzcNanPv2eeeac+T7zPPMWmH9EWCzPoBTdRjgSjH4ct+06eA8gLJYIDFbR3IircRHOQTnmF3yCfUFl6AG1JrkHwJmWKXtwN7ZJXx2OMYhT2k6ReQAEN1OO4iGcL3052Mwgbmg7Qd0BEDyb0qOWpK+KAXyIz3AIZRkOYAdG9DOAXdpO8McBEL6TcgJbbMcEn/AS9uNjDj4qnRH8bznlKTbZDmPu8pt12k4wTWsCDrAYr9CUgHi4nOFxbOOAR1AOnAhXvuKYa1q+aU2RGgDBeylyBW+1HROcwQ4Ce/GD66rJWpSli7itNUViCQifRXmN8bWWsH2ETnoRVcMx5lHu41LbYcwbXMH/5dZMkZgBfjRCOee2LC+wM3u4PBvMBYzCQ+yuFV4TzmIL9ujZZCIslAv8/jKGMffr7sZCUDPeiwWPoTyoGg9B7TigweJ33KC7GwtBnfhZg8Vh3KS7GwtBXVjRYPE9rtHdmcn9MhIIWkKRx+9c22HMO+zian/pNrMz6ZMwA70YhVdwu0+4F5x9C8an/qTu8sJnBuRFU3BNy3WtXvgM4KfWiOlavfAZgKz1sGtaVmr1IvcAuNjeUu64LcsO3gHes+B7F5zVKvBhGsgHqRdeA2AWblIuui1zjc9weQ5MLdx+TdgeFkoztev/8TeD8L0GLMzAerxlguA59Sq26q7GQ9g2HMfoiSj26e7MeM0AQfIeOI3Vt598NefCdwkW4ELX/I18903NDMAgvnJNyw88yO0p/bnw+h4QWIZllMMod8B5wh9Jfz6M+QUWludk9x6IfQAAAABJRU5ErkJggg=='),
-            sg.Text('Найти...', background_color='#99B7D8', font="_ 14", text_color="red"),
+            # sg.Image(background_color='#99B7D8', size=(32, 32),
+            #          source=b'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsIAAA7CARUoSoAAAAKfSURBVFhHxZbdiw1hHMefIbZzFEXnaLlRi43adkMuXJCVrOJGSZK8S7b2D5A7NteuqL2htDeSUt7CDYWQUijthUVK6yVse7Zla3x+z/MbO3NmjzPzcNanPv2eeeac+T7zPPMWmH9EWCzPoBTdRjgSjH4ct+06eA8gLJYIDFbR3IircRHOQTnmF3yCfUFl6AG1JrkHwJmWKXtwN7ZJXx2OMYhT2k6ReQAEN1OO4iGcL3052Mwgbmg7Qd0BEDyb0qOWpK+KAXyIz3AIZRkOYAdG9DOAXdpO8McBEL6TcgJbbMcEn/AS9uNjDj4qnRH8bznlKTbZDmPu8pt12k4wTWsCDrAYr9CUgHi4nOFxbOOAR1AOnAhXvuKYa1q+aU2RGgDBeylyBW+1HROcwQ4Ce/GD66rJWpSli7itNUViCQifRXmN8bWWsH2ETnoRVcMx5lHu41LbYcwbXMH/5dZMkZgBfjRCOee2LC+wM3u4PBvMBYzCQ+yuFV4TzmIL9ujZZCIslAv8/jKGMffr7sZCUDPeiwWPoTyoGg9B7TigweJ33KC7GwtBnfhZg8Vh3KS7GwtBXVjRYPE9rtHdmcn9MhIIWkKRx+9c22HMO+zian/pNrMz6ZMwA70YhVdwu0+4F5x9C8an/qTu8sJnBuRFU3BNy3WtXvgM4KfWiOlavfAZgKz1sGtaVmr1IvcAuNjeUu64LcsO3gHes+B7F5zVKvBhGsgHqRdeA2AWblIuui1zjc9weQ5MLdx+TdgeFkoztev/8TeD8L0GLMzAerxlguA59Sq26q7GQ9g2HMfoiSj26e7MeM0AQfIeOI3Vt598NefCdwkW4ELX/I18903NDMAgvnJNyw88yO0p/bnw+h4QWIZllMMod8B5wh9Jfz6M+QUWludk9x6IfQAAAABJRU5ErkJggg=='),
+            sg.Text('Найти...',
+                    # background_color='#99B7D8',
+                    font="_ 14",
+                    text_color=sg.DEFAULT_BUTTON_COLOR[1]
+                    ),
             sg.Input(
                 key='-IN-',
                 # pad=((0, 0), (15, 15)),
@@ -191,7 +221,7 @@ def popup_find_string(parent):
         no_titlebar=True,
         grab_anywhere=True,
         keep_on_top=True,
-        background_color='#99B7D8',
+        # background_color='#99B7D8',
         element_padding=((5, 5), (5, 5)),
         finalize=True,
         # modal=True,
@@ -199,6 +229,7 @@ def popup_find_string(parent):
         # margins=(20, 20),
     )
     move_window(parent, window)
+    parent.alpha_channel = .95
     while True:
         button, values = window.read()
         print(f'{button=} {values=}')
@@ -209,6 +240,7 @@ def popup_find_string(parent):
         elif button in ['Escape:27', 'Cancel']:
             search = None
             break
+    parent.alpha_channel = 1.0
     window.close()
     return search
 

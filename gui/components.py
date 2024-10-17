@@ -46,20 +46,28 @@ def get_sector_tasks(code=''):
 
 
 def get_list_task_for_worker(query):
-    return [
-        [
-            i, task.status, task.order.title, task.order.article,
-            task.order, task.deadline, task.passed, task.comment, task.id
-        ] for i, task in enumerate(query, start=1)
-    ]
+    return [[
+        i,
+        task.order,
+        task.deadline,
+        task.passed if task.passed else 0,
+        task.order.title,
+        task.order.article,
+        task.comment,
+        task.status,
+        task.id
+    ] for i, task in enumerate(query, start=1)]
 
 
 def get_list_task_for_order(query):
-    return [
-        [
-            i, task.status, task.deadline, task.passed, task.worker, task.comment
-        ] for i, task in enumerate(query, start=1)
-    ]
+    return [[
+        i,
+        task.status,
+        task.deadline,
+        task.passed if task.passed else 0,
+        task.worker.surname,
+        task.comment
+    ] for i, task in enumerate(query, start=1)]
 
 
 def get_card_worker(data):
@@ -117,19 +125,19 @@ def get_card_worker(data):
                 sg.Input(worker.second_name if worker else '', key='second_name', **input_setting)
             ],
         ], pad=15, vertical_alignment='center')]], **frame_setting)], [
-        sg.Frame('Служебные данные:', [[sg.Col([
-                                                   [
-                                                       sg.T('Табельный номер:', **text_setting),
-                                                       sg.Push(),
-                                                       sg.Input(worker.table_num if worker else '', key='table_num',
-                                                                **input_setting)
-                                                   ], [
+        sg.Frame('Служебные данные:', [[
+            sg.Col([[
+                sg.T('Табельный номер:', **text_setting),
+                sg.Push(),
+                sg.Input(worker.table_num if worker else '', key='table_num', **input_setting)
+            ], [
                 sg.T('Должность:', **text_setting),
                 sg.Push(),
                 sg.Combo(
                     job_list,
                     key='function',
                     default_value=worker.function if worker else 'Не выбрано',
+                    readonly=True,
                     **drop_down_setting)
             ]] + buttons, pad=10)]], **frame_setting)],
         *table
@@ -185,54 +193,58 @@ def get_card_task(data, prefill):
         extension = False
 
     return [sg.pin(sg.Col([
-        [
-            sg.Frame('Задача:', [[sg.Col([
-                [
-                    sg.T("Исполнитель:", **text_setting),
-                    sg.Push(),
-                    sg.Combo(
-                        workers,
-                        key='worker',
-                        default_value=task.worker if task else prefill_worker if prefill_worker else 'Не выбрано',
-                        disabled=True if task else False,
-                        **search_drop_down_setting)
-                ], [
-                    sg.T("Тип задачи:", **text_setting),
-                    sg.Push(),
-                    sg.Combo(
-                        all_types,
-                        key='is_type',
-                        default_value=task.is_type if task else 'Не выбрано',
-                        disabled=True if task else False,
-                        enable_events=True,
-                        **drop_down_type_task_setting)
-                ], [
-                    sg.T("Отработано:", **text_setting),
-                    sg.Push(),
-                    sg.Input(
-                        data.get('passed_order') if data.get('passed_order') else data.get('passed_task', 0),
-                        key='-PASSED-',
-                        readonly=True,
-                        **input_setting)
-                ], [
-                    sg.T("Норматив:", **text_setting),
-                    sg.Push(),
-                    sg.Input(task.deadline if task else '', key='deadline', **input_setting)
-                ], [
-                    sg.T("Статус:", **text_setting),
-                    sg.Push(),
-                    sg.Combo(
-                        statuses,
-                        key='status',
-                        default_value=task.status if task else statuses[0],
-                        **drop_down_setting)
-                ], [
-                    sg.T("Комментарии:", **text_setting),
-                    sg.Push(),
-                    sg.Multiline(task.comment if task and task.comment else '', key='comment', **multiline_setting)
-                ]
-            ], pad=10)]], **frame_setting)
-        ], [
+                              [
+                                  sg.Frame('Задача:', [[sg.Col([
+                                      [
+                                          sg.T("Исполнитель:", **text_setting),
+                                          sg.Push(),
+                                          sg.Combo(
+                                              workers,
+                                              key='worker',
+                                              default_value=task.worker if task else prefill_worker if prefill_worker else 'Не выбрано',
+                                              disabled=True if task else False,
+                                              background_color=sg.DEFAULT_BACKGROUND_COLOR if task else None,
+                                              **search_drop_down_setting)
+                                      ], [
+                                          sg.T("Тип задачи:", **text_setting),
+                                          sg.Push(),
+                                          sg.Combo(
+                                              all_types,
+                                              key='is_type',
+                                              default_value=task.is_type if task else 'Не выбрано',
+                                              disabled=True if task else False,
+                                              background_color=sg.DEFAULT_BACKGROUND_COLOR if task else None,
+                                              enable_events=True,
+                                              **drop_down_type_task_setting)
+                                      ], [
+                                          sg.T("Отработано:", **text_setting),
+                                          sg.Push(),
+                                          sg.Input(
+                                              data.get('passed_order') if data.get('passed_order') else data.get(
+                                                  'passed_task', 0),
+                                              key='-PASSED-',
+                                              readonly=True,
+                                              **input_setting)
+                                      ], [
+                                          sg.T("Норматив:", **text_setting),
+                                          sg.Push(),
+                                          sg.Input(task.deadline if task else '', key='deadline', **input_setting)
+                                      ], [
+                                          sg.T("Статус:", **text_setting),
+                                          sg.Push(),
+                                          sg.Combo(
+                                              statuses,
+                                              key='status',
+                                              default_value=task.status if task else statuses[0],
+                                              **drop_down_setting)
+                                      ], [
+                                          sg.T("Комментарии:", **text_setting),
+                                          sg.Push(),
+                                          sg.Multiline(task.comment if task and task.comment else '', key='comment',
+                                                       **multiline_setting)
+                                      ]
+                                  ], pad=10)]], **frame_setting)
+                              ], [
             sg.pin(sg.Frame('Заказ:', [[sg.Col([
                 [
                     sg.Input('task', key='type', visible=False),
@@ -243,6 +255,7 @@ def get_card_task(data, prefill):
                         key='order',
                         default_value=task.order if task and task.order else prefill_order if prefill_order else 'Не выбрано',
                         disabled=True if task else True if prefill_order else False,
+                        background_color=sg.DEFAULT_BACKGROUND_COLOR if task else None,
                         **search_drop_down_setting)
                 ], [
                     sg.T("Тип объекта:", **text_setting),
@@ -290,7 +303,7 @@ def get_card_order(data):
                         get_list_task_for_order(tasks),
                         table_heads,
                         col_widths=width_cols,
-                        num_rows=5,
+                        num_rows=3,
                         key='-DOUBLE-TASKS-',
                         **table_setting
                     )

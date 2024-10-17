@@ -204,10 +204,12 @@ class StartMainWindow:
             elif isinstance(ev, tuple) and ev[2][0] == -1:
                 self.sorting_list(ev[0], ev[2][1])
             elif ev in ['-WORKERS-', '-ORDERS-', '-TASKS-', '-CLOSE-', '-ADD-', '-DISMISS-']:
+                self.window.alpha_channel = .95
                 StartWindowCard(
                     idx=self.table[ev][val[ev].pop()][-1] if val.get(ev) else None,
                     key=val.get('-TG-'),
                     parent=self.window)
+                self.window.alpha_channel = 1
                 self.actualizing()
             elif ev == '-THEME-':
                 if sg.main_global_pysimplegui_settings():
@@ -216,9 +218,9 @@ class StartMainWindow:
             elif ev == '-EXEL-':
                 valid_data = popup_choice_worker_for_exel(self.window)
                 # popup_output()
-                file_path = get_personal_table_result(**valid_data)
-                sg.popup_timed('Исполнено', **info_popup_setting)
-                os.startfile(file_path, 'open')
+                if file_path := get_personal_table_result(**valid_data):
+                    sg.popup_timed('Исполнено', **info_popup_setting)
+                    os.startfile(file_path, 'open')
 
             elif ev in ['-FIND-', '??:70', 'f:70']:
                 key_table = self.mapping.get(val.get('-TG-'))
