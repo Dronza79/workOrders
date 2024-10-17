@@ -22,14 +22,14 @@ def get_main_window():
         'Отчеты Exel', [
             f'Работы за месяц...{sg.MENU_KEY_SEPARATOR}-EXEL-',
             f'Общий табель за месяц...{sg.MENU_KEY_SEPARATOR}-MONTH-',
-        ]], [
-        'Параметры', [
-            f'Выбрать тему...{sg.MENU_KEY_SEPARATOR}-THEME-',
+        # ]], [
+        # 'Параметры', [
+        #     f'Выбрать тему...{sg.MENU_KEY_SEPARATOR}-THEME-',
         ]]
     ]
     layout = [
         [
-            sg.Titlebar('Программа учета работ', icon=logo, **title_bar_setting)
+            sg.Titlebar('Учет работ ЭнергоЭра', icon=logo, **title_bar_setting)
         ], [
             sg.MenubarCustom(menu_def, key='-MENU-', **menu_bar_setting)
         ], [
@@ -58,8 +58,8 @@ def get_main_window():
         ], [
             sg.Button('Добавить', key='-ADD-', pad=((10, 5), (5, 10))),
             sg.Button('Обновить', key='-UPDATE-', pad=((5, 0), (5, 10))),
-        ], [
-            # sg.Menu(menu_def, key='-MENU-')
+            sg.Push(),
+            sg.Sizegrip()
         ]]
     return sg.Window('Учет нарядов', layout,
                      resizable=True,

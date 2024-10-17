@@ -2,7 +2,7 @@ import PySimpleGUI as sg
 
 from .templates_settings import table_setting, input_setting, drop_down_setting, text_setting, multiline_setting, \
     delete_button_setting, table_period_setting, frame_setting, table_tasks_setting, drop_down_type_task_setting, \
-    search_drop_down_setting
+    search_drop_down_setting, input_readonly_setting
 
 
 def get_sector_workers(code=''):
@@ -192,59 +192,58 @@ def get_card_task(data, prefill):
     else:
         extension = False
 
-    return [sg.pin(sg.Col([
-                              [
-                                  sg.Frame('Задача:', [[sg.Col([
-                                      [
-                                          sg.T("Исполнитель:", **text_setting),
-                                          sg.Push(),
-                                          sg.Combo(
-                                              workers,
-                                              key='worker',
-                                              default_value=task.worker if task else prefill_worker if prefill_worker else 'Не выбрано',
-                                              disabled=True if task else False,
-                                              background_color=sg.DEFAULT_BACKGROUND_COLOR if task else None,
-                                              **search_drop_down_setting)
-                                      ], [
-                                          sg.T("Тип задачи:", **text_setting),
-                                          sg.Push(),
-                                          sg.Combo(
-                                              all_types,
-                                              key='is_type',
-                                              default_value=task.is_type if task else 'Не выбрано',
-                                              disabled=True if task else False,
-                                              background_color=sg.DEFAULT_BACKGROUND_COLOR if task else None,
-                                              enable_events=True,
-                                              **drop_down_type_task_setting)
-                                      ], [
-                                          sg.T("Отработано:", **text_setting),
-                                          sg.Push(),
-                                          sg.Input(
-                                              data.get('passed_order') if data.get('passed_order') else data.get(
-                                                  'passed_task', 0),
-                                              key='-PASSED-',
-                                              readonly=True,
-                                              **input_setting)
-                                      ], [
-                                          sg.T("Норматив:", **text_setting),
-                                          sg.Push(),
-                                          sg.Input(task.deadline if task else '', key='deadline', **input_setting)
-                                      ], [
-                                          sg.T("Статус:", **text_setting),
-                                          sg.Push(),
-                                          sg.Combo(
-                                              statuses,
-                                              key='status',
-                                              default_value=task.status if task else statuses[0],
-                                              **drop_down_setting)
-                                      ], [
-                                          sg.T("Комментарии:", **text_setting),
-                                          sg.Push(),
-                                          sg.Multiline(task.comment if task and task.comment else '', key='comment',
-                                                       **multiline_setting)
-                                      ]
-                                  ], pad=10)]], **frame_setting)
-                              ], [
+    return [sg.pin(
+        sg.Col([[
+            sg.Frame('Задача:', [[
+                sg.Col([[
+                    sg.T("Исполнитель:", **text_setting),
+                    sg.Push(),
+                    sg.Combo(
+                        workers,
+                        key='worker',
+                        default_value=task.worker if task else prefill_worker if prefill_worker else 'Не выбрано',
+                        disabled=True if task else False,
+                        background_color=sg.DEFAULT_BACKGROUND_COLOR if task else None,
+                        **search_drop_down_setting)
+                ], [
+                    sg.T("Тип задачи:", **text_setting),
+                    sg.Push(),
+                    sg.Combo(
+                        all_types,
+                        key='is_type',
+                        default_value=task.is_type if task else 'Не выбрано',
+                        disabled=True if task else False,
+                        background_color=sg.DEFAULT_BACKGROUND_COLOR if task else None,
+                        enable_events=True,
+                        **drop_down_type_task_setting)
+                ], [
+                    sg.T("Отработано:", **text_setting),
+                    sg.Push(),
+                    sg.Input(
+                        data.get('passed_order') if data.get('passed_order') else data.get(
+                            'passed_task', 0),
+                        key='-PASSED-',
+                        readonly=True,
+                        **input_readonly_setting)
+                ], [
+                    sg.T("Норматив:", **text_setting),
+                    sg.Push(),
+                    sg.Input(task.deadline if task else '', key='deadline', **input_setting)
+                ], [
+                    sg.T("Статус:", **text_setting),
+                    sg.Push(),
+                    sg.Combo(
+                        statuses,
+                        key='status',
+                        default_value=task.status if task else statuses[0],
+                        **drop_down_setting)
+                ], [
+                    sg.T("Комментарии:", **text_setting),
+                    sg.Push(),
+                    sg.Multiline(task.comment if task and task.comment else '', key='comment',
+                                 **multiline_setting)
+                ]], pad=10)]], **frame_setting)
+        ], [
             sg.pin(sg.Frame('Заказ:', [[sg.Col([
                 [
                     sg.Input('task', key='type', visible=False),
@@ -262,25 +261,25 @@ def get_card_task(data, prefill):
                     sg.Push(),
                     sg.Input(
                         task.order.type_obj if task and task.order else prefill_order.type_obj if prefill_order else '',
-                        key='type_obj', readonly=True, **input_setting)
+                        key='type_obj', readonly=True, **input_readonly_setting)
                 ], [
                     sg.T("Объект:", **text_setting),
                     sg.Push(),
                     sg.Input(
                         task.order.title if task and task.order else prefill_order.title if prefill_order else '',
-                        key='title', readonly=True, **input_setting)
+                        key='title', readonly=True, **input_readonly_setting)
                 ], [
                     sg.T("Конструктив:", **text_setting),
                     sg.Push(),
                     sg.Input(
                         task.order.article if task and task.order else prefill_order.article if prefill_order else '',
-                        key='article', readonly=True, **input_setting)
+                        key='article', readonly=True, **input_readonly_setting)
                 ], [
                     sg.T("Название:", **text_setting),
                     sg.Push(),
                     sg.Input(
                         task.order.name if task and task.order else prefill_order.name if prefill_order else '',
-                        key='name', readonly=True, **input_setting)
+                        key='name', readonly=True, **input_readonly_setting)
                 ]], pad=10)]],
                             key='-ORDER-TASK-',
                             visible=extension,
@@ -305,7 +304,7 @@ def get_card_order(data):
                         col_widths=width_cols,
                         num_rows=3,
                         key='-DOUBLE-TASKS-',
-                        **table_setting
+                        **table_tasks_setting
                     )
                 ]
             ], size=(330, 160), right_click_menu=rcm, **frame_setting)
