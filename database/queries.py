@@ -210,7 +210,11 @@ def create_or_update_entity(key, data, idx):
 def delete_or_restore(key, idx):
     models = {'worker': Worker, 'task': Task, 'order': Order}
     model = models.get(key)
-    return model.update(is_active=~model.is_active).where(model.id == idx).execute()
+    if key == 'worker':
+        return model.update(is_active=~model.is_active).where(model.id == idx).execute()
+    else:
+        return model.get(model.id == idx).delete_instance(recursive=True)
+
 
 
 def get_period(pos, task):

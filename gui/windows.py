@@ -16,16 +16,16 @@ from .templates_settings import (
 
 def get_main_window():
     menu_def = [[
-        'Файл', [
+        '!Файл', [
             f'Сделать бекап{sg.MENU_KEY_SEPARATOR}-BACKUP-',
             f'Указать базу{sg.MENU_KEY_SEPARATOR}-SET-DB-'
         ]], [
         'Отчеты Exel', [
             f'Работы за месяц...{sg.MENU_KEY_SEPARATOR}-EXEL-',
             f'Общий табель за месяц...{sg.MENU_KEY_SEPARATOR}-MONTH-',
-            # ]], [
-            # 'Параметры', [
-            #     f'Выбрать тему...{sg.MENU_KEY_SEPARATOR}-THEME-',
+            ]], [
+            '!Параметры', [
+                f'Выбрать тему...{sg.MENU_KEY_SEPARATOR}-THEME-',
         ]]
     ]
     layout = [
@@ -80,10 +80,10 @@ def get_card_window(form):
         else "Карточка заказа"
     )
     rbm = ['Внимание!...', [f'Удалить{sg.MENU_KEY_SEPARATOR}-DELETE-']]
-    layout = [
+    layout = [[sg.Frame('', [
         [
-        #     sg.Titlebar(title, icon=logo, **title_bar_setting)
-        # ], [
+            sg.Titlebar(title, icon=logo_w, **title_bar_setting)
+        ], [
             sg.Col([], key='body')
         ], [
             sg.Push(),
@@ -91,7 +91,7 @@ def get_card_window(form):
             sg.Button('Отменить', key='-CANCEL-', pad=((5, 0), (0, 20))),
             sg.Push(),
         ]
-    ]
+    ], **frame_padding_0_setting)]]
     return sg.Window(title, layout,
                      # resizable=True,
                      return_keyboard_events=True,

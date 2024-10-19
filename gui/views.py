@@ -289,10 +289,11 @@ class StartMainWindow:
                 i,
                 f'{worker.surname} {worker.name} {worker.second_name}',
                 worker.table_num,
-                str(worker.function),
-                str(period.order) if period else '--',
-                period.task.deadline if period else 0,
-                total_worked if total_worked else 0,
+                worker.function,
+                period.task.is_type if period else '--',
+                period.order if period and period.order else '--',
+                period.task.deadline if period else '--',
+                total_worked if total_worked else '--',
                 worker.id
             )
             lst.append(formatted_data)

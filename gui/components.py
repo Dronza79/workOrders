@@ -6,8 +6,8 @@ from .templates_settings import table_setting, input_setting, drop_down_setting,
 
 
 def get_sector_workers(code=''):
-    heads = ['№ п/п', 'Фамилия имя отчество', 'Таб.номер', 'Должность', 'Номер ПР', 'Норматив', 'Отработано']
-    width_cols = [4, 30, 10, 16, 10, 7, 7]
+    heads = ['№ п/п', 'Фамилия имя отчество', 'Таб.номер', 'Должность', 'Работа', 'Номер ПР', 'Норматив', 'Отработано']
+    width_cols = [4, 30, 10, 16, 10, 10, 7, 7]
     return [[
         sg.Table(
             values=[],
@@ -46,7 +46,7 @@ def get_sector_tasks(code=''):
 
 
 def get_list_task_for_worker(query):
-    print(f'{__name__}.get_list_task_for_worker({list(query)=})')
+    # print(f'{__name__}.get_list_task_for_worker({list(query)=})')
     if not query:
         return []
     return [[
@@ -77,7 +77,7 @@ def get_list_task_for_order(query):
 
 
 def get_card_worker(data):
-    print(f'{__name__}.get_card_worker({data=})')
+    # print(f'{__name__}.get_card_worker({data=})')
     job_list = list(data['func_position'])
     worker = data.get('worker')
     tasks = data.get('tasks')
@@ -108,16 +108,19 @@ def get_card_worker(data):
             )
         ]])
         table = [[
-            sg.Frame('Задачи выполняемые работником:', [
-                [sg.Input(worker.id, key='id', visible=False)],
-                [sg.Table(
-                    get_list_task_for_worker(tasks),
-                    table_heads,
-                    col_widths=width_cols,
-                    num_rows=3,
-                    key='-DOUBLE-TASKS-',
-                    **table_tasks_setting)]
-            ], size=(330, 200), right_click_menu=rcm, **frame_setting)
+            sg.Frame(
+                'Задачи выполняемые работником:', [
+                    [sg.Input(worker.id, key='id', visible=False)],
+                    [sg.Table(
+                        get_list_task_for_worker(tasks),
+                        table_heads,
+                        col_widths=width_cols,
+                        num_rows=5,
+                        key='-DOUBLE-TASKS-',
+                        **table_tasks_setting)]
+                ],
+                # size=(330, 200),
+                right_click_menu=rcm, **frame_setting)
         ]]
     else:
         buttons = []
@@ -139,7 +142,9 @@ def get_card_worker(data):
                 sg.Push(),
                 sg.Input(worker.second_name if worker else '', key='second_name', **input_setting)
             ],
-        ], pad=15, vertical_alignment='center')]], **frame_setting)], [
+            # ], pad=15, vertical_alignment='center')]], **frame_setting)], [
+        ], pad=15, vertical_alignment='center')]], **frame_setting),
+        sg.Push(),
         sg.Frame('Служебные данные:', [[
             sg.Col([[
                 sg.T('Табельный номер:', **text_setting),

@@ -142,6 +142,7 @@ info_popup_setting = {
     'non_blocking': True,
     'font': '_ 12',
     'no_titlebar': True,
+    'keep_on_top': True,
 }
 
 delete_button_setting = {
