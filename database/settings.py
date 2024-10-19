@@ -7,8 +7,6 @@ BASE_DIR = Path('.').resolve()
 
 class DBPath:
     def __init__(self):
-        import datetime
-        year = datetime.datetime.now().year
         self._path = BASE_DIR / f'db-current.sqlite3'
 
     @property
@@ -24,5 +22,5 @@ path = DBPath()
 
 
 def get_database():
-    return SqliteDatabase(path.get_path)
+    return SqliteDatabase(path.get_path, pragmas={'foreign_keys': 1})
 

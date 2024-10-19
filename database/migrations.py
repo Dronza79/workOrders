@@ -1,10 +1,8 @@
-from peewee import SqliteDatabase
-
 from .models import (
     Worker, Task, Period, Vacancy, Status, Order, TypeTask,
     FUNC_VARIABLES, STATUS_VARIABLES, TYPE_VARIABLES
 )
-from .settings import path, get_database
+from .settings import get_database
 
 models = (
     Vacancy,
@@ -18,9 +16,9 @@ models = (
 
 
 def apply_migrations():
-    db = SqliteDatabase(path.get_path, pragmas={'foreign_keys': 1})
+    db = get_database()
     db.create_tables(models)
-    with get_database().atomic():
+    with db.atomic():
         if not list(Vacancy.select()):
             Vacancy.insert_many(FUNC_VARIABLES).execute()
         if not list(Status.select()):
