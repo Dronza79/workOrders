@@ -118,7 +118,8 @@ class Task(BaseModel):
     comment = TextField(verbose_name='Комментарий', default='')
 
     def __str__(self):
-        return f'Задача №{self.id} от {self.create_at:%d.%m.%y}'
+        return f'Задача №{self.id}'
+        # return f'Задача №{self.id} от {self.create_at:%d.%m.%y}'
 
 
 class Period(BaseModel):

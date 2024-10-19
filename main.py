@@ -41,43 +41,5 @@ def main():
 # 10.	Добавить конфиги к моделям "Статус", "Должность", «Тип задачи» +
 
 
-
 if __name__ == '__main__':
     main()
-
-
-# import datetime
-#
-# import peewee
-#
-# from database.app_logger import add_logger_peewee
-# from database.models import Worker, Task, TypeTask, Period, Status, Vacancy, Order
-#
-#
-# @add_logger_peewee
-# def main():
-#     now_date = datetime.date(2024, 9, 1)
-#     query = (
-#         # Worker.select(Worker, Vacancy, Task, TypeTask, Period, Status, Order)
-#         Worker.select(
-#             Worker.id.alias('worker_id'), Task.id.alias('task_id'), Order.id.alias('order_id'),
-#             Period.id.alias('period_id'), Worker.surname, Vacancy.post, TypeTask.title, Status.state,
-#             Order.no, Period.date, Period.value)
-#         .join_from(Worker, Vacancy)
-#         .join_from(Worker, Task, peewee.JOIN.LEFT_OUTER)
-#         .join_from(Task, TypeTask)
-#         .join_from(Task, Order, peewee.JOIN.LEFT_OUTER)
-#         .join_from(Task, Status)
-#         .join_from(Task, Period, peewee.JOIN.LEFT_OUTER)
-#         # .join_from(Worker, Period, peewee.JOIN.LEFT_OUTER)
-#         .where(~Status.is_archived)
-#         .order_by(Worker, -Period.date)
-#         .group_by(Worker.id)
-#         # .having(Period.date.year == now_date.year, Period.date.month == now_date.month)
-#         .dicts())
-#     for i, worker in enumerate(query, start=1):
-#         print(f'{i}. {worker}')
-#
-#
-# if __name__ == '__main__':
-#     main()
