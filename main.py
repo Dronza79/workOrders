@@ -1,7 +1,8 @@
 import locale
+import os
+import platform
 from pathlib import Path
 
-from database.app_logger import add_logger_peewee
 from database.migrations import apply_migrations
 from database.settings import path
 from gui.views import StartMainWindow
@@ -15,6 +16,14 @@ def main():
     # locale.setlocale(locale.LC_TIME, 'ru_RU')
     if not Path(path.get_path).exists():
         apply_migrations()
+    with open('log.txt', 'a+', encoding='utf8') as file:
+        system = platform.system()  # Название ОС
+        release = platform.release()  # Версия ОС
+        version = platform.version()  # Полная версия ОС
+        architecture = platform.architecture()
+        user = os.getlogin()
+        file.write(f'{user=}\n{system=}\n{release=}\n'
+                   f'{version=}\n{architecture=}\n{"*" * 30}\n')
     StartMainWindow()
 
 

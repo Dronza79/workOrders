@@ -4,21 +4,27 @@ from operator import itemgetter
 import PySimpleGUI as sg
 
 from database.queries import (
-    get_all_workers,
-    get_open_tasks,
-    get_close_tasks,
-    get_worker_data,
-    get_task_data,
-    get_all_orders, create_new_period, get_order_data, create_or_update_entity, get_all_dismiss,
-    delete_or_restore_worker, get_period, update_delete_period
+    get_all_workers, get_open_tasks,
+    get_close_tasks, get_worker_data,
+    get_task_data, get_all_orders,
+    create_new_period, get_order_data,
+    create_or_update_entity, get_all_dismiss,
+    get_period, update_delete_period,
+    delete_or_restore
 )
 from database.utils import validation_data, validation_period_data
 from tablesExcel.processor import get_personal_table_result
-from .components import get_card_worker, get_card_task, get_card_order, get_list_task_for_worker, \
+from .components import (
+    get_card_worker, get_card_task,
+    get_card_order, get_list_task_for_worker,
     get_list_task_for_order
+)
 from .templates_settings import error_popup_setting, info_popup_setting
-from .windows import get_main_window, get_card_window, popup_get_period, popup_choice_worker_for_exel, \
-    popup_find_string, popup_output
+from .windows import (
+    get_main_window, get_card_window,
+    popup_get_period, popup_choice_worker_for_exel,
+    popup_find_string
+)
 
 
 class StartWindowCard:
@@ -54,9 +60,9 @@ class StartWindowCard:
                 else:
                     self.window[ev].update(self.value[ev], values=self.old_data)
             elif ev == '-ADD-TIME-':
-                _, period_data = popup_get_period(self.window)
-                if period_data:
-                    period_data.update(get_task_data(self.value.get('task')))
+                button, period_data = popup_get_period(self.window)
+                if button == '-SAVE-PER-' and period_data:
+                    period_data.update(get_task_data(self.value.get('id')))
                     errors, valid_data = validation_period_data(period_data)
                     if errors:
                         sg.popup('\n'.join(errors), title='Ошибка', **error_popup_setting)
@@ -65,9 +71,9 @@ class StartWindowCard:
                             sg.popup_timed('Сохранено', **info_popup_setting)
                             self.actualizing_passed_period()
             elif ev == '-TIME-WORKED-':
-                period = get_period(pos=self.value.get(ev)[0], task=self.value.get('task'))
+                period = get_period(pos=self.value.get(ev)[0], task=self.value.get('id'))
                 ev_per, val_per = popup_get_period(self.window, period)
-                print(f'Period {ev_per=} {val_per=} {self.value.get("task")=}')
+                print(f'Period {ev_per=} {val_per=} {self.value.get("id")=}')
                 if ev_per in ['-SAVE-PER-', '-DEL-PER-']:
                     errors, valid_data = validation_period_data(val_per, val_per.get('period_id'))
                     if errors:
@@ -80,33 +86,35 @@ class StartWindowCard:
                             sg.popup_timed('Изменения не вносились!', **info_popup_setting)
             elif ev in ['-DOUBLE-TASKS-', '-ADD-TASK-']:
                 if self.value['type'] == 'worker':
-                    entity = get_worker_data(int(self.value.get('worker_id'))).get('tasks')
+                    entity = get_worker_data(int(self.value.get('id'))).get('tasks')
                     list_comprehension = get_list_task_for_worker
                 else:
-                    entity = get_order_data(int(self.value.get('order_id'))).get('tasks')
+                    entity = get_order_data(int(self.value.get('id'))).get('tasks')
                     list_comprehension = get_list_task_for_order
                 if ev == '-ADD-TASK-':
                     idx = None
                     choice = self.value['type']
                     prefill = (
                         choice,
-                        self.value['order_id'] if choice == 'order' else self.value['worker_id'],
+                        self.value['id'],
                     )
                 else:
                     idx = entity[self.value[ev].pop()].id
                     prefill = None
+                self.window.hide()
                 StartWindowCard(
                     idx=idx,
                     key='-TSK-',
                     parent=self.window,
                     prefill=prefill
                 )
+                self.window.un_hide()
                 if self.value['type'] == 'worker':
-                    entity = get_worker_data(int(self.value.get('worker_id'))).get('tasks')
+                    entity = get_worker_data(int(self.value.get('id'))).get('tasks')
                 else:
-                    entity = get_order_data(int(self.value.get('order_id'))).get('tasks')
+                    entity = get_order_data(int(self.value.get('id'))).get('tasks')
                 self.window['-DOUBLE-TASKS-'].update(list(list_comprehension(entity)))
-                self.window.refresh()
+                # self.window.refresh()
             elif ev == '-SAVE-':
                 errors, valid_data = validation_data(self.value, self.idx)
                 if errors:
@@ -120,7 +128,7 @@ class StartWindowCard:
                     else:
                         sg.popup_timed('Изменения не вносились', **info_popup_setting)
             elif ev in ['-DELETE-', '-RESTORE-']:
-                res = delete_or_restore_worker(int(self.value.get('worker_id')))
+                res = delete_or_restore(self.value.get('type'), int(self.value.get('id')))
                 if res:
                     sg.popup_timed('Сохранено', **info_popup_setting)
                     break
@@ -132,6 +140,9 @@ class StartWindowCard:
                     self.window['-ORDER-TASK-'].update(visible=False)
                     self.window['-PASSED-'].update(0)
                     self.window.refresh()
+            elif ev == '-FIND-':
+                if search := popup_find_string(self.window):
+                    self.filter_list(search)
         self.window.close()
 
     def move_center(self):
@@ -155,8 +166,15 @@ class StartWindowCard:
         self.window.extend_layout(self.window['body'], [card])
         self.move_center()
 
+    def filter_list(self, find):
+        def func(string):
+            return any(map(lambda x: find.lower() in str(x).lower(), string))
+
+        new_data = list(filter(func, self.window['-DOUBLE-TASKS-'].Values))
+        self.window['-DOUBLE-TASKS-'].update(values=new_data)
+
     def actualizing_passed_period(self):
-        data = get_task_data(self.value.get('task'))
+        data = get_task_data(self.value.get('id'))
         print(f'{data=}')
         time_worked = [
             [
@@ -164,7 +182,8 @@ class StartWindowCard:
                 f'{period.date if period else "":%a}',
                 f'{period.value if period else ""} ч.',
             ] for period in data.get('time_worked', [])]
-        self.window['-PASSED-'].update(data.get('passed_order'))
+        passed = data.get('passed_order') if data.get('passed_order') else data.get('passed_task')
+        self.window['-PASSED-'].update(passed)
         self.window['-TIME-WORKED-'].update(time_worked)
         self.window.refresh()
 
@@ -189,6 +208,7 @@ class StartMainWindow:
 
     def __init__(self):
         self.window = get_main_window()
+        self.window.maximize()
         self.actualizing()
         self.run()
 
@@ -204,12 +224,12 @@ class StartMainWindow:
             elif isinstance(ev, tuple) and ev[2][0] == -1:
                 self.sorting_list(ev[0], ev[2][1])
             elif ev in ['-WORKERS-', '-ORDERS-', '-TASKS-', '-CLOSE-', '-ADD-', '-DISMISS-']:
-                self.window.alpha_channel = .95
+                # self.window.alpha_channel = .95
                 StartWindowCard(
                     idx=self.table[ev][val[ev].pop()][-1] if val.get(ev) else None,
                     key=val.get('-TG-'),
                     parent=self.window)
-                self.window.alpha_channel = 1
+                # self.window.alpha_channel = 1
                 self.actualizing()
             elif ev == '-THEME-':
                 if sg.main_global_pysimplegui_settings():
@@ -238,7 +258,7 @@ class StartMainWindow:
         self.window[key_table].update(values=self.table[key_table])
 
     def filter_list(self, key_table, find):
-        print(f'filter_list({key_table=}, {find=})')
+        # print(f'filter_list({key_table=}, {find=})')
 
         def func(string):
             return any(map(lambda x: find.lower() in str(x).lower(), string))

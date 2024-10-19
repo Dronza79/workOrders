@@ -36,9 +36,7 @@ def get_subquery_worker():
 
 def get_all_workers():
     persons = (
-        Worker.select(
-            Worker.id, Worker.table_num, Worker.surname, Worker.name,
-            Worker.second_name, Vacancy.post)
+        Worker.select(Worker, Vacancy)
         .join(Vacancy).where(Worker.is_active)
     )
 
@@ -49,7 +47,7 @@ def get_all_workers():
 def get_all_dismiss():
     persons = (
         Worker
-        .select(Worker.id, Worker.table_num, Worker.surname, Worker.name, Worker.second_name, Vacancy.post)
+        .select(Worker, Vacancy)
         .join(Vacancy).where(~Worker.is_active)
     )
 
@@ -66,6 +64,7 @@ def get_all_orders():
         .join_from(Order, Period, peewee.JOIN.LEFT_OUTER)
         .join_from(Order, Task, peewee.JOIN.LEFT_OUTER)
         .where(
+            Order.is_active,
             Order.id.not_in(Task.select(Task.order)) |
             Order.id.in_(Task.select(Task.order).join_from(Task, Status).where(~Status.is_archived))
         )
@@ -78,7 +77,7 @@ def get_all_orders():
 
 
 def get_worker_data(idx=None):
-    # print(f'{idx=}')
+    print(f'{idx=}')
     if idx:
         person = (
             Worker.select(Worker, Vacancy)
@@ -87,8 +86,7 @@ def get_worker_data(idx=None):
         )
         tasks = (
             Task.select(
-                Task.id, Task.deadline, Task.comment,
-                Status, Worker, Order, Period,
+                Task, Status, Worker, Order, Period,
                 peewee.fn.SUM(Period.value).alias('passed'),
             )
             .join_from(Task, Status)
@@ -209,8 +207,10 @@ def create_or_update_entity(key, data, idx):
     return result
 
 
-def delete_or_restore_worker(idx):
-    return Worker.update(is_active=~Worker.is_active).where(Worker.id == idx).execute()
+def delete_or_restore(key, idx):
+    models = {'worker': Worker, 'task': Task, 'order': Order}
+    model = models.get(key)
+    return model.update(is_active=~model.is_active).where(model.id == idx).execute()
 
 
 def get_period(pos, task):

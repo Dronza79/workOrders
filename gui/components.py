@@ -46,13 +46,17 @@ def get_sector_tasks(code=''):
 
 
 def get_list_task_for_worker(query):
+    print(f'{__name__}.get_list_task_for_worker({list(query)=})')
+    if not query:
+        return []
     return [[
         i,
-        task.order,
+        task.is_type,
         task.deadline,
         task.passed if task.passed else 0,
-        task.order.title,
-        task.order.article,
+        task.order if task.order else '-',
+        task.order.title if task.order else '-',
+        task.order.article if task.order else '-',
         task.comment,
         task.status,
         task.id
@@ -60,6 +64,8 @@ def get_list_task_for_worker(query):
 
 
 def get_list_task_for_order(query):
+    if not query:
+        return []
     return [[
         i,
         task.status,
@@ -71,12 +77,21 @@ def get_list_task_for_order(query):
 
 
 def get_card_worker(data):
+    print(f'{__name__}.get_card_worker({data=})')
     job_list = list(data['func_position'])
     worker = data.get('worker')
     tasks = data.get('tasks')
-    table_heads = ['№', 'Статус', 'Объект', 'Артикул', 'ПРка', 'Норма', 'Вып.', 'Коммент']
-    width_cols = [3, 8, 12, 20, 10, 5, 5, 14]
-    rcm = ['', [f'Добавить задачу...{sg.MENU_KEY_SEPARATOR}-ADD-TASK-']]
+    # print(f'{__name__}.get_card_worker() {list(tasks)=}')
+    table_heads = ['№', 'Тип', 'Норма', 'Вып.', 'ПРка', 'Объект', 'Артикул', 'Коммент', 'Статус']
+    width_cols = [3, 8, 3, 3, 8, 12, 20, 10, 8]
+    rcm = [
+        '', [
+            f'Добавить задачу...{sg.MENU_KEY_SEPARATOR}-ADD-TASK-',
+            f'Найти...{sg.MENU_KEY_SEPARATOR}-FIND-',
+            'Внимание!...', [
+                f'Удалить{sg.MENU_KEY_SEPARATOR}-DELETE-'
+            ]
+        ]]
     if worker:
         buttons = ([[
             sg.Button(
@@ -94,7 +109,7 @@ def get_card_worker(data):
         ]])
         table = [[
             sg.Frame('Задачи выполняемые работником:', [
-                [sg.Input(worker.id, key='worker_id', visible=False)],
+                [sg.Input(worker.id, key='id', visible=False)],
                 [sg.Table(
                     get_list_task_for_worker(tasks),
                     table_heads,
@@ -102,7 +117,7 @@ def get_card_worker(data):
                     num_rows=3,
                     key='-DOUBLE-TASKS-',
                     **table_tasks_setting)]
-            ], size=(330, 150), right_click_menu=rcm, **frame_setting)
+            ], size=(330, 200), right_click_menu=rcm, **frame_setting)
         ]]
     else:
         buttons = []
@@ -145,7 +160,7 @@ def get_card_worker(data):
 
 
 def get_card_task(data, prefill):
-    # print(f'get_card_task({data=}, {prefill=})')
+    print(f'get_card_task({data=}, {prefill=})')
     time_worked = [
         [f'{period.date:%d.%m.%y}',
          f'{period.date:%a}',
@@ -156,7 +171,7 @@ def get_card_task(data, prefill):
     if task := data.get('task'):
         table = [[
             sg.pin(sg.Frame('Табель времени:', [
-                [sg.Input(task.id, key='task', visible=False)],
+                [sg.Input(task.id, key='id', visible=False)],
                 [
                     sg.Table(
                         time_worked,
@@ -293,10 +308,16 @@ def get_card_order(data):
         tasks = data.get('tasks', [])
         table_heads = ['№', 'Статус', 'Норма', 'Вып.', 'Работник', 'Коммент']
         width_cols = [3, 8, 5, 5, 12, 14]
-        rcm = ['', [f'Добавить задачу...{sg.MENU_KEY_SEPARATOR}-ADD-TASK-']]
+        rcm = ['', [
+            f'Добавить задачу...{sg.MENU_KEY_SEPARATOR}-ADD-TASK-',
+            f'Найти...{sg.MENU_KEY_SEPARATOR}-FIND-',
+            'Внимание!...', [
+                f'Удалить{sg.MENU_KEY_SEPARATOR}-DELETE-'
+            ]
+        ]]
         table = [[
             sg.Frame('Задачи с этой ПРкой:', [
-                [sg.Input(order.id, key='order_id', visible=False)],
+                [sg.Input(order.id, key='id', visible=False)],
                 [
                     sg.Table(
                         get_list_task_for_order(tasks),
@@ -307,7 +328,7 @@ def get_card_order(data):
                         **table_tasks_setting
                     )
                 ]
-            ], size=(330, 160), right_click_menu=rcm, **frame_setting)
+            ], size=(330, 200), right_click_menu=rcm, **frame_setting)
         ]]
     else:
         table = []

@@ -7,9 +7,10 @@ from database.queries import get_all_workers
 from database.utils import validation_data_for_exel
 from .components import get_sector_workers, get_sector_tasks, get_sector_orders
 from .templates_settings import (
-    tab_setting, drop_down_setting, error_popup_setting,
-    frame_setting, tab_group_setting, input_setting, drop_down_read_only_setting, search_drop_down_setting, logo,
-    title_bar_setting, menu_bar_setting
+    tab_setting, error_popup_setting,
+    frame_setting, tab_group_setting, input_setting, drop_down_read_only_setting, search_drop_down_setting, logo_w,
+    title_bar_setting, menu_bar_setting, get_data_popup_setting, calendar_button_setting, frame_padding_0_setting,
+    logo_b, menu_setting
 )
 
 
@@ -22,16 +23,18 @@ def get_main_window():
         'Отчеты Exel', [
             f'Работы за месяц...{sg.MENU_KEY_SEPARATOR}-EXEL-',
             f'Общий табель за месяц...{sg.MENU_KEY_SEPARATOR}-MONTH-',
-        # ]], [
-        # 'Параметры', [
-        #     f'Выбрать тему...{sg.MENU_KEY_SEPARATOR}-THEME-',
+            # ]], [
+            # 'Параметры', [
+            #     f'Выбрать тему...{sg.MENU_KEY_SEPARATOR}-THEME-',
         ]]
     ]
     layout = [
         [
-            sg.Titlebar('Учет работ ЭнергоЭра', icon=logo, **title_bar_setting)
-        ], [
-            sg.MenubarCustom(menu_def, key='-MENU-', **menu_bar_setting)
+        #     sg.Titlebar('Учет работ ЭнергоЭра', icon=logo_w, **title_bar_setting)
+        # ], [
+        #     sg.MenubarCustom(menu_def, key='-MENU-', **menu_bar_setting)
+        # ], [
+            sg.Menu(menu_def, key='-MENU-', **menu_setting)
         ], [
             sg.TabGroup([[
                 sg.Tab(
@@ -61,13 +64,12 @@ def get_main_window():
             sg.Push(),
             sg.Sizegrip()
         ]]
-    return sg.Window('Учет нарядов', layout,
+    return sg.Window('Учет работ ЭнергоЭра', layout,
                      resizable=True,
                      finalize=True,
                      return_keyboard_events=True,
                      right_click_menu=["", ['Найти...::-FIND-']],
-                     sbar_frame_color='#64778D',
-                     # margins=(20, 20)
+                     icon=logo_b,
                      )
 
 
@@ -77,10 +79,11 @@ def get_card_window(form):
         else "Карточка задачи" if form in ['-CLS-', '-TSK-']
         else "Карточка заказа"
     )
+    rbm = ['Внимание!...', [f'Удалить{sg.MENU_KEY_SEPARATOR}-DELETE-']]
     layout = [
         [
-            sg.Titlebar(title, icon=logo, **title_bar_setting)
-        ], [
+        #     sg.Titlebar(title, icon=logo, **title_bar_setting)
+        # ], [
             sg.Col([], key='body')
         ], [
             sg.Push(),
@@ -94,9 +97,9 @@ def get_card_window(form):
                      return_keyboard_events=True,
                      finalize=True,
                      keep_on_top=True,
-                     # sbar_frame_color='#64778D',
-                     # size=(450, 570),
+                     right_click_menu=rbm,
                      margins=(10, 10),
+                     icon=logo_b
                      # modal=True
                      )
 
@@ -112,36 +115,44 @@ def move_window(parent, window):
 
 def popup_get_period(parent, period=None):
     date_now = datetime.datetime.now().date()
-    layout = [
+    layout = [[sg.Frame('', [
         [
-            sg.Titlebar('Добавить время', icon=logo, **title_bar_setting)
-        ], [
+            sg.Titlebar('Добавить время', icon=logo_w, **title_bar_setting)
+        ], [sg.Col([[
             sg.Input(
                 default_text=f'{period.date:%d.%m.%Y}' if period else f'{date_now:%d.%m.%Y}',
-                key='date', size=(10, 1)),
-            sg.CalendarButton('Календарь', key='-CB-', begin_at_sunday_plus=1, target='date', format='%d.%m.%Y')
+                key='date', size=(15, 1), justification='center'),
+            sg.Push(),
+            sg.CalendarButton(key='-CB-', target='date', **calendar_button_setting)
         ], [
-            sg.T('Продолжительность', font='_ 10'),
+            sg.T('Продолжительность:', font='_ 10', pad=((5, 5), (5, 20))),
+            sg.Push(),
             sg.Combo(
                 [i for i in range(1, 13)],
                 default_value=period.value if period else 1,
-                key='value', font='_ 12'),
-            sg.T('ч.', font='_ 12')
-        ], [sg.Button('Сохранить', key='-SAVE-PER-')] +
-           (
-               [
-                   sg.Button('Удалить', key='-DEL-PER-'),
-                   sg.Input(period.id, key='period_id', visible=False)
-               ] if period else []
-           ) +
-           [sg.Exit('Отмена')]
-    ]
-    window = sg.Window('Добавить время', layout, finalize=True, modal=True)
+                key='value', font='_ 12', readonly=True, pad=((5, 5), (5, 20))),
+            sg.T('ч.', font='_ 12', pad=((5, 5), (5, 20)))
+        ], [sg.Button('Сохранить', key='-SAVE-PER-', size=(10, 1))] + (
+            [
+                sg.Push(),
+                sg.Button('Удалить', key='-DEL-PER-', size=(10, 1), button_color='white on red'),
+                sg.Push(),
+                sg.Input(period.id, key='period_id', visible=False)
+            ] if period else [sg.Push()]) +
+           [sg.Exit('Отмена', key='-EXIT-', size=(10, 1))]
+        ], pad=10)]], **frame_padding_0_setting)]]
+    window = sg.Window('Добавить время', layout,
+                       # element_padding=((15, 15), (5, 10)),
+                       no_titlebar=True,
+                       **get_data_popup_setting)
     move_window(parent, window)
-    parent.alpha_channel = .95
+    # parent.alpha_channel = .9
+    # parent.hide()
     window['-CB-'].calendar_location = window.current_location()
     result = window.read(close=True)
-    parent.alpha_channel = 1
+    # parent.alpha_channel = 1
+    print(f'popup_get_period() {result=}')
+    # parent.un_hide()
     return result
 
 
@@ -149,7 +160,7 @@ def popup_choice_worker_for_exel(parent):
     workers = get_all_workers()
     layout = [
         [
-            sg.Titlebar('Отчет Exel...', icon=logo, **title_bar_setting)
+            sg.Titlebar('Отчет Exel...', icon=logo_w, **title_bar_setting)
         ], [
             sg.Frame('', [[sg.Col([[
                 sg.T('Работник:', font='_ 10'),
@@ -195,41 +206,14 @@ def popup_choice_worker_for_exel(parent):
 
 
 def popup_find_string(parent):
-    layout = [
-        # [
-        #     sg.Titlebar('Найти...', icon=logo, **title_bar_setting)
-        # ],
-        [
-            # sg.Image(background_color='#99B7D8', size=(32, 32),
-            #          source=b'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsIAAA7CARUoSoAAAAKfSURBVFhHxZbdiw1hHMefIbZzFEXnaLlRi43adkMuXJCVrOJGSZK8S7b2D5A7NteuqL2htDeSUt7CDYWQUijthUVK6yVse7Zla3x+z/MbO3NmjzPzcNanPv2eeeac+T7zPPMWmH9EWCzPoBTdRjgSjH4ct+06eA8gLJYIDFbR3IircRHOQTnmF3yCfUFl6AG1JrkHwJmWKXtwN7ZJXx2OMYhT2k6ReQAEN1OO4iGcL3052Mwgbmg7Qd0BEDyb0qOWpK+KAXyIz3AIZRkOYAdG9DOAXdpO8McBEL6TcgJbbMcEn/AS9uNjDj4qnRH8bznlKTbZDmPu8pt12k4wTWsCDrAYr9CUgHi4nOFxbOOAR1AOnAhXvuKYa1q+aU2RGgDBeylyBW+1HROcwQ4Ce/GD66rJWpSli7itNUViCQifRXmN8bWWsH2ETnoRVcMx5lHu41LbYcwbXMH/5dZMkZgBfjRCOee2LC+wM3u4PBvMBYzCQ+yuFV4TzmIL9ujZZCIslAv8/jKGMffr7sZCUDPeiwWPoTyoGg9B7TigweJ33KC7GwtBnfhZg8Vh3KS7GwtBXVjRYPE9rtHdmcn9MhIIWkKRx+9c22HMO+zian/pNrMz6ZMwA70YhVdwu0+4F5x9C8an/qTu8sJnBuRFU3BNy3WtXvgM4KfWiOlavfAZgKz1sGtaVmr1IvcAuNjeUu64LcsO3gHes+B7F5zVKvBhGsgHqRdeA2AWblIuui1zjc9weQ5MLdx+TdgeFkoztev/8TeD8L0GLMzAerxlguA59Sq26q7GQ9g2HMfoiSj26e7MeM0AQfIeOI3Vt598NefCdwkW4ELX/I18903NDMAgvnJNyw88yO0p/bnw+h4QWIZllMMod8B5wh9Jfz6M+QUWludk9x6IfQAAAABJRU5ErkJggg=='),
-            sg.Text('Найти...',
-                    # background_color='#99B7D8',
-                    font="_ 14",
-                    text_color=sg.DEFAULT_BUTTON_COLOR[1]
-                    ),
-            sg.Input(
-                key='-IN-',
-                # pad=((0, 0), (15, 15)),
-                **input_setting)
-        ], [
-            # sg.OK(bind_return_key=True, size=(10, 1)), sg.Cancel(size=(10, 1))
-        ]
-    ]
-    window = sg.Window(
-        'Найти...', layout,
-        auto_size_text=True,
-        no_titlebar=True,
-        grab_anywhere=True,
-        keep_on_top=True,
-        # background_color='#99B7D8',
-        element_padding=((5, 5), (5, 5)),
-        finalize=True,
-        # modal=True,
-        return_keyboard_events=True,
-        # margins=(20, 20),
-    )
+    layout = [[sg.Frame('', [[sg.Col([[
+        sg.Text('Найти...', font="_ 14", text_color=sg.DEFAULT_BUTTON_COLOR[1]),
+        sg.Input(key='-IN-', **input_setting)
+    ]], pad=5)]], **frame_padding_0_setting)]]
+
+    window = sg.Window('Найти...', layout, no_titlebar=True, **get_data_popup_setting)
     move_window(parent, window)
-    parent.alpha_channel = .95
+    # parent.alpha_channel = .95
     while True:
         button, values = window.read()
         print(f'{button=} {values=}')
@@ -240,7 +224,7 @@ def popup_find_string(parent):
         elif button in ['Escape:27', 'Cancel']:
             search = None
             break
-    parent.alpha_channel = 1.0
+    # parent.alpha_channel = 1.0
     window.close()
     return search
 
