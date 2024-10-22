@@ -77,13 +77,13 @@ class StartWindowCard:
                 if ev_per in ['-SAVE-PER-', '-DEL-PER-']:
                     errors, valid_data = validation_period_data(val_per, val_per.get('period_id'))
                     if errors:
-                        sg.popup('\n'.join(errors), title='Ошибка', **error_popup_setting)
+                        sg.popup('\n'.join(errors), title='Ошибка', location=self.get_location(), **error_popup_setting)
                     else:
                         if update_delete_period(valid_data, ev_per):
-                            sg.popup_timed('Сохранено', **info_popup_setting)
+                            sg.popup_timed('Сохранено', location=self.get_location(), **info_popup_setting)
                             self.actualizing_passed_period()
                         else:
-                            sg.popup_timed('Изменения не вносились!', **info_popup_setting)
+                            sg.popup_timed('Изменения не вносились!', location=self.get_location(), **info_popup_setting)
             elif ev in ['-DOUBLE-TASKS-', '-ADD-TASK-']:
                 if self.value['type'] == 'worker':
                     entity = get_worker_data(int(self.value.get('id'))).get('tasks')
@@ -118,19 +118,19 @@ class StartWindowCard:
             elif ev == '-SAVE-':
                 errors, valid_data = validation_data(self.value, self.idx)
                 if errors:
-                    sg.popup('\n'.join(errors), title='Ошибка', **error_popup_setting)
+                    sg.popup('\n'.join(errors), title='Ошибка', location=self.get_location(), **error_popup_setting)
                 else:
                     if valid_data:
                         result = create_or_update_entity(key=self.value.get('type'), data=valid_data, idx=self.idx)
                         if result:
-                            sg.popup_timed('Сохранено', **info_popup_setting)
+                            sg.popup_timed('Сохранено', location=self.get_location(), **info_popup_setting)
                             break
                     else:
-                        sg.popup_timed('Изменения не вносились', **info_popup_setting)
+                        sg.popup_timed('Изменения не вносились', location=self.get_location(), **info_popup_setting)
             elif ev in ['-DELETE-', '-RESTORE-']:
                 res = delete_or_restore(self.value.get('type'), int(self.value.get('id')))
                 if res:
-                    sg.popup_timed('Сохранено', **info_popup_setting)
+                    sg.popup_timed('Сохранено', location=self.get_location(), **info_popup_setting)
                     break
             elif ev == 'is_type':
                 types = self.value[ev]
@@ -145,12 +145,20 @@ class StartWindowCard:
                     self.filter_list(search)
         self.window.close()
 
-    def move_center(self):
+    def get_location(self):
         size_w, size_h = self.parent.current_size_accurate()
         loc_x, loc_y = self.parent.current_location()
         self.window.refresh()
         size = self.window.current_size_accurate()
-        self.window.move(loc_x + size_w // 2 - size[0] // 2, loc_y + size_h // 2 - size[1] // 2)
+        return loc_x + size_w // 2 - size[0] // 2, loc_y + size_h // 2 - size[1] // 2
+
+    def move_center(self):
+        # size_w, size_h = self.parent.current_size_accurate()
+        # loc_x, loc_y = self.parent.current_location()
+        # self.window.refresh()
+        # size = self.window.current_size_accurate()
+        # self.window.move(loc_x + size_w // 2 - size[0] // 2, loc_y + size_h // 2 - size[1] // 2)
+        self.window.move(*self.get_location())
 
     def windows_extend(self, prefill):
         card = []
@@ -277,23 +285,17 @@ class StartMainWindow:
         if not lst_workers:
             return []
         lst = []
+        dash = '--'
         for i, worker in enumerate(lst_workers, start=1):
-            period = worker.time_worked
-            if period:
-                period = period[-1]
-                total_worked = sum(period.task.time_worked)
-            else:
-                period = None
-                total_worked = None
             formatted_data = (
                 i,
                 f'{worker.surname} {worker.name} {worker.second_name}',
                 worker.table_num,
-                worker.function,
-                period.task.is_type if period else '--',
-                period.order if period and period.order else '--',
-                period.task.deadline if period else '--',
-                total_worked if total_worked else '--',
+                worker.post,
+                worker.type_task if worker.type_task else dash,
+                f'ПР-{worker.order_num:06}' if worker.order_num else dash,
+                worker.dltask if worker.dltask else dash,
+                worker.sum_period if worker.sum_period else dash,
                 worker.id
             )
             lst.append(formatted_data)
