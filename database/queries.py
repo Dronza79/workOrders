@@ -9,50 +9,37 @@ from .models import (
 now_date = datetime.now().date()
 
 
-def get_subquery_worker():
-    return (
-        Period.select(Period, Task, Order, Worker, Status)
-        .join_from(Period, Task).join_from(Period, Order, peewee.JOIN.LEFT_OUTER)
-        .join_from(Period, Worker).join_from(Task, Status)
-        .where(
-            ~Status.is_archived,
-            Period.date.year == now_date.year,
-            Period.date.month == now_date.month
-        )
-        .order_by(Period.date)
-    ), (
-        Task.select(Task, Worker, Order, Status, Period, peewee.fn.SUM(Period.value).alias('total_time'))
-        .join_from(Task, Period, peewee.JOIN.LEFT_OUTER).join_from(Task, Order, peewee.JOIN.LEFT_OUTER)
-        .join_from(Task, Worker).join_from(Task, Status)
-        .where(
-            ~Status.is_archived,
-            Period.date.year == now_date.year,
-            Period.date.month == now_date.month
-        )
-        .order_by(Period.date)
-        .group_by(Task.id)
+def get_subquery_worker(active=True):
+    return Worker.raw(
+    "SELECT "
+        "worker.id, worker.surname, worker.name, worker.second_name, "
+        "worker.table_num, vacancy.post, typetask.title AS type_task, "
+        "task.deadline AS dltask, 'order'.no AS order_num, sum(period.value) AS sum_period "
+    "FROM worker "
+    "JOIN vacancy ON worker.function_id = vacancy.id "
+    "LEFT JOIN ("
+        "SELECT *, row_number() OVER(PARTITION BY period.'worker_id' ORDER BY date DESC) AS rn "
+        "FROM period "
+        "JOIN task ON period.task_id = task.id "
+        "JOIN status ON task.status_id = status.id "
+        f"WHERE date >= '{now_date.year}-{now_date.month}-01' AND status.is_archived = 0"
+    ") sub ON sub.'worker_id' = worker.id AND sub.rn = 1 "
+    "LEFT JOIN period ON period.task_id = sub.task_id "
+    "LEFT OUTER JOIN 'order' ON period.order_id = 'order'.id "
+    "LEFT JOIN task ON period.task_id = task.id "
+    "LEFT JOIN typetask ON task.is_type_id = typetask.id "
+    f"WHERE worker.is_active = {active} "
+    "GROUP BY worker.id "
+    "ORDER BY worker.surname, worker.name, worker.second_name"
     )
 
 
 def get_all_workers():
-    persons = (
-        Worker.select(Worker, Vacancy)
-        .join(Vacancy).where(Worker.is_active)
-    )
-
-    periods, tasks = get_subquery_worker()
-    return peewee.prefetch(persons, periods, tasks)
+    return get_subquery_worker()
 
 
 def get_all_dismiss():
-    persons = (
-        Worker
-        .select(Worker, Vacancy)
-        .join(Vacancy).where(~Worker.is_active)
-    )
-
-    periods, tasks = get_subquery_worker()
-    return peewee.prefetch(persons, periods, tasks)
+    return get_subquery_worker(active=False)
 
 
 def get_all_orders():
@@ -71,7 +58,7 @@ def get_all_orders():
         .group_by(Order.id)
     )
 
-    tasks = Task.select().join(Status).where(Task.is_active, ~Status.is_archived)
+    tasks = Task.select(Task, Status).join(Status).where(Task.is_active, ~Status.is_archived)
 
     return peewee.prefetch(orders, tasks)
 
