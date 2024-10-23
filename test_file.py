@@ -69,3 +69,27 @@ def main():
 
 if __name__ == '__main__':
     main()
+    
+# class Names:
+#     count = 0
+#     
+#     def __init__(self, alias, name):
+#         self.alias = alias
+#         self.name = name
+#         self.num = self.count + 1
+#         self.__class__.count += 1
+# 
+# 
+# create_names = {
+#     'is_favorite': 'Фаворит',
+#     'is_sticky': 'Душный',
+#     'is_minimized': 'Минимальный',
+#     'is_deleted': 'Удаленный',
+# }
+# 
+# 
+# class MyClass:
+#     def __init__(self, title):
+#         self.title = title
+#         [setattr(self, name.alias, name.num - 1)
+#          for name in [Names(key, val) for key, val in create_names.items()]]
