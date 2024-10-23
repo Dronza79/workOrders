@@ -77,7 +77,7 @@ if __name__ == '__main__':
 #         self.alias = alias
 #         self.name = name
 #         self.num = self.count + 1
-#         self.__class__.count += 1
+#         type(self).count += 1
 # 
 # 
 # create_names = {
