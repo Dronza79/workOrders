@@ -109,6 +109,7 @@ class StartWindowCard:
                     prefill=prefill
                 )
                 self.window.un_hide()
+                self.window.force_focus()
                 if self.value['type'] == 'worker':
                     entity = get_worker_data(int(self.value.get('id'))).get('tasks')
                 else:
@@ -146,19 +147,18 @@ class StartWindowCard:
         self.window.close()
 
     def get_location(self):
+        self.window.refresh()
+        size_w, size_h = self.window.current_size_accurate()
+        loc_x, loc_y = self.window.current_location()
+        return loc_x + size_w // 2 - 150, loc_y + size_h // 2 - 20
+
+    def move_center(self):
         size_w, size_h = self.parent.current_size_accurate()
         loc_x, loc_y = self.parent.current_location()
         self.window.refresh()
         size = self.window.current_size_accurate()
-        return loc_x + size_w // 2 - size[0] // 2, loc_y + size_h // 2 - size[1] // 2
-
-    def move_center(self):
-        # size_w, size_h = self.parent.current_size_accurate()
-        # loc_x, loc_y = self.parent.current_location()
-        # self.window.refresh()
-        # size = self.window.current_size_accurate()
-        # self.window.move(loc_x + size_w // 2 - size[0] // 2, loc_y + size_h // 2 - size[1] // 2)
-        self.window.move(*self.get_location())
+        self.window.move(loc_x + size_w // 2 - size[0] // 2, loc_y + size_h // 2 - size[1] // 2)
+        # self.window.move(*self.get_location())
 
     def windows_extend(self, prefill):
         card = []
