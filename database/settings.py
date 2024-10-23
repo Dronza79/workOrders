@@ -5,11 +5,9 @@ from peewee import SqliteDatabase
 BASE_DIR = Path('.').resolve()
 
 
-class DBSetting:
+class DBPath:
     def __init__(self):
-        import datetime
-        year = datetime.datetime.now().year
-        self._path = BASE_DIR / f'new_format{year}.db'
+        self._path = BASE_DIR / f'db-current.sqlite3'
 
     @property
     def get_path(self):
@@ -20,9 +18,9 @@ class DBSetting:
         self._path = Path(value).resolve()
 
 
-path = DBSetting()
+path = DBPath()
 
 
 def get_database():
-    return SqliteDatabase(path.get_path)
+    return SqliteDatabase(path.get_path, pragmas={'foreign_keys': 1})
 
