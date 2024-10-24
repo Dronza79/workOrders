@@ -10,6 +10,29 @@ now_date = datetime.now().date()
 
 
 def get_subquery_worker(active=True):
+    # sub = (
+    #     Period.select(
+    #         Period, peewee.fn.RANK().over(
+    #             partition_by=[Period.worker_id], order_by=[Period.date.desc()]).alias('rk'))
+    #     .join(Task).join(Status).where(~Status.is_archived, Period.date >= start, Period.date <= end)
+    # )
+    # query = (
+    #     Worker.select(
+    #         Worker.id, Worker.surname, Worker.name, Worker.second_name, Worker.table_num,
+    #         Vacancy.post,
+    #         TypeTask.title.alias('type_task'),
+    #         Task.deadline.alias('dltask'),
+    #         Order.no.alias('order_num'),
+    #         peewee.fn.SUM(Period.value).alias('sum_period'))
+    #     .join(Vacancy)
+    #     .join(sub, peewee.JOIN.LEFT_OUTER, on=(sub.c.worker_id == Worker.id))
+    #     .join(Period, peewee.JOIN.LEFT_OUTER, on=(sub.c.task_id == Period.task_id))
+    #     .join(Task, peewee.JOIN.LEFT_OUTER, on=(Period.task_id == Task.id))
+    #     .join(TypeTask, on=(Task.is_type_id == TypeTask.id))
+    #     .join(Order, peewee.JOIN.LEFT_OUTER, on=(Task.order_id == Order.id))
+    #     .where(sub.c.rk == 1)
+    #     .group_by(Task.id, Worker.id).order_by(Worker.surname)
+    # )
     return Worker.raw(
     "SELECT "
         "worker.id, worker.surname, worker.name, worker.second_name, "
