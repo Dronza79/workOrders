@@ -187,3 +187,14 @@ class Month:
 
     def capitalize(self):
         return self.__name.capitalize()
+
+    def get_border_dates(self):
+        """
+        Возвращает три даты в формате datetime.date() начало месяца, серидина и конец
+        :return:
+        """
+        return (
+            datetime.datetime(datetime.datetime.now().year, self.__number, 1).date(),
+            datetime.datetime(datetime.datetime.now().year, self.__number, self.get_means()).date(),
+            datetime.datetime(datetime.datetime.now().year, self.__number, self.__days).date(),
+        )

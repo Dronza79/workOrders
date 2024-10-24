@@ -7,6 +7,7 @@ from openpyxl.worksheet.page import PageMargins
 from openpyxl.worksheet.worksheet import Worksheet
 
 from .template_text import TEMPLATE_ALIGNMENT_RIGHT, TEMPLATE_CLARIFICATION, TEMPLATE_TABLE
+from .utils import global_print_setting
 
 
 # from tablesExcel.forms import PersonalMonthExelTable
@@ -165,22 +166,41 @@ class PersonalMonthExelTable:
                 cell.fill = PatternFill(fill_type='solid', fgColor="DDDDDD")
 
         #  Настройка вывода на печать
-        self._worksheet.page_setup.orientation = 'landscape'  # формат листа альбомный
-        self._worksheet.page_setup.paperSize = '9'  # лист А4
-
-        # Отступы листа
-        cm = 1 / 2.54
-        self._worksheet.page_margins = PageMargins(
-            left=.5 * cm,
-            right=.5 * cm,
-            top=1 * cm,
-            bottom=1 * cm,
-            footer=0.5 * cm
-        )
-        self._worksheet.print_options.horizontalCentered = True  # выравнивание таблицы на листе по центру
-        self._worksheet.print_area = self._worksheet.calculate_dimension()  # указание массива печати
-
-        # Задание вывода таблицы по ширине листа
-        self._worksheet.page_setup.fitToPage = True
-        self._worksheet.page_setup.fitToWidth = 1
+        self._worksheet = global_print_setting(self._worksheet)
         self._worksheet.page_setup.fitToHeight = 1
+
+
+class TimeSheet:
+    def __init__(self):
+        self._book: Workbook = Workbook()
+        self._worksheet: Worksheet = self._book.active
+        self.__print_setting()
+        self.__set_default_value_cells()
+        # self._worksheet.title = '1'
+
+    def save(self, file_name='test'):
+        try:
+            name = f'{file_name}.xlsx'
+            self._book.save(name)
+        except PermissionError:
+            name = f'{file_name}-copy.xlsx'
+            self._book.save(name)
+        return name
+
+    def __print_setting(self):
+        self._worksheet = global_print_setting(self._worksheet, left=1, right=1, top=1.05, header=0)
+
+    def __set_default_value_cells(self):
+        # задать ширину ячеек
+        for col in get_column_interval(1, 37):
+            self._worksheet.column_dimensions[col].width = 3.86
+        # задать высоту строк
+        for row in range(1, 37):
+            self._worksheet.row_dimensions[row].height = 15
+        # задать выравниевание в ячейках
+        for row in self._worksheet.iter_rows(min_row=1, max_row=36, min_col=1, max_col=36):
+            for cell in row:
+                cell.alignment = Alignment(horizontal='center', vertical='center', wrapText=True)
+
+    def crate_header(self):
+        pass

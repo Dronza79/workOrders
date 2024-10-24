@@ -9,7 +9,7 @@ from database.settings import path
 from gui.views import StartMainWindow
 
 
-@add_logger_peewee
+# @add_logger_peewee
 def main():
     # print(f'{path.get_path=}')
     # print(locale.getlocale())
