@@ -144,6 +144,7 @@ class StartWindowCard:
             elif ev == '-FIND-':
                 if search := popup_find_string(self.window):
                     self.filter_list(search)
+            self.window.force_focus()
         self.window.close()
 
     def get_location(self):
@@ -254,6 +255,7 @@ class StartMainWindow:
                 key_table = self.mapping.get(val.get('-TG-'))
                 if search := popup_find_string(self.window):
                     self.filter_list(key_table, search)
+            self.window.force_focus()
         self.window.close()
 
     def sorting_list(self, key_table, column):
