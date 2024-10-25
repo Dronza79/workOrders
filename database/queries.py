@@ -3,66 +3,77 @@ from datetime import datetime
 import peewee
 
 from .models import (
-    Worker, Vacancy, Task, Status, Period, Order, TypeTask
+    Worker, Vacancy, Task, Status, Period, Order, TypeTask, Month
 )
 
 now_date = datetime.now().date()
 
 
 def get_subquery_worker(active=True):
-    # sub = (
-    #     Period.select(
-    #         Period, peewee.fn.RANK().over(
-    #             partition_by=[Period.worker_id], order_by=[Period.date.desc()]).alias('rk'))
-    #     .join(Task).join(Status).where(~Status.is_archived, Period.date >= start, Period.date <= end)
+    month = Month(now_date.month)
+    start, mean, end = month.get_border_dates()
+
+    # return Worker.raw(
+    # "SELECT "
+    #     "worker.id, worker.surname, worker.name, worker.second_name, "
+    #     "worker.table_num, vacancy.post, typetask.title AS type_task, "
+    #     "task.deadline AS dltask, 'order'.no AS order_num, sum(period.value) AS sum_period "
+    # "FROM worker "
+    # "JOIN vacancy ON worker.function_id = vacancy.id "
+    # "LEFT JOIN ("
+    #     "SELECT *, row_number() OVER(PARTITION BY period.'worker_id' ORDER BY date DESC) AS rn "
+    #     "FROM period "
+    #     "JOIN task ON period.task_id = task.id "
+    #     "JOIN status ON task.status_id = status.id "
+    #     f"WHERE date >= '{now_date.year}-{now_date.month}-01' AND status.is_archived = 0"
+    # ") sub ON sub.'worker_id' = worker.id AND sub.rn = 1 "
+    # "LEFT JOIN period ON period.task_id = sub.task_id "
+    # "LEFT OUTER JOIN 'order' ON period.order_id = 'order'.id "
+    # "LEFT JOIN task ON period.task_id = task.id "
+    # "LEFT JOIN typetask ON task.is_type_id = typetask.id "
+    # f"WHERE worker.is_active = {active} "
+    # "GROUP BY worker.id "
+    # "ORDER BY worker.surname, worker.name, worker.second_name"
     # )
-    # query = (
-    #     Worker.select(
-    #         Worker.id, Worker.surname, Worker.name, Worker.second_name, Worker.table_num,
-    #         Vacancy.post,
-    #         TypeTask.title.alias('type_task'),
-    #         Task.deadline.alias('dltask'),
-    #         Order.no.alias('order_num'),
-    #         peewee.fn.SUM(Period.value).alias('sum_period'))
-    #     .join(Vacancy)
-    #     .join(sub, peewee.JOIN.LEFT_OUTER, on=(sub.c.worker_id == Worker.id))
-    #     .join(Period, peewee.JOIN.LEFT_OUTER, on=(sub.c.task_id == Period.task_id))
-    #     .join(Task, peewee.JOIN.LEFT_OUTER, on=(Period.task_id == Task.id))
-    #     .join(TypeTask, on=(Task.is_type_id == TypeTask.id))
-    #     .join(Order, peewee.JOIN.LEFT_OUTER, on=(Task.order_id == Order.id))
-    #     .where(sub.c.rk == 1)
-    #     .group_by(Task.id, Worker.id).order_by(Worker.surname)
-    # )
-    return Worker.raw(
-    "SELECT "
-        "worker.id, worker.surname, worker.name, worker.second_name, "
-        "worker.table_num, vacancy.post, typetask.title AS type_task, "
-        "task.deadline AS dltask, 'order'.no AS order_num, sum(period.value) AS sum_period "
-    "FROM worker "
-    "JOIN vacancy ON worker.function_id = vacancy.id "
-    "LEFT JOIN ("
-        "SELECT *, row_number() OVER(PARTITION BY period.'worker_id' ORDER BY date DESC) AS rn "
-        "FROM period "
-        "JOIN task ON period.task_id = task.id "
-        "JOIN status ON task.status_id = status.id "
-        f"WHERE date >= '{now_date.year}-{now_date.month}-01' AND status.is_archived = 0"
-    ") sub ON sub.'worker_id' = worker.id AND sub.rn = 1 "
-    "LEFT JOIN period ON period.task_id = sub.task_id "
-    "LEFT OUTER JOIN 'order' ON period.order_id = 'order'.id "
-    "LEFT JOIN task ON period.task_id = task.id "
-    "LEFT JOIN typetask ON task.is_type_id = typetask.id "
-    f"WHERE worker.is_active = {active} "
-    "GROUP BY worker.id "
-    "ORDER BY worker.surname, worker.name, worker.second_name"
+
+    sub = (
+        Period.select(
+            Period, peewee.fn.RANK().over(
+                order_by=[Period.date.desc()],
+                partition_by=[Period.worker_id],
+            ).alias('rk'))
+        .join(Task).join(Status)
+        .where(~Status.is_archived, Period.date >= start, Period.date <= end)
+    )
+    return (
+        Worker.select(
+            Worker.id, Worker.surname, Worker.name, Worker.second_name, Worker.table_num,
+            Vacancy.post,
+            TypeTask.title.alias('type_task'),
+            Task.deadline.alias('dltask'),
+            Order.no.alias('order_num'),
+            peewee.fn.SUM(Period.value).alias('sum_period'), Period.date)
+        .join(Vacancy)
+        .join(sub, peewee.JOIN.LEFT_OUTER, on=(sub.c.worker_id == Worker.id))
+        .join(Period, peewee.JOIN.LEFT_OUTER, on=(sub.c.task_id == Period.task_id))
+        .join(Task, peewee.JOIN.LEFT_OUTER, on=(Period.task_id == Task.id))
+        .join(TypeTask, on=(Task.is_type_id == TypeTask.id))
+        .join(Order, peewee.JOIN.LEFT_OUTER, on=(Task.order_id == Order.id))
+        .where(sub.c.rk == 1)
+        .group_by(Task.id, Worker.id)
+        .order_by(Worker.surname)
+        .objects()
     )
 
 
 def get_all_workers():
-    return get_subquery_worker()
+    # return get_subquery_worker()
+    return get_subquery_worker().where(Worker.is_active)
 
 
 def get_all_dismiss():
-    return get_subquery_worker(active=False)
+    # return get_subquery_worker(active=False)
+    return get_subquery_worker().where(~Worker.is_active)
 
 
 def get_all_orders():

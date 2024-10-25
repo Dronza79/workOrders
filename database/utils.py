@@ -146,7 +146,7 @@ def validation_period_data(raw_data, idx=None):
             valid_data['value'] = raw_data.get('value')
     else:
         if list(Period.select().where(Period.task == task, Period.date == valid_data['date'])):
-            errors.append('Ошибка.\nПериод с такой датой уже существует!\nИзмените его!')
+            errors.append('Ошибка.\nПериод с такой датой уже существует!\nИзмените существующий!')
         else:
             valid_data['value'] = raw_data.get('value')
 
