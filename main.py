@@ -13,8 +13,7 @@ from gui.views import StartMainWindow
 def main():
     # print(f'{path.get_path=}')
     # print(locale.getlocale())
-    locale.setlocale(locale.LC_ALL, ('ru_RU', 'UTF-8'))
-    # locale.setlocale(locale.LC_TIME, 'ru_RU')
+    locale.setlocale(locale.LC_ALL, '')
     if not Path(path.get_path).exists():
         apply_migrations()
     with open('log.txt', 'a+', encoding='utf8') as file:
@@ -24,7 +23,7 @@ def main():
         architecture = platform.architecture()
         user = os.getlogin()
         file.write(f'{user=}\n{system=}\n{release=}\n'
-                   f'{version=}\n{architecture=}\n{"*" * 30}\n')
+                   f'{version=}\n{architecture=}\nlocale={locale.getlocale()}\n{"*" * 30}\n')
     StartMainWindow()
 
 
