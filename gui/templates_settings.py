@@ -131,6 +131,7 @@ error_popup_setting = {
     'text_color': 'red',
     'line_width': 50,
     'font': '_ 12',
+    'keep_on_top': True,
     'modal': True
 }
 

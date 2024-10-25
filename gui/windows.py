@@ -146,14 +146,15 @@ def popup_get_period(parent, period=None):
                        no_titlebar=True,
                        **get_data_popup_setting)
     move_window(parent, window)
-    # parent.alpha_channel = .9
-    # parent.hide()
     window['-CB-'].calendar_location = window.current_location()
-    result = window.read(close=True)
-    # parent.alpha_channel = 1
-    print(f'popup_get_period() {result=}')
-    # parent.un_hide()
-    return result
+    # result = window.read(close=True)
+    while True:
+        ev, result = window.read()
+        # print(f'popup_get_period() {ev=} {result=}')
+        if ev in [sg.WIN_CLOSED, 'Escape:27', '-SAVE-PER-', '-DEL-PER-', '-EXIT-']:
+            window.close()
+            break
+    return ev, result
 
 
 def popup_choice_worker_for_exel(parent):
