@@ -2,7 +2,7 @@ import PySimpleGUI as sg
 
 from .templates_settings import table_setting, input_setting, drop_down_setting, text_setting, multiline_setting, \
     delete_button_setting, table_period_setting, frame_setting, table_tasks_setting, drop_down_type_task_setting, \
-    search_drop_down_setting, input_readonly_setting
+    search_drop_down_setting, input_readonly_setting, drop_down_read_only_setting
 
 
 def get_sector_workers(code=''):
@@ -170,6 +170,7 @@ def get_card_task(data, prefill):
         [f'{period.date:%d.%m.%y}',
          f'{period.date:%a}',
          f'{period.value} ч.',
+         period.id
          ] for period in data.get('time_worked', [])]
     headers = ['Дата', 'Дн.нед.', 'Время']
     width_cols = [10, 5, 5]
@@ -256,7 +257,7 @@ def get_card_task(data, prefill):
                         statuses,
                         key='status',
                         default_value=task.status if task else statuses[0],
-                        **drop_down_setting)
+                        **drop_down_read_only_setting)
                 ], [
                     sg.T("Комментарии:", **text_setting),
                     sg.Push(),

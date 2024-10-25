@@ -65,15 +65,15 @@ class StartWindowCard:
                     period_data.update(get_task_data(self.value.get('id')))
                     errors, valid_data = validation_period_data(period_data)
                     if errors:
-                        sg.popup('\n'.join(errors), title='Ошибка', **error_popup_setting)
+                        sg.popup('\n'.join(errors), title='Ошибка', location=self.get_location(), **error_popup_setting)
                     else:
                         if create_new_period(valid_data):
-                            sg.popup_timed('Сохранено', **info_popup_setting)
+                            sg.popup_timed('Сохранено', location=self.get_location(), **info_popup_setting)
                             self.actualizing_passed_period()
             elif ev == '-TIME-WORKED-':
-                period = get_period(pos=self.value.get(ev)[0], task=self.value.get('id'))
+                period = get_period(idx=self.window[ev].Values[self.value.get(ev)[0]][-1])
                 ev_per, val_per = popup_get_period(self.window, period)
-                print(f'Period {ev_per=} {val_per=} {self.value.get("id")=}')
+                # print(f'Period {ev_per=} {val_per=} {self.value.get("id")=}')
                 if ev_per in ['-SAVE-PER-', '-DEL-PER-']:
                     errors, valid_data = validation_period_data(val_per, val_per.get('period_id'))
                     if errors:
@@ -144,7 +144,6 @@ class StartWindowCard:
             elif ev == '-FIND-':
                 if search := popup_find_string(self.window):
                     self.filter_list(search)
-            self.window.force_focus()
         self.window.close()
 
     def get_location(self):

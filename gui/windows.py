@@ -132,7 +132,7 @@ def popup_get_period(parent, period=None):
                 default_value=period.value if period else 1,
                 key='value', font='_ 12', readonly=True, pad=((5, 5), (5, 20))),
             sg.T('ч.', font='_ 12', pad=((5, 5), (5, 20)))
-        ], [sg.Button('Сохранить', key='-SAVE-PER-', size=(10, 1))] + (
+        ], [sg.Button('Сохранить', key='-SAVE-PER-', focus=True, size=(10, 1))] + (
             [
                 sg.Push(),
                 sg.Button('Удалить', key='-DEL-PER-', size=(10, 1), button_color='white on red'),
