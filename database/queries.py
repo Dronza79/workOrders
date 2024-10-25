@@ -13,67 +13,68 @@ def get_subquery_worker(active=True):
     month = Month(now_date.month)
     start, mean, end = month.get_border_dates()
 
-    # return Worker.raw(
-    # "SELECT "
-    #     "worker.id, worker.surname, worker.name, worker.second_name, "
-    #     "worker.table_num, vacancy.post, typetask.title AS type_task, "
-    #     "task.deadline AS dltask, 'order'.no AS order_num, sum(period.value) AS sum_period "
-    # "FROM worker "
-    # "JOIN vacancy ON worker.function_id = vacancy.id "
-    # "LEFT JOIN ("
-    #     "SELECT *, row_number() OVER(PARTITION BY period.'worker_id' ORDER BY date DESC) AS rn "
-    #     "FROM period "
-    #     "JOIN task ON period.task_id = task.id "
-    #     "JOIN status ON task.status_id = status.id "
-    #     f"WHERE date >= '{now_date.year}-{now_date.month}-01' AND status.is_archived = 0"
-    # ") sub ON sub.'worker_id' = worker.id AND sub.rn = 1 "
-    # "LEFT JOIN period ON period.task_id = sub.task_id "
-    # "LEFT OUTER JOIN 'order' ON period.order_id = 'order'.id "
-    # "LEFT JOIN task ON period.task_id = task.id "
-    # "LEFT JOIN typetask ON task.is_type_id = typetask.id "
-    # f"WHERE worker.is_active = {active} "
-    # "GROUP BY worker.id "
-    # "ORDER BY worker.surname, worker.name, worker.second_name"
-    # )
+    return Worker.raw(
+    "SELECT "
+        "worker.id, worker.surname, worker.name, worker.second_name, "
+        "worker.table_num, vacancy.post, typetask.title AS type_task, "
+        "task.deadline AS dltask, 'order'.no AS order_num, sum(period.value) AS sum_period "
+    "FROM worker "
+    "JOIN vacancy ON worker.function_id = vacancy.id "
+    "LEFT JOIN ("
+        "SELECT *, row_number() OVER(PARTITION BY period.'worker_id' ORDER BY date DESC) AS rn "
+        "FROM period "
+        "JOIN task ON period.task_id = task.id "
+        "JOIN status ON task.status_id = status.id "
+        f"WHERE date >= '{now_date.year}-{now_date.month}-01' AND status.is_archived = 0 "
+        f"AND date <= '{now_date.year}-{month.number}-{month.days}'"
+    ") sub ON sub.'worker_id' = worker.id AND sub.rn = 1 "
+    "LEFT JOIN period ON period.task_id = sub.task_id "
+    "LEFT OUTER JOIN 'order' ON period.order_id = 'order'.id "
+    "LEFT JOIN task ON period.task_id = task.id "
+    "LEFT JOIN typetask ON task.is_type_id = typetask.id "
+    f"WHERE worker.is_active = {active} "
+    "GROUP BY worker.id "
+    "ORDER BY worker.surname, worker.name, worker.second_name"
+    )
 
-    sub = (
-        Period.select(
-            Period, peewee.fn.RANK().over(
-                order_by=[Period.date.desc()],
-                partition_by=[Period.worker_id],
-            ).alias('rk'))
-        .join(Task).join(Status)
-        .where(~Status.is_archived, Period.date >= start, Period.date <= end)
-    )
-    return (
-        Worker.select(
-            Worker.id, Worker.surname, Worker.name, Worker.second_name, Worker.table_num,
-            Vacancy.post,
-            TypeTask.title.alias('type_task'),
-            Task.deadline.alias('dltask'),
-            Order.no.alias('order_num'),
-            peewee.fn.SUM(Period.value).alias('sum_period'), Period.date)
-        .join(Vacancy)
-        .join(sub, peewee.JOIN.LEFT_OUTER, on=(sub.c.worker_id == Worker.id))
-        .join(Period, peewee.JOIN.LEFT_OUTER, on=(sub.c.task_id == Period.task_id))
-        .join(Task, peewee.JOIN.LEFT_OUTER, on=(Period.task_id == Task.id))
-        .join(TypeTask, on=(Task.is_type_id == TypeTask.id))
-        .join(Order, peewee.JOIN.LEFT_OUTER, on=(Task.order_id == Order.id))
-        .where(sub.c.rk == 1)
-        .group_by(Task.id, Worker.id)
-        .order_by(Worker.surname)
-        .objects()
-    )
+    # sub = (
+    #     Period.select(
+    #         Period, peewee.fn.RANK().over(
+    #             order_by=[Period.date.desc()],
+    #             partition_by=[Period.worker_id],
+    #         ).alias('rk'))
+    #     .join(Task).join(Status)
+    #     .where(~Status.is_archived, Period.date >= start, Period.date <= end)
+    # )
+    # return (
+    #     Worker.select(
+    #         Worker.id, Worker.surname, Worker.name, Worker.second_name, Worker.table_num,
+    #         Vacancy.post,
+    #         TypeTask.title.alias('type_task'),
+    #         Task.deadline.alias('dltask'),
+    #         Order.no.alias('order_num'),
+    #         peewee.fn.SUM(Period.value).alias('sum_period'), Period.date)
+    #     .join(Vacancy)
+    #     .join(sub, peewee.JOIN.LEFT_OUTER, on=(sub.c.worker_id == Worker.id & sub.c.rk == 1))
+    #     .join(Period, peewee.JOIN.LEFT_OUTER, on=(sub.c.task_id == Period.task_id))
+    #     .join(Task, peewee.JOIN.LEFT_OUTER, on=(Period.task_id == Task.id))
+    #     .join(TypeTask, on=(Task.is_type_id == TypeTask.id))
+    #     .join(Order, peewee.JOIN.LEFT_OUTER, on=(Task.order_id == Order.id))
+    #     # .where(sub.c.rk == 1)
+    #     .group_by(Worker.id)
+    #     .order_by(Worker.surname)
+    #     .objects()
+    # )
 
 
 def get_all_workers():
-    # return get_subquery_worker()
-    return get_subquery_worker().where(Worker.is_active)
+    return get_subquery_worker()
+    # return get_subquery_worker().where(Worker.is_active)
 
 
 def get_all_dismiss():
-    # return get_subquery_worker(active=False)
-    return get_subquery_worker().where(~Worker.is_active)
+    return get_subquery_worker(active=False)
+    # return get_subquery_worker().where(~Worker.is_active)
 
 
 def get_all_orders():
@@ -201,7 +202,11 @@ def get_all_tasks():
 def get_close_tasks():
     return (
         get_all_tasks()
-        .where(Task.is_active, Status.is_archived)
+        .where(
+            Task.is_active, Status.is_archived,
+            Period.date.year == now_date.year,
+            Period.date.month == now_date.month
+        )
         .group_by(Task.id)
     )
 
@@ -238,9 +243,10 @@ def delete_or_restore(key, idx):
 
 
 
-def get_period(pos, task):
-    task = Task.select().join(Period, peewee.JOIN.LEFT_OUTER).where(Task.id == int(task)).get()
-    return task.time_worked[pos]
+def get_period(idx=None):
+    if idx:
+        return Period[idx]
+    return None
 
 
 def update_delete_period(data, action):
