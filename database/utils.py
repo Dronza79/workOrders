@@ -123,27 +123,34 @@ def validation_data(raw_data, idx=None):
 
 
 def validation_period_data(raw_data, idx=None):
-    print(f'validation_period_data {raw_data=}')
+    # print(f'validation_period_data {raw_data=}')
     valid_data = {}
     errors = []
     date = raw_data.get('date')
     period = None
+    task = raw_data.get('task')
     if idx:
         period = Period[int(idx)]
         valid_data['period_id'] = raw_data['period_id']
     else:
-        task = raw_data.get('task')
         valid_data['worker'] = task.worker
         valid_data['task'] = task
         valid_data['order'] = task.order
-    if (idx and getattr(period, 'value') != raw_data.get('value')) or not idx:
-        valid_data['value'] = raw_data.get('value')
     if re.findall(r'\b\d{2}\.\d{2}\.\d{4}\b', date):
         if (idx and getattr(period, 'date') != dt.strptime(date, '%d.%m.%Y').date()) or not idx:
             valid_data['date'] = dt.strptime(date, '%d.%m.%Y').date()
     else:
         errors.append('Ошибка.\nДата указана не верно!\nВоспользуйтесь кнопкой Календарь!')
+    if idx:
+        if raw_data.get('value') != getattr(period, 'value'):
+            valid_data['value'] = raw_data.get('value')
+    else:
+        if list(Period.select().where(Period.task == task, Period.date == valid_data['date'])):
+            errors.append('Ошибка.\nПериод с такой датой уже существует!\nИзмените его!')
+        else:
+            valid_data['value'] = raw_data.get('value')
 
+    # print(f'{errors=} {valid_data=}')
     return errors, valid_data
 
 
