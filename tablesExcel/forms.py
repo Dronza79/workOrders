@@ -1,16 +1,19 @@
 import datetime
+from copy import copy
 
 from openpyxl import Workbook
+from openpyxl.cell import Cell
 from openpyxl.styles import Side, Border, Alignment, Font, PatternFill
 from openpyxl.utils import get_column_interval
 from openpyxl.worksheet.page import PageMargins
 from openpyxl.worksheet.worksheet import Worksheet
 
-from .template_text import TEMPLATE_ALIGNMENT_RIGHT, TEMPLATE_CLARIFICATION, TEMPLATE_TABLE
+from .template_text import TEMPLATE_ALIGNMENT_RIGHT, TEMPLATE_CLARIFICATION, TEMPLATE_TABLE, TIMESHEET_HEADER, \
+    TIMESHEET_TAB_HEADER, TIMESHEET_FOOTER, REPEATING_LINES
 from .utils import global_print_setting
 
 
-# from tablesExcel.forms import PersonalMonthExelTable
+# from tablesExcel.forms import TimeSheet
 
 
 class PersonalMonthExelTable:
@@ -171,14 +174,22 @@ class PersonalMonthExelTable:
 
 
 class TimeSheet:
+    __style_border = Side(border_style="thin", color="000000")
+    _bottom_border = Border(bottom=__style_border)
+    _circle_border = Border(top=__style_border, bottom=__style_border, left=__style_border, right=__style_border)
+
     def __init__(self):
         self._book: Workbook = Workbook()
         self._worksheet: Worksheet = self._book.active
-        self.__print_setting()
         self.__set_default_value_cells()
-        # self._worksheet.title = '1'
+        self.__link_title = self.__add_title_sheet()
+
+    @property
+    def link_title(self):
+        return self.__link_title
 
     def save(self, file_name='test'):
+        self.__print_setting()
         try:
             name = f'{file_name}.xlsx'
             self._book.save(name)
@@ -189,6 +200,8 @@ class TimeSheet:
 
     def __print_setting(self):
         self._worksheet = global_print_setting(self._worksheet, left=1, right=1, top=1.05, header=0)
+        self._worksheet.page_setup.fitToHeight = False
+        self._worksheet.oddFooter.center.text = "Страница &[Page] из &N"  # нижний колонтитул
 
     def __set_default_value_cells(self):
         # задать ширину ячеек
@@ -201,6 +214,127 @@ class TimeSheet:
         for row in self._worksheet.iter_rows(min_row=1, max_row=36, min_col=1, max_col=36):
             for cell in row:
                 cell.alignment = Alignment(horizontal='center', vertical='center', wrapText=True)
+                cell.font = Font(size='11')
 
-    def crate_header(self):
-        pass
+    def __crate_header(self):
+        for i, addr in enumerate(['G1', 'U1', 'W3', 'O4']):
+            self._worksheet[addr].value = TIMESHEET_HEADER[i]
+            self._worksheet[addr].alignment = Alignment(horizontal='right', vertical='center')
+        self._worksheet['W3'].font = Font(size='14')
+        self._worksheet['S4'].alignment = Alignment(horizontal='left', vertical='center')
+        self._worksheet['S4'].value = f'{datetime.datetime.now().year} года'
+
+        for range_cell in ['H1:M1', 'V1:AD1', 'P4:R4']:
+            self._worksheet.merge_cells(range_cell)
+            for line in self._worksheet[range_cell]:
+                for cell in line:
+                    cell.border = self._bottom_border
+
+    def __create_table_header(self):
+        self._worksheet.print_title_rows = '5:8' # задание сквозных строк на каждом листе
+        for range_cell in ['A5:B7', 'C5:I7', 'J5:L7', 'M5:AB5', 'AC5:AF5', 'AC6:AD6', 'AE6:AF6',
+                           'AC7:AF7', 'AG5:AH6', 'AI5:AJ6', 'AG7:AJ7', 'A8:B8', 'C8:I8', 'J8:L8',
+                           'M8:AB8', 'AC8:AD8', 'AE8:AF8', 'AG8:AH8', 'AI8:AJ8']:
+            self._worksheet.merge_cells(range_cell)
+        for line in self._worksheet['A5:AJ8']:
+            for cell in line:
+                cell.border = self._circle_border
+        for i, addr in enumerate(['A5', 'C5', 'J5', 'M5', 'AC5', 'AC6', 'AE6', 'AG5', 'AI5']):
+            self._worksheet[addr].value = TIMESHEET_TAB_HEADER[i]
+        self._worksheet['AC7'].value = self._worksheet['AG7'].value = 'дни/часы'
+        for val in range(1, 32):
+            if val <= 15:
+                cell = self._worksheet.cell(6, 12 + val)
+            else:
+                cell = self._worksheet.cell(7, val - 3)
+                cell.fill = PatternFill(fill_type='solid', fgColor="DDDDDD")
+            cell.value = val
+            cell.font = Font(size='9')
+        for i, addr in enumerate(['A8', 'C8', 'J8', 'M8', 'AC8', 'AE8', 'AG8', 'AI8']):
+            cell = self._worksheet[addr]
+            cell.value = i + 1
+            cell.font = Font(size='9')
+
+    def __create_footer(self):
+        for range_cell in ['L31:P31', 'L34:P34', 'R31:T31', 'V31:Y31', 'R34:T34', 'V34:Y34']:
+            for row in self._worksheet[range_cell]:
+                for cell in row:
+                    cell.border = self._bottom_border
+                    cell.alignment = Alignment(horizontal='center', vertical='center')
+
+        for i, addr in enumerate(['K31', 'N31', 'V31', 'K34', 'N34', 'V34']):
+            cell = self._worksheet[addr]
+            cell.value = TIMESHEET_FOOTER[i]
+            if addr.startswith('K'):
+                cell.alignment = Alignment(horizontal='right', vertical='center')
+            elif addr.startswith('V'):
+                cell.alignment = Alignment(horizontal='left', vertical='center')
+        for i, addr in enumerate(['N32', 'S32', 'V32', 'AA31', 'N35', 'S35', 'V35', 'AA34']):
+            cell = self._worksheet[addr]
+            if addr.startswith('AA'):
+                cell.alignment = Alignment(horizontal='left', vertical='center')
+            else:
+                cell.font = Font(vertAlign='superscript', size='11')
+                if addr.startswith('V'):
+                    cell.alignment = Alignment(horizontal='left', vertical='center')
+                else:
+                    cell.alignment = Alignment(horizontal='center', vertical='center')
+            if i > 3:
+                cell.value = REPEATING_LINES[i - 4]
+            else:
+                cell.value = REPEATING_LINES[i]
+
+    def __add_title_sheet(self):
+        self.__crate_header()
+        self.__create_table_header()
+        add_rows = [self.__create_row(_) for _ in range(2, 7)]
+        self.__create_footer()
+        return add_rows
+
+    def __create_row(self, num_row):
+        start_row = num_row * 4 + 1
+        end_row = num_row * 4 + 4
+        # print(f'{start_row=} {end_row=}')
+        for i_line, line in enumerate(
+                self._worksheet.iter_rows(min_row=start_row,
+                                          max_row=end_row,
+                                          min_col=1, max_col=36)):
+            for i_col, cell in enumerate(line):
+                cell.border = self._circle_border
+                cell.alignment = Alignment(horizontal='center', vertical='center', wrapText=True)
+                if i_line > 1 and 12 <= i_col < 28:
+                    cell.fill = PatternFill(fill_type='solid', fgColor="DDDDDD")
+        for col in [(1, 2), (3, 9), (10, 12), (29, 30), (31, 32), (33, 34), (35, 36)]:
+            start = start_row
+            end = end_row
+            if col[0] > 30:
+                self._worksheet.merge_cells(
+                    start_row=start, end_row=end - 2, start_column=col[0], end_column=col[1])
+                self._worksheet.merge_cells(
+                    start_row=start + 2, end_row=end, start_column=col[0], end_column=col[1])
+            elif 28 < col[0] < 31:
+                for i in range(4):
+                    self._worksheet.merge_cells(
+                        start_row=start + i, end_row=start + i, start_column=col[0], end_column=col[1])
+            else:
+                self._worksheet.merge_cells(
+                    start_row=start, end_row=end, start_column=col[0], end_column=col[1])
+
+        for col in range(13, 29):
+            self._worksheet.merge_cells(
+                start_row=start_row, end_row=start_row + 1, start_column=col, end_column=col)
+            self._worksheet.merge_cells(
+                start_row=end_row - 1, end_row=end_row, start_column=col, end_column=col)
+        return start_row
+
+    def add_other_sheet(self, num_sheet):
+        offset = (num_sheet - 1) * 8
+        add_rows = [self.__create_row(_) for _ in range(9 + offset, 15 + offset)]
+        self._worksheet.move_range('A29:AA35', rows=32 * num_sheet)
+        self.__create_footer()
+
+        return add_rows
+
+    def fill(self, row, column, value):
+        self._worksheet.cell(row, column, value)
+
