@@ -3,7 +3,7 @@ import datetime
 import PySimpleGUI as sg
 
 from database.models import Month
-from database.queries import get_all_workers
+from database.queries import get_all_workers, get_workers_for_list
 from database.utils import validation_data_for_exel
 from .components import get_sector_workers, get_sector_tasks, get_sector_orders
 from .templates_settings import (
@@ -23,17 +23,17 @@ def get_main_window():
         'Отчеты Exel', [
             f'Работы за месяц...{sg.MENU_KEY_SEPARATOR}-EXEL-',
             f'Общий табель за месяц...{sg.MENU_KEY_SEPARATOR}-MONTH-',
-            ]], [
-            '!Параметры', [
-                f'Выбрать тему...{sg.MENU_KEY_SEPARATOR}-THEME-',
+        ]], [
+        '!Параметры', [
+            f'Выбрать тему...{sg.MENU_KEY_SEPARATOR}-THEME-',
         ]]
     ]
     layout = [
         [
-        #     sg.Titlebar('Учет работ ЭнергоЭра', icon=logo_w, **title_bar_setting)
-        # ], [
-        #     sg.MenubarCustom(menu_def, key='-MENU-', **menu_bar_setting)
-        # ], [
+            #     sg.Titlebar('Учет работ ЭнергоЭра', icon=logo_w, **title_bar_setting)
+            # ], [
+            #     sg.MenubarCustom(menu_def, key='-MENU-', **menu_bar_setting)
+            # ], [
             sg.Menu(menu_def, key='-MENU-', **menu_setting)
         ], [
             sg.TabGroup([[
@@ -158,7 +158,7 @@ def popup_get_period(parent, period=None):
 
 
 def popup_choice_worker_for_exel(parent):
-    workers = get_all_workers()
+    workers = get_workers_for_list()
     layout = [
         [
             sg.Titlebar('Отчет Exel...', icon=logo_w, **title_bar_setting)
@@ -186,7 +186,7 @@ def popup_choice_worker_for_exel(parent):
     parent.alpha_channel = .95
     while True:
         ev, val = window.read()
-        # print(f'popup_choice_worker_for_exel {ev=} {val=}')
+        print(f'popup_choice_worker_for_exel {ev=} {val=}')
         if ev == sg.WIN_CLOSED:
             window.close()
             return
@@ -204,6 +204,29 @@ def popup_choice_worker_for_exel(parent):
 
     parent.alpha_channel = 1
     return valid_data
+
+
+def popup_choice_month_for_exel(parent):
+    layout = [[
+        sg.Frame('', [[
+            sg.Titlebar('Отчет Exel...', icon=logo_w, **title_bar_setting)
+        ], [
+            sg.Col([[
+                sg.T('Отчетный месяц:', font='_ 10'),
+                sg.Push(),
+                sg.Combo(
+                    [Month(num) for num in range(1, 13)],
+                    default_value=Month(datetime.datetime.now().month),
+                    key='-MONTH-', **drop_down_read_only_setting),
+            ]], pad=15, vertical_alignment='center')
+        ], [
+            sg.Push(), sg.Button('Создать...', key='-CREATE-', size=(15, 1), pad=((0, 0), (0, 10))), sg.Push()
+        ]], **frame_padding_0_setting)
+    ]]
+    window = sg.Window('Отчет Exel...', layout, finalize=True, modal=True)
+    move_window(parent, window)
+    ev, val = window.read(close=True)
+    return val['-MONTH-']
 
 
 def popup_find_string(parent):

@@ -13,7 +13,7 @@ from database.queries import (
     delete_or_restore
 )
 from database.utils import validation_data, validation_period_data
-from tablesExcel.processor import get_personal_table_result
+from tablesExcel.processor import get_personal_table_result, get_month_timesheet
 from .components import (
     get_card_worker, get_card_task,
     get_card_order, get_list_task_for_worker,
@@ -23,7 +23,7 @@ from .templates_settings import error_popup_setting, info_popup_setting
 from .windows import (
     get_main_window, get_card_window,
     popup_get_period, popup_choice_worker_for_exel,
-    popup_find_string
+    popup_find_string, popup_choice_month_for_exel
 )
 
 
@@ -249,6 +249,11 @@ class StartMainWindow:
                 if file_path := get_personal_table_result(**valid_data):
                     sg.popup_timed('Исполнено', **info_popup_setting)
                     os.startfile(file_path, 'open')
+            elif ev == '-MONTH-':
+                month = popup_choice_month_for_exel(self.window)
+                if file_name := get_month_timesheet(month):
+                    sg.popup_timed('Исполнено', **info_popup_setting)
+                    os.startfile(file_name, 'open')
 
             elif ev in ['-FIND-', '??:70', 'f:70']:
                 key_table = self.mapping.get(val.get('-TG-'))

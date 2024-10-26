@@ -155,7 +155,7 @@ def validation_period_data(raw_data, idx=None):
 
 
 def validation_data_for_exel(raw_data):
-    # print(f'{raw_data=}')
+    print(f'{raw_data=}')
     valid_data = {}
     errors = []
     if not isinstance(raw_data['-worker-'], Worker):
@@ -165,3 +165,10 @@ def validation_data_for_exel(raw_data):
     valid_data['month'] = raw_data['-month-']
 
     return errors, valid_data
+
+
+def remove_duplicate_period_date(query_list):
+    d = {}
+    for period in query_list:
+        d[period.date] = period
+    return list(d.values())

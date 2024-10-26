@@ -133,11 +133,13 @@ class Period(BaseModel):
         return f'{self.date:%d.%m.%y} ({self.date:%a}) - {self.value} ч.'
 
     def __add__(self, other):  # обычное сложение с правым элементом
-        return int(self.value + other.value) if isinstance(other, self.__class__) else (
-            int(self.value + other) if isinstance(other, (int, float)) else NotImplemented)
+        self_val = getattr(self, 'sum_val', self.value)
+        other_val = (other if isinstance(other, (int, float))
+                     else getattr(other, 'sum_val', other.value) if isinstance(other, type(self)) else NotImplemented)
+        return int(self_val + other_val)
 
     def __radd__(self, other):  # метод для функции sum() и сложение с левым элементом
-        return int(other + self.value) if isinstance(other, (int, float)) else NotImplemented
+        return int(other + getattr(self, 'sum_val', self.value) if isinstance(other, (int, float)) else NotImplemented)
 
     def get_day_week(self):
         return f'{self.date:%a}', int(f'{self.date:%w}')

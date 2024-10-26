@@ -67,6 +67,10 @@ def get_subquery_worker(active=True):
     # )
 
 
+def get_workers_for_list():
+    return Worker.select(Worker, Vacancy).join(Vacancy).where(Worker.is_active)
+
+
 def get_all_workers():
     return get_subquery_worker()
     # return get_subquery_worker().where(Worker.is_active)
@@ -130,7 +134,6 @@ def get_worker_data(idx=None):
 
 
 def get_task_data(idx=None):
-    # print(f'get_task_data {idx=}')
     query = {
         'statuses': Status.select(),
         'types': TypeTask.select()
@@ -143,14 +146,12 @@ def get_task_data(idx=None):
             .join_from(Task, Worker)
             .join_from(Task, TypeTask)
             .where(Task.id == idx)
-            # .group_by(Task.id)
             .get()
         )
         periods = Period.select().where(Period.task_id == idx).order_by(Period.date)
 
         query['passed_task'] = sum(query['task'].time_worked)
         query['passed_order'] = sum(query['task'].order.time_worked if query['task'].order else [])
-        # query['time_worked'] = periods.where(Period.date.year == now_date.year, Period.date.month == now_date.month)
         query['time_worked'] = periods
     else:
         query['workers'] = Worker.select(Worker, Vacancy.post).join(Vacancy)
@@ -299,27 +300,12 @@ def get_query_for_exel(worker, month):
     }
 
 
-# import datetime
-# import peewee
-# import locale
-# from database.models import Worker, Task, Period, Order, Vacancy, Status, Month
-# from database.queries import get_query_for_exel
-# # import logging
-#
-# # logger = logging.getLogger('peewee')
-# # logger.addHandler(logging.StreamHandler())
-# # logger.setLevel(logging.DEBUG)
-# # locale.setlocale(locale.LC_ALL, ('ru_RU', 'UTF-8'))
-# #
-# date_from = datetime.datetime(2024, 9, 1).date()
-# date_to = datetime.datetime(2024, 9, 30).date()
-#
-# worker = Worker.select(Worker, Vacancy.post).join(Vacancy).where(Worker.id == 1).get()
-#
-# query = get_query_for_exel(worker, Month(datetime.datetime.now().month))
-# current_task = query['current_task']
-# prev_task = query['prev_task']
-# for i, task in enumerate(current_task):
-#     print(f'{f" до:{sum(prev_task[i].time_worked)} ч.=={task}=={sum(task.time_worked)} ч.":=^50}')
-#     for period in task.time_worked:
-#         print(f'{period}')
+def get_query_for_timesheet(month):
+    month = Month(month)
+    start, mean, end = month.get_border_dates()
+    w = Worker.select(Worker, Vacancy).join(Vacancy).order_by(Worker.surname, Worker.name, Worker.second_name)
+    p = (
+        Period.select(
+            Period, peewee.fn.SUM(Period.value).over(partition_by=[Period.worker, Period.date]).alias('sum_val'))
+        .where(Period.date >= start, Period.date <= end).order_by(Period.date))
+    return peewee.prefetch(w, p)

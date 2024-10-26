@@ -1,16 +1,13 @@
 import datetime
-from copy import copy
 
 from openpyxl import Workbook
-from openpyxl.cell import Cell
 from openpyxl.styles import Side, Border, Alignment, Font, PatternFill
 from openpyxl.utils import get_column_interval
-from openpyxl.worksheet.page import PageMargins
 from openpyxl.worksheet.worksheet import Worksheet
 
 from .template_text import TEMPLATE_ALIGNMENT_RIGHT, TEMPLATE_CLARIFICATION, TEMPLATE_TABLE, TIMESHEET_HEADER, \
     TIMESHEET_TAB_HEADER, TIMESHEET_FOOTER, REPEATING_LINES
-from .utils import global_print_setting
+from .utils import global_print_setting, check_path_new_file
 
 
 # from tablesExcel.forms import TimeSheet
@@ -28,7 +25,7 @@ class PersonalMonthExelTable:
             name = f'{file_name}.xlsx'
             self._book.save(name)
         except PermissionError:
-            name = f'{file_name}-copy.xlsx'
+            name = check_path_new_file(f'{file_name}.xlsx')
             self._book.save(name)
         return name
 
@@ -45,6 +42,7 @@ class PersonalMonthExelTable:
                 cell = self._worksheet.cell(8, num - 2)
             cell.value = num
             cell.font = Font(size='9')
+        print(f'fill_data {worker=} {worker.function=}')
         self._worksheet.cell(4, 28).value = target
         self._worksheet.cell(4, 28).alignment = Alignment(horizontal='center', vertical='center')
         self._worksheet.cell(1, 18).value = str(month).lower()
@@ -194,7 +192,7 @@ class TimeSheet:
             name = f'{file_name}.xlsx'
             self._book.save(name)
         except PermissionError:
-            name = f'{file_name}-copy.xlsx'
+            name = check_path_new_file(f'{file_name}.xlsx')
             self._book.save(name)
         return name
 
