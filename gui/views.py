@@ -82,6 +82,7 @@ class StartWindowCard:
                         if update_delete_period(valid_data, ev_per):
                             sg.popup_timed('Сохранено', location=self.get_location(), **info_popup_setting)
                             self.actualizing_passed_period()
+                            self.window.force_focus()
                         else:
                             sg.popup_timed('Изменения не вносились!', location=self.get_location(), **info_popup_setting)
             elif ev in ['-DOUBLE-TASKS-', '-ADD-TASK-']:
@@ -193,6 +194,7 @@ class StartWindowCard:
         passed = data.get('passed_order') if data.get('passed_order') else data.get('passed_task')
         self.window['-PASSED-'].update(passed)
         self.window['-TIME-WORKED-'].update(time_worked)
+        self.window.force_focus()
         self.window.refresh()
 
 

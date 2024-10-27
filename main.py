@@ -3,6 +3,8 @@ import os
 import platform
 from pathlib import Path
 
+from win32ctypes.pywin32.pywintypes import datetime
+
 from database.app_logger import add_logger_peewee
 from database.migrations import apply_migrations
 from database.settings import path
@@ -22,7 +24,7 @@ def main():
         version = platform.version()  # Полная версия ОС
         architecture = platform.architecture()
         user = os.getlogin()
-        file.write(f'{user=}\n{system=}\n{release=}\n'
+        file.write(f'{datetime.now()}\n{user=}\n{system=}\n{release=}\n'
                    f'{version=}\n{architecture=}\nlocale={locale.getlocale()}\n{"*" * 30}\n')
     StartMainWindow()
 
