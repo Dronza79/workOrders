@@ -1,9 +1,8 @@
 import locale
 import os
 import platform
+from datetime import datetime
 from pathlib import Path
-
-from win32ctypes.pywin32.pywintypes import datetime
 
 from database.app_logger import add_logger_peewee
 from database.migrations import apply_migrations
