@@ -139,7 +139,7 @@ def get_task_data(idx=None):
         'types': TypeTask.select()
     }
     if idx:
-        query['task'] = (
+        task = (
             Task.select(Task, Status, Worker, Order, TypeTask)
             .join_from(Task, Status)
             .join_from(Task, Order, peewee.JOIN.LEFT_OUTER)
@@ -148,11 +148,16 @@ def get_task_data(idx=None):
             .where(Task.id == idx)
             .get()
         )
-        periods = Period.select().where(Period.task_id == idx).order_by(Period.date)
+        periods = Period.select(Period, Worker, Vacancy).join(Worker).join(Vacancy).order_by(Period.date)
+        order = task.order
+        passed_order = periods.where(Period.order == order)
+        query['task'] = task
 
-        query['passed_task'] = sum(query['task'].time_worked)
-        query['passed_order'] = sum(query['task'].order.time_worked if query['task'].order else [])
-        query['time_worked'] = periods
+        query['passed_task'] = sum(periods.where(Period.task == task))
+        query['passed_order'] = sum(passed_order if order else [])
+        query['passed_mont'] = sum(passed_order.where(Vacancy.is_mounter) if order else [])
+        query['passed_fitter'] = sum(passed_order.where(Vacancy.is_fitter) if order else [])
+        query['time_worked'] = periods.where(Period.task == task)
     else:
         query['workers'] = Worker.select(Worker, Vacancy.post).join(Vacancy)
         query['all_orders'] = (
@@ -191,12 +196,15 @@ def get_order_data(idx=None):
 
 def get_all_tasks():
     return (
-        Task.select(Task, Order, Status, Period, Worker, TypeTask, peewee.fn.SUM(Period.value).alias('passed'))
+        Task.select(
+            Task, Order, Status, Period, Worker,
+            TypeTask, peewee.fn.SUM(Period.value).alias('passed'))
         .join_from(Task, Status)
         .join_from(Task, Worker)
         .join_from(Task, TypeTask)
         .join_from(Task, Order, peewee.JOIN.LEFT_OUTER)
         .join_from(Task, Period, peewee.JOIN.LEFT_OUTER)
+        .group_by(Task.id)
     )
 
 
@@ -208,7 +216,6 @@ def get_close_tasks():
             Period.date.year == now_date.year,
             Period.date.month == now_date.month
         )
-        .group_by(Task.id)
     )
 
 
@@ -216,7 +223,6 @@ def get_open_tasks():
     return (
         get_all_tasks()
         .where(Task.is_active, ~Status.is_archived)
-        .group_by(Task.id)
     )
 
 
