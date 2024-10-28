@@ -1,8 +1,10 @@
 import random
+import datetime
 
 import peewee
 
-from database.models import *
+from database.models import Task, Order, Status, Period, Worker, Vacancy, TypeTask, Month
+from database.settings import get_database
 
 # with get_database().atomic():
 #     # Vacancy.insert_many([[func] for func in FUNC_VARIABLES.values()], fields=['post']).execute()
@@ -127,7 +129,9 @@ for worker in Worker.select(Worker, Vacancy).join(Vacancy):
 # query = Task.update(status=Status.select().where(Status.is_archived).get()).where(~Task.order, Task.deadline - 8 <= sub)
 # query.execute()
 
-for order in Order.select().join(Task).group_by(Order).having(peewee.fn.MAX(Task.deadline)):
+# for order in Order.select().join(Task).group_by(Order).having(peewee.fn.MAX(Task.deadline)):
+for order in Order.select():
+
     if order.tasks[-1].deadline - 8 <= sum(order.time_worked):
         print(f'{list(order.tasks)=}')
         (Task.update(status=Status.select().where(Status.is_archived).get())
