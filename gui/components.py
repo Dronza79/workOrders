@@ -81,15 +81,14 @@ def get_card_worker(data):
     job_list = list(data['func_position'])
     worker = data.get('worker')
     tasks = data.get('tasks')
-    # print(f'{__name__}.get_card_worker() {list(tasks)=}')
     table_heads = ['№', 'Тип', 'Норма', 'Вып.', 'ПРка', 'Объект', 'Артикул', 'Коммент', 'Статус']
     width_cols = [3, 8, 3, 3, 8, 12, 20, 10, 8]
     rcm = [
         '', [
-            f'Добавить задачу...{sg.MENU_KEY_SEPARATOR}-ADD-TASK-',
-            f'Найти...{sg.MENU_KEY_SEPARATOR}-FIND-',
+            f'Добавить задачу...::-ADD-TASK-',
+            f'Найти...::-FIND-',
             'Внимание!...', [
-                f'Удалить{sg.MENU_KEY_SEPARATOR}-DELETE-'
+                f'Удалить::-DELETE-'
             ]
         ]]
     if worker:
@@ -166,6 +165,14 @@ def get_card_worker(data):
 
 def get_card_task(data, prefill):
     print(f'get_card_task({data=}, {prefill=})')
+    munu_rbm_order = ['', [
+        f'Посмотреть заказ::-VIEW-ORDER-',
+        '---',
+        'Осторожно!...', [f'Удалить::-DELETE-']]]
+    menu_rbm_table = ['', [
+        'Добавить время::-ADD-TIME-',
+        '---',
+        'Осторожно!...', [f'Удалить::-DELETE-']]]
     time_worked = [
         [f'{period.date:%d.%m.%y}',
          f'{period.date:%a}',
@@ -190,7 +197,7 @@ def get_card_task(data, prefill):
                         key='-ADD-TIME-',
                         size=(10, 3), pad=10)
                 ]
-            ], size=(330, 150), **frame_setting))
+            ], size=(330, 150), right_click_menu=menu_rbm_table, **frame_setting))
         ]]
     else:
         table = []
@@ -241,8 +248,9 @@ def get_card_task(data, prefill):
                     sg.T("Отработано:", **text_setting),
                     sg.Push(),
                     sg.Input(
-                        data.get('passed_order') if data.get('passed_order') else data.get(
-                            'passed_task', 0),
+                        data.get('passed_mont') if task.worker.function.is_mounter and task.order
+                        else data.get('passed_fitter') if task.worker.function.is_fitter and task.order
+                        else data.get('passed_task', 0),
                         key='-PASSED-',
                         readonly=True,
                         **input_readonly_setting)
@@ -268,6 +276,7 @@ def get_card_task(data, prefill):
             sg.pin(sg.Frame('Заказ:', [[sg.Col([
                 [
                     sg.Input('task', key='type', visible=False),
+                    sg.Input(task.order.id if task and task.order else None, key='order_id', visible=False),
                     sg.T("Номер заказа:", **text_setting),
                     sg.Push(),
                     sg.Combo(
@@ -301,7 +310,7 @@ def get_card_task(data, prefill):
                     sg.Input(
                         task.order.name if task and task.order else prefill_order.name if prefill_order else '',
                         key='name', readonly=True, **input_readonly_setting)
-                ]], pad=10)]],
+                ]], pad=10, right_click_menu=munu_rbm_order if task and task.order else [])]],
                             key='-ORDER-TASK-',
                             visible=extension,
                             **frame_setting))
@@ -315,10 +324,10 @@ def get_card_order(data):
         table_heads = ['№', 'Статус', 'Норма', 'Вып.', 'Работник', 'Коммент']
         width_cols = [3, 8, 5, 5, 12, 14]
         rcm = ['', [
-            f'Добавить задачу...{sg.MENU_KEY_SEPARATOR}-ADD-TASK-',
-            f'Найти...{sg.MENU_KEY_SEPARATOR}-FIND-',
+            f'Добавить задачу...::-ADD-TASK-',
+            f'Найти...::-FIND-',
             'Внимание!...', [
-                f'Удалить{sg.MENU_KEY_SEPARATOR}-DELETE-'
+                f'Удалить::-DELETE-'
             ]
         ]]
         table = [[

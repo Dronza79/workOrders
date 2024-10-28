@@ -28,6 +28,7 @@ def get_main_window():
             f'Выбрать тему...{sg.MENU_KEY_SEPARATOR}-THEME-',
         ]]
     ]
+    menu_right_button = ["", ['Найти...::-FIND-', '---', 'Добавить...::-ADD-', 'Обновить...::-UPDATE-', ]]
     layout = [
         [
             #     sg.Titlebar('Учет работ ЭнергоЭра', icon=logo_w, **title_bar_setting)
@@ -68,7 +69,7 @@ def get_main_window():
                      resizable=True,
                      finalize=True,
                      return_keyboard_events=True,
-                     right_click_menu=["", ['Найти...::-FIND-']],
+                     right_click_menu= menu_right_button,
                      icon=logo_b,
                      )
 
@@ -79,7 +80,7 @@ def get_card_window(form):
         else "Карточка задачи" if form in ['-CLS-', '-TSK-']
         else "Карточка заказа"
     )
-    rbm = ['Внимание!...', [f'Удалить{sg.MENU_KEY_SEPARATOR}-DELETE-']]
+    rbm = ['', ['Осторожно!...', [f'Удалить{sg.MENU_KEY_SEPARATOR}-DELETE-']]]
     layout = [[sg.Frame('', [
         [
             sg.Titlebar(title, icon=logo_w, **title_bar_setting)

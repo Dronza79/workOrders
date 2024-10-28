@@ -85,6 +85,15 @@ class StartWindowCard:
                             self.window.force_focus()
                         else:
                             sg.popup_timed('Изменения не вносились!', location=self.get_location(), **info_popup_setting)
+            elif ev == '-VIEW-ORDER-':
+                self.window.hide()
+                StartWindowCard(
+                    idx=self.value.get('order_id'),
+                    key='-ORD-',
+                    parent=self.window,
+                )
+                self.window.un_hide()
+                self.window.force_focus()
             elif ev in ['-DOUBLE-TASKS-', '-ADD-TASK-']:
                 if self.value['type'] == 'worker':
                     entity = get_worker_data(int(self.value.get('id'))).get('tasks')
