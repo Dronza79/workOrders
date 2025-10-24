@@ -4,3 +4,6 @@ pac/
 *.db
 /exemple.py
 /db-current.sqlite3
+build/
+dist/
+*.spec
