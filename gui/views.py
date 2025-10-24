@@ -23,7 +23,7 @@ from .templates_settings import error_popup_setting, info_popup_setting
 from .windows import (
     get_main_window, get_card_window,
     popup_get_period, popup_choice_worker_for_exel,
-    popup_find_string, popup_choice_month_for_exel
+    popup_find_string, popup_choice_month_for_exel, popup_output
 )
 
 
@@ -227,7 +227,7 @@ class StartMainWindow:
 
     def __init__(self):
         self.window = get_main_window()
-        self.window.maximize()
+        # self.window.maximize()
         self.actualizing()
         self.run()
 
@@ -238,17 +238,22 @@ class StartMainWindow:
             print(f'MainWindow {ev=} {val=}')
             if ev == sg.WIN_CLOSED:
                 break
-            elif ev in ['-TG-', '-UPDATE-', 'Escape:27']:
+            else:
+                table_key = self.mapping[val['-TG-']]
+                value = val[table_key]
+            if ev in ['-TG-', '-UPDATE-', 'Escape:27']:
                 self.actualizing()
             elif isinstance(ev, tuple) and ev[2][0] == -1:
                 self.sorting_list(ev[0], ev[2][1])
-            elif ev in ['-WORKERS-', '-ORDERS-', '-TASKS-', '-CLOSE-', '-ADD-', '-DISMISS-']:
-                # self.window.alpha_channel = .95
+            elif (value and ev == '\r') or ev in ['-CLOSE-', '-ADD-']:
+                # print(f'table_key={self.mapping[val["-TG-"]]}')
+                print(f'{self.table=}')
+                idx = self.table[table_key][val[table_key].pop()][-1] if val.get(table_key) else None
+                print(f'{idx=}')
                 StartWindowCard(
-                    idx=self.table[ev][val[ev].pop()][-1] if val.get(ev) else None,
+                    idx=idx if idx else None,
                     key=val.get('-TG-'),
                     parent=self.window)
-                # self.window.alpha_channel = 1
                 self.actualizing()
             elif ev == '-THEME-':
                 if sg.main_global_pysimplegui_settings():
@@ -262,7 +267,7 @@ class StartMainWindow:
                     os.startfile(file_path, 'open')
             elif ev == '-MONTH-':
                 month = popup_choice_month_for_exel(self.window)
-                if file_name := get_month_timesheet(month):
+                if file_name := get_month_timesheet(month, unit=' '):
                     sg.popup_timed('Исполнено', **info_popup_setting)
                     os.startfile(file_name, 'open')
 

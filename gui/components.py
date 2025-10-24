@@ -219,7 +219,7 @@ def get_card_task(data, prefill):
         extension = True
     else:
         extension = False
-
+    print(f'{task=}')
     return [sg.pin(
         sg.Col([[
             sg.Frame('Задача:', [[
@@ -248,8 +248,8 @@ def get_card_task(data, prefill):
                     sg.T("Отработано:", **text_setting),
                     sg.Push(),
                     sg.Input(
-                        data.get('passed_mont') if task.worker.function.is_mounter and task.order
-                        else data.get('passed_fitter') if task.worker.function.is_fitter and task.order
+                        data.get('passed_mont') if task and task.worker.function.is_mounter and task.order
+                        else data.get('passed_fitter') if task and task.worker.function.is_fitter and task.order
                         else data.get('passed_task', 0),
                         key='-PASSED-',
                         readonly=True,
@@ -277,7 +277,7 @@ def get_card_task(data, prefill):
                 [
                     sg.Input('task', key='type', visible=False),
                     sg.Input(task.order.id if task and task.order else None, key='order_id', visible=False),
-                    sg.T("Номер заказа:", **text_setting),
+                    sg.T("Номер ПР:", **text_setting),
                     sg.Push(),
                     sg.Combo(
                         all_order,
@@ -352,7 +352,7 @@ def get_card_order(data):
     return [sg.pin(sg.Col([[
         sg.Frame('Заказ:', [[sg.Col([[
             sg.Input('order', key='type', visible=False),
-            sg.T("Номер заказа:", **text_setting),
+            sg.T("Номер ПР:", **text_setting),
             sg.Push(),
             sg.Input(order.to_order if data else '', key='no', **input_setting)
         ], [

@@ -16,16 +16,17 @@ from .templates_settings import (
 
 def get_main_window():
     menu_def = [[
-        '!Файл', [
-            f'Сделать бекап{sg.MENU_KEY_SEPARATOR}-BACKUP-',
-            f'Указать базу{sg.MENU_KEY_SEPARATOR}-SET-DB-'
-        ]], [
         'Отчеты Exel', [
             f'Работы за месяц...{sg.MENU_KEY_SEPARATOR}-EXEL-',
             f'Общий табель за месяц...{sg.MENU_KEY_SEPARATOR}-MONTH-',
         ]], [
-        '!Параметры', [
+        'Настройки', [
+            'База данных', [
+                f'Сделать бекап{sg.MENU_KEY_SEPARATOR}-BACKUP-',
+                f'Выбрать файл базы{sg.MENU_KEY_SEPARATOR}-SET-DB-'
+            ],
             f'Выбрать тему...{sg.MENU_KEY_SEPARATOR}-THEME-',
+            f'Параметры...{sg.MENU_KEY_SEPARATOR}-SETTING-',
         ]]
     ]
     menu_right_button = ["", ['Найти...::-FIND-', '---', 'Добавить...::-ADD-', 'Обновить...::-UPDATE-', ]]
