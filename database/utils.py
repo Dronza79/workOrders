@@ -14,14 +14,16 @@ def validation_data(raw_data, idx=None):
             'name': 'Имя',
             'table_num': 'Табельный номер',
             'second_name': 'Отчество',
-            'function': 'Должность'
+            'function': 'Должность',
+            'ordinal': 'Порядковой номер'
         }
         worker = None
         if idx:
             worker = Worker.get(Worker.id == idx)
-        for key in ['surname', 'name', 'second_name', 'table_num', 'function']:
+            print(f'{worker.__data__=}')
+        for key in ['surname', 'name', 'second_name', 'table_num', 'function', 'ordinal']:
             if key != 'function':
-                if key != 'second_name' and len(raw_data[key].strip()) < 3:
+                if key not in ['second_name', 'ordinal'] and len(raw_data[key].strip()) < 3:
                     errors.append(f'Ошибка:\nПоле {dep[key]} не заполнено! (мин. 3 буквы)\n')
                 elif key in ['surname', 'name'] or (key == 'second_name' and raw_data['second_name'].strip()):
                     if not re.findall(r'\b[А-Яа-я]+\b', raw_data[key].strip()):
@@ -36,6 +38,9 @@ def validation_data(raw_data, idx=None):
                         else:
                             if (idx and getattr(worker, key).lower() != raw_data[key].strip().lower()) or not idx:
                                 valid_data[key] = raw_data[key].strip().capitalize()
+                elif key == 'ordinal':
+                    if not worker or getattr(worker, key) != raw_data[key].strip():
+                        valid_data[key] = raw_data[key].strip()
             else:
                 if not isinstance(raw_data[key], Vacancy):
                     errors.append(f'Ошибка:\nПоле {dep[key]} не выбрано!\n')

@@ -15,7 +15,7 @@ def get_subquery_worker(active=True):
 
     return Worker.raw(
     "SELECT "
-        "worker.id, worker.surname, worker.name, worker.second_name, "
+        "worker.id, worker.surname, worker.name, worker.second_name, worker.ordinal, "
         "worker.table_num, vacancy.post, typetask.title AS type_task, "
         "task.deadline AS dltask, 'order'.no AS order_num, sum(period.value) AS sum_period "
     "FROM worker "
@@ -153,11 +153,11 @@ def get_task_data(idx=None):
         passed_order = periods.where(Period.order == order)
         query['task'] = task
 
-        query['passed_task'] = sum(periods.where(Period.task == task))
+        query['passed_task'] = sum(periods.where(Period.task == task).iterator())
         query['passed_order'] = sum(passed_order if order else [])
         query['passed_mont'] = sum(passed_order.where(Vacancy.is_mounter) if order else [])
         query['passed_fitter'] = sum(passed_order.where(Vacancy.is_fitter) if order else [])
-        query['time_worked'] = periods.where(Period.task == task)
+        query['time_worked'] = periods.where(Period.task == task).iterator()
     else:
         query['workers'] = Worker.select(Worker, Vacancy.post).join(Vacancy)
         query['all_orders'] = (
@@ -252,7 +252,7 @@ def delete_or_restore(key, idx):
 
 def get_period(idx=None):
     if idx:
-        return Period[idx]
+        return Period.get_by_id(idx)
     return None
 
 
