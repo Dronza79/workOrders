@@ -1,13 +1,16 @@
 import PySimpleGUI as sg
 
-from .templates_settings import table_setting, input_setting, drop_down_setting, text_setting, multiline_setting, \
-    delete_button_setting, table_period_setting, frame_setting, table_tasks_setting, drop_down_type_task_setting, \
-    search_drop_down_setting, input_readonly_setting, drop_down_read_only_setting
+from .templates_settings import (
+    table_setting, input_setting, drop_down_setting, text_setting, multiline_setting,
+    delete_button_setting, table_period_setting, frame_setting, table_tasks_setting,
+    drop_down_type_task_setting, search_drop_down_setting, input_readonly_setting,
+    drop_down_read_only_setting, ord_setting
+)
 
 
 def get_sector_workers(code=''):
-    heads = ['№ п/п', 'Фамилия имя отчество', 'Таб.номер', 'Должность', 'Работа', 'Номер ПР', 'Норматив', 'Отработано']
-    width_cols = [4, 30, 10, 16, 10, 10, 7, 7]
+    heads = ['№ п/п', 'Фамилия имя отчество', 'Таб.номер', 'Орд.', 'Должность', 'Работа', 'Номер ПР', 'Норматив', 'Отработано']
+    width_cols = [4, 30, 10, 4, 16, 10, 10, 7, 7]
     return [[
         sg.Table(
             values=[],
@@ -147,8 +150,11 @@ def get_card_worker(data):
         sg.Frame('Служебные данные:', [[
             sg.Col([[
                 sg.T('Табельный номер:', **text_setting),
-                sg.Push(),
-                sg.Input(worker.table_num if worker else '', key='table_num', **input_setting)
+                # sg.Push(),
+                # sg.Input(worker.table_num if worker else '', key='table_num', **input_setting)
+                sg.Input(worker.table_num if worker else '', key='table_num', **ord_setting),
+                sg.T('Ординар:', **text_setting),
+                sg.Input(worker.ordinal if worker and worker.ordinal else '', key='ordinal', **ord_setting),
             ], [
                 sg.T('Должность:', **text_setting),
                 sg.Push(),
@@ -164,7 +170,7 @@ def get_card_worker(data):
 
 
 def get_card_task(data, prefill):
-    print(f'get_card_task({data=}, {prefill=})')
+    # print(f'get_card_task({data=}, {prefill=})')
     munu_rbm_order = ['', [
         f'Посмотреть заказ::-VIEW-ORDER-',
         '---',
@@ -179,6 +185,7 @@ def get_card_task(data, prefill):
          f'{period.value} ч.',
          period.id
          ] for period in data.get('time_worked', [])]
+    print(f'{time_worked=}')
     headers = ['Дата', 'Дн.нед.', 'Время']
     width_cols = [10, 5, 5]
     if task := data.get('task'):
@@ -219,7 +226,7 @@ def get_card_task(data, prefill):
         extension = True
     else:
         extension = False
-    print(f'{task=}')
+    # print(f'{task=}')
     return [sg.pin(
         sg.Col([[
             sg.Frame('Задача:', [[

@@ -193,13 +193,15 @@ class StartWindowCard:
 
     def actualizing_passed_period(self):
         data = get_task_data(self.value.get('id'))
-        print(f'{data=}')
+        # print(f'{data=}')
         time_worked = [
             [
                 f'{period.date if period else "":%d.%m.%y}',
                 f'{period.date if period else "":%a}',
                 f'{period.value if period else ""} ч.',
+                period.id
             ] for period in data.get('time_worked', [])]
+        print(f'{time_worked=}')
         passed = data.get('passed_order') if data.get('passed_order') else data.get('passed_task')
         self.window['-PASSED-'].update(passed)
         self.window['-TIME-WORKED-'].update(time_worked)
@@ -245,8 +247,8 @@ class StartMainWindow:
                 self.actualizing()
             elif isinstance(ev, tuple) and ev[2][0] == -1:
                 self.sorting_list(ev[0], ev[2][1])
+            # elif value or ev in ['-CLOSE-', '-ADD-']:
             elif (value and ev == '\r') or ev in ['-CLOSE-', '-ADD-']:
-                # print(f'table_key={self.mapping[val["-TG-"]]}')
                 print(f'{self.table=}')
                 idx = self.table[table_key][val[table_key].pop()][-1] if val.get(table_key) else None
                 print(f'{idx=}')
@@ -313,6 +315,7 @@ class StartMainWindow:
                 i,
                 f'{worker.surname} {worker.name} {worker.second_name}',
                 worker.table_num,
+                int(worker.ordinal) if worker.ordinal else 0,
                 worker.post,
                 worker.type_task if worker.type_task else dash,
                 f'ПР-{worker.order_num:06}' if worker.order_num else dash,

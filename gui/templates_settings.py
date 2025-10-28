@@ -70,6 +70,15 @@ tab_setting = {
 
 input_setting = {
     'size': (23, 1),
+    # 'size': (6, 1),
+    'font': ('_', 12),
+    'justification': 'left',
+    'pad': ((0, 0), (5, 5)),
+    'disabled_readonly_background_color': sg.DEFAULT_BACKGROUND_COLOR,
+}
+
+ord_setting = {
+    'size': (6, 1),
     'font': ('_', 12),
     'justification': 'left',
     'pad': ((0, 0), (5, 5)),
