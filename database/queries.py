@@ -34,7 +34,7 @@ def get_subquery_worker(active=True):
     "LEFT JOIN typetask ON task.is_type_id = typetask.id "
     f"WHERE worker.is_active = {active} "
     "GROUP BY worker.id "
-    "ORDER BY worker.surname, worker.name, worker.second_name"
+    "ORDER BY worker.ordinal, worker.surname, worker.name, worker.second_name"
     )
 
     # sub = (
