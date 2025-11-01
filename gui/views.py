@@ -315,7 +315,7 @@ class StartMainWindow:
                 i,
                 f'{worker.surname} {worker.name} {worker.second_name}',
                 worker.table_num,
-                int(worker.ordinal) if worker.ordinal else 0,
+                worker.ordinal if worker.ordinal else dash,
                 worker.post,
                 worker.type_task if worker.type_task else dash,
                 f'ПР-{worker.order_num:06}' if worker.order_num else dash,
