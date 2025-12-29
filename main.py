@@ -5,7 +5,8 @@ from datetime import datetime
 from pathlib import Path
 
 from database.app_logger import add_logger_peewee
-from database.migrations import apply_migrations
+from database.migrations import apply_migrations, migrations_v1_1_0, get_program_setting
+from database.models import ProgramSetting
 from database.settings import path
 from gui.views import StartMainWindow
 
@@ -17,28 +18,27 @@ def main():
     locale.setlocale(locale.LC_ALL, '')
     if not Path(path.get_path).exists():
         apply_migrations()
-    with open('log.txt', 'a+', encoding='utf8') as file:
-        system = platform.system()  # Название ОС
-        release = platform.release()  # Версия ОС
-        version = platform.version()  # Полная версия ОС
-        architecture = platform.architecture()
-        user = os.getlogin()
-        file.write(f'{datetime.now()}\n{user=}\n{system=}\n{release=}\n'
-                   f'{version=}\n{architecture=}\nlocale={locale.getlocale()}\n{"*" * 30}\n')
+    ver: ProgramSetting = get_program_setting()
+    if ver.patch != 1:
+        ver.patch = 1
+        ver.save()
+
+    # with open('log.txt', 'a+', encoding='utf8') as file:
+    #     system = platform.system()  # Название ОС
+    #     release = platform.release()  # Версия ОС
+    #     version = platform.version()  # Полная версия ОС
+    #     architecture = platform.architecture()
+    #     user = os.getlogin()
+    #     file.write(f'{datetime.now()}\n{user=}\n{system=}\n{release=}\n'
+    #                f'{version=}\n{architecture=}\nlocale={locale.getlocale()}\n{"*" * 30}\n')
     StartMainWindow()
 
 
 # TODO 
-# 1.	Добавить модель "Тип задачи" +
-# 2.	Номер Ордера сделать строкой -
-# 3.	Сделать возможность добавления задачи непосредственно из карточки работника и карточки ПРки. +
-# 4.	Реализовать настройки программы (задание должностей и статусов задач и возможность выбора функции статуса)
-# 5.	Оперативная информация за текущий месяц
-# 6.	Добавить фильтр ПРок в карточку задач +
-# 7.	Добавить тип задачи "Погрузо-разгрузочные работы", "Подсобные работы" +
-# 8.	Получить информацию о проработанных работником часах за конкретный день
-# 9.	Вывод количества отработанных часов за указанный период по всем работникам
-# 10.	Добавить конфиги к моделям "Статус", "Должность", «Тип задачи» +
+# 1.	Добавить настройки предзаполнения эксель таблиц (Ответственный, руководитель, организация подразделение)
+# 2.	Добавить возможность заведения своих должностей
+# 3.    Добавить авторизацию по логину и паролю
+# 4.    Добавить порядковый номер каждому работнику. Внести изменение без замены БД
 
 
 if __name__ == '__main__':

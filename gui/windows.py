@@ -86,16 +86,17 @@ def get_card_window(form):
         [
             sg.Titlebar(title, icon=logo_w, **title_bar_setting)
         ], [
-            sg.Col([], key='body')
+            sg.Col([], key='body', expand_y=True)
+        # ], [sg.VPush()
         ], [
             sg.Push(),
             sg.Button('Сохранить', key='-SAVE-', focus=True, bind_return_key=True, pad=((0, 5), (0, 20))),
             sg.Button('Отменить', key='-CANCEL-', pad=((5, 0), (0, 20))),
             sg.Push(),
-        ]
+        ], [sg.Push(), sg.Sizegrip()]
     ], **frame_padding_0_setting)]]
     return sg.Window(title, layout,
-                     # resizable=True,
+                     resizable=True,
                      return_keyboard_events=True,
                      finalize=True,
                      keep_on_top=True,

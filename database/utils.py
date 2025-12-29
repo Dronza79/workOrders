@@ -14,14 +14,16 @@ def validation_data(raw_data, idx=None):
             'name': 'Имя',
             'table_num': 'Табельный номер',
             'second_name': 'Отчество',
-            'function': 'Должность'
+            'function': 'Должность',
+            'ordinal': 'Порядковой номер'
         }
         worker = None
         if idx:
             worker = Worker.get(Worker.id == idx)
-        for key in ['surname', 'name', 'second_name', 'table_num', 'function']:
+            print(f'{worker.__data__=}')
+        for key in ['surname', 'name', 'second_name', 'table_num', 'function', 'ordinal']:
             if key != 'function':
-                if key != 'second_name' and len(raw_data[key].strip()) < 3:
+                if key not in ['second_name', 'ordinal'] and len(raw_data[key].strip()) < 3:
                     errors.append(f'Ошибка:\nПоле {dep[key]} не заполнено! (мин. 3 буквы)\n')
                 elif key in ['surname', 'name'] or (key == 'second_name' and raw_data['second_name'].strip()):
                     if not re.findall(r'\b[А-Яа-я]+\b', raw_data[key].strip()):
@@ -36,6 +38,9 @@ def validation_data(raw_data, idx=None):
                         else:
                             if (idx and getattr(worker, key).lower() != raw_data[key].strip().lower()) or not idx:
                                 valid_data[key] = raw_data[key].strip().capitalize()
+                elif key == 'ordinal':
+                    if not worker or getattr(worker, key) != raw_data[key].strip():
+                        valid_data[key] = raw_data[key].strip()
             else:
                 if not isinstance(raw_data[key], Vacancy):
                     errors.append(f'Ошибка:\nПоле {dep[key]} не выбрано!\n')
@@ -61,17 +66,18 @@ def validation_data(raw_data, idx=None):
         for key in ['no', 'type_obj', 'title', 'article']:
             if len(raw_data[key]) < 3:
                 errors.append(f'Ошибка:\nПоле {dep[key]} не заполнено!\n')
-            elif not re.findall(r'\b[А-Яа-я]+\b', raw_data[key]) and key in ['type_obj', 'title']:
+            elif key in ['type_obj', 'title'] and not re.findall(r'\b[^A-z]+\b', raw_data[key]):
                 errors.append(f'Ошибка:\nПоле {dep[key]} допускаются только русские буквы!\n')
             elif key == 'article':
-                if not re.findall(r'\b[A-Za-z]{3}\d{2}[_-]\d{3}[_-]\d{2}[_-]\d{3}[_-]\d{2}', raw_data[key]):
-                    errors.append(f'Ошибка:\nПоле {dep[key]} заполнено не по формату!\n')
+                if not re.findall(r'\b[^А-я]+\b', raw_data[key]):
+                # if not re.findall(r'\b[A-Za-z]{3}\d{2}[_-]\d{3}[_-]\d{2}[_-]\d{3}[_-]\d{2}', raw_data[key]):
+                    errors.append(f'Ошибка:\nПоле {dep[key]} допускается только латиница!\n')
                 else:
                     if (idx and getattr(order, key) != raw_data[key]) or not idx:
                         valid_data[key] = raw_data[key].strip().upper()
             elif key == 'no':
                 if not re.findall(r'\d+', raw_data[key]):
-                    errors.append(f'Ошибка:\nПоле {dep[key]} заполнено не по формату!\n')
+                    errors.append(f'Ошибка:\nПоле {dep[key]} допускаются только цифры!\n')
                 elif not idx or order.to_order != raw_data['no']:
                     # print('Проверка номера=', Order.get_or_none(Order.no == int(re.findall(r'\d+', raw_data['no']).pop())))
                     if Order.get_or_none(Order.no == int(re.findall(r'\d+', raw_data['no']).pop())):

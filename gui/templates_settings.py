@@ -70,6 +70,15 @@ tab_setting = {
 
 input_setting = {
     'size': (23, 1),
+    # 'size': (6, 1),
+    'font': ('_', 12),
+    'justification': 'left',
+    'pad': ((0, 0), (5, 5)),
+    'disabled_readonly_background_color': sg.DEFAULT_BACKGROUND_COLOR,
+}
+
+ord_setting = {
+    'size': (6, 1),
     'font': ('_', 12),
     'justification': 'left',
     'pad': ((0, 0), (5, 5)),
@@ -154,12 +163,41 @@ delete_button_setting = {
 
 frame_setting = {
     'pad': ((0, 0), (0, 15)),
+    # 'pad': 0,
     'expand_x': True,
     'expand_y': True,
     'grab': True,
     'element_justification': 'center',
     'vertical_alignment': 'center',
-    # 'background_color': 'orange'
+}
+
+
+horizontal_col_setting = {
+    'expand_x': True,
+    'pad': 0,
+    'justification': 'c',
+    'element_justification': 'c',
+    'vertical_alignment': 'c'
+}
+
+
+card_setting = {
+    'expand_y': True,
+    'expand_x': True,
+    'pad': 0,
+    'justification': 'c',
+    'element_justification': 'c',
+    'vertical_alignment': 'c'
+}
+
+
+table_frame_setting = {
+    'pad': ((0, 0), (0, 15)),
+    'expand_x': True,
+    'expand_y': True,
+    'grab': True,
+    'element_justification': 'center',
+    'vertical_alignment': 'center',
 }
 
 frame_padding_0_setting = {

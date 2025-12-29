@@ -61,6 +61,7 @@ class Worker(BaseModel):
     second_name = CharField(verbose_name='Отчество', default='')
     table_num = CharField(unique=True, verbose_name='Табельный номер', constraints=[Check('table_num != ""')])
     function = ForeignKeyField(Vacancy, verbose_name='Должность', on_delete='CASCADE')
+    ordinal = CharField(verbose_name='Порядковый номер', null=True)
 
     def __str__(self):
         return (
@@ -200,3 +201,17 @@ class Month:
             datetime.datetime(datetime.datetime.now().year, self.__number, self.get_means()).date(),
             datetime.datetime(datetime.datetime.now().year, self.__number, self.__days).date(),
         )
+
+
+class ProgramSetting(BaseModel):
+    major = SmallIntegerField(verbose_name='Версия несовместимых изменений')
+    minor = SmallIntegerField(verbose_name='Версия совместимых изменений и функциональности')
+    patch = SmallIntegerField(verbose_name='Версия исправления ошибок и обратной совместимости')
+    org = CharField(verbose_name='Название организации', column_name='organization', null=True)
+    div = CharField(verbose_name='Название подразделения', column_name='structure_division', null=True)
+    resp_post = CharField(verbose_name='Должность ответственного за учет', column_name='post_responsible', null=True)
+    resp_name = CharField(verbose_name='Фамилия и инициалы ответственного', column_name='name_responsible', null=True)
+    head_post = CharField(verbose_name='Должность руководителя подразделения', column_name='leader_post', null=True)
+    head_name = CharField(verbose_name='Фамилия и инициалы руководителя', column_name='leader_name', null=True)
+    # username = CharField(verbose_name='Пользователь', unique=True)
+    # password = CharField(verbose_name='Пароль авторизации')

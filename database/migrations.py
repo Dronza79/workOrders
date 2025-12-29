@@ -1,6 +1,6 @@
 from .models import (
     Worker, Task, Period, Vacancy, Status, Order, TypeTask,
-    FUNC_VARIABLES, STATUS_VARIABLES, TYPE_VARIABLES
+    FUNC_VARIABLES, STATUS_VARIABLES, TYPE_VARIABLES, ProgramSetting
 )
 from .settings import get_database
 
@@ -12,6 +12,7 @@ models = (
     Order,
     Task,
     Period,
+    ProgramSetting
 )
 
 
@@ -32,3 +33,36 @@ def reconnect_database():
         model._meta.database.close()
         model._meta.database = get_database()
         model._meta.database.connect()
+
+
+def get_program_setting():
+    setting, created = ProgramSetting.get_or_create(id=1, defaults={
+        'major': 1,
+        'minor': 1,
+        'patch': 0,
+        'org': 'ООО ЭНЕРГОЭРА',
+        'div': 'Участок электромонтажа',
+        'resp_post': '',
+        'resp_name': '',
+        'head_post': '',
+        'head_name': '',
+    })
+    return setting
+
+
+def migrations_v1_1_0():
+
+    db = get_database()
+    try:
+        from peewee import CharField
+        from playhouse.migrate import SqliteMigrator, migrate
+
+        if 'ordinal' not in [col.name for col in db.get_columns('worker')]:
+            migrator = SqliteMigrator(db)
+            new_col = CharField(null=True)
+            with db.atomic():
+                migrate(migrator.add_column('worker', 'ordinal', new_col))
+    except Exception as ex:
+        print(f'{ex=}')
+
+

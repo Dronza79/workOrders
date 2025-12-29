@@ -15,7 +15,7 @@ def get_subquery_worker(active=True):
 
     return Worker.raw(
     "SELECT "
-        "worker.id, worker.surname, worker.name, worker.second_name, "
+        "worker.id, worker.surname, worker.name, worker.second_name, worker.ordinal, "
         "worker.table_num, vacancy.post, typetask.title AS type_task, "
         "task.deadline AS dltask, 'order'.no AS order_num, sum(period.value) AS sum_period "
     "FROM worker "
@@ -25,8 +25,9 @@ def get_subquery_worker(active=True):
         "FROM period "
         "JOIN task ON period.task_id = task.id "
         "JOIN status ON task.status_id = status.id "
-        f"WHERE date >= '{now_date.year}-{now_date.month}-01' AND status.is_archived = 0 "
-        f"AND date <= '{now_date.year}-{month.number}-{month.days}'"
+        # f"WHERE date >= '{now_date.year}-{now_date.month - 1}-01' AND status.is_archived = 0 "
+        f"WHERE status.is_archived = 0 "
+        # f"AND date <= '{now_date.year}-{month.number}-{month.days}'"
     ") sub ON sub.'worker_id' = worker.id AND sub.rn = 1 "
     "LEFT JOIN period ON period.task_id = sub.task_id "
     "LEFT OUTER JOIN 'order' ON period.order_id = 'order'.id "
@@ -34,9 +35,27 @@ def get_subquery_worker(active=True):
     "LEFT JOIN typetask ON task.is_type_id = typetask.id "
     f"WHERE worker.is_active = {active} "
     "GROUP BY worker.id "
-    "ORDER BY worker.surname, worker.name, worker.second_name"
+    "ORDER BY worker.ordinal, worker.surname, worker.name, worker.second_name"
     )
-
+"""
+SELECT worker.id, worker.surname, worker.name, worker.second_name, worker.ordinal, worker.table_num, vacancy.post, typetask.title AS type_task, task.deadline AS dltask, 'order'.no AS order_num, sum(period.value) AS sum_period 
+FROM worker 
+JOIN vacancy ON worker.function_id = vacancy.id
+LEFT JOIN (
+	SELECT *, row_number() OVER(PARTITION BY period.'worker_id' ORDER BY date DESC) AS rn
+	FROM period 
+	JOIN task ON period.task_id = task.id
+	JOIN status ON task.status_id = status.id
+	WHERE date >= '2025-10-01' AND status.is_archived = 0 AND date <= '2025-10-31'
+	) sub ON sub.'worker_id' = worker.id AND sub.rn = 1 
+LEFT JOIN period ON period.task_id = sub.task_id
+LEFT OUTER JOIN 'order' ON period.order_id = 'order'.id 
+LEFT JOIN task ON period.task_id = task.id
+LEFT JOIN typetask ON task.is_type_id = typetask.id
+WHERE worker.is_active = 1
+GROUP BY worker.id
+ORDER BY worker.ordinal, worker.surname, worker.name, worker.second_name
+"""
     # sub = (
     #     Period.select(
     #         Period, peewee.fn.RANK().over(
@@ -119,9 +138,11 @@ def get_worker_data(idx=None):
             .join_from(Task, Worker)
             .join_from(Task, Period, peewee.JOIN.LEFT_OUTER)
             .join_from(Task, Order, peewee.JOIN.LEFT_OUTER)
-            .where(Worker.id == idx, ~Status.is_archived)
+            # .where(Worker.id == idx, ~Status.is_archived)
+            .where(Worker.id == idx)
             .group_by(Task.id)
-            .order_by(-Status.is_positive, -peewee.fn.MAX(Period.date))
+            # .order_by(-Status.is_positive, -peewee.fn.MAX(Period.date))
+            .order_by(Status.is_archived, -Status.is_positive, -peewee.fn.MAX(Period.date))
         )
     else:
         person = None
@@ -153,11 +174,11 @@ def get_task_data(idx=None):
         passed_order = periods.where(Period.order == order)
         query['task'] = task
 
-        query['passed_task'] = sum(periods.where(Period.task == task))
+        query['passed_task'] = sum(periods.where(Period.task == task).iterator())
         query['passed_order'] = sum(passed_order if order else [])
         query['passed_mont'] = sum(passed_order.where(Vacancy.is_mounter) if order else [])
         query['passed_fitter'] = sum(passed_order.where(Vacancy.is_fitter) if order else [])
-        query['time_worked'] = periods.where(Period.task == task)
+        query['time_worked'] = periods.where(Period.task == task).iterator()
     else:
         query['workers'] = Worker.select(Worker, Vacancy.post).join(Vacancy)
         query['all_orders'] = (
@@ -213,8 +234,8 @@ def get_close_tasks():
         get_all_tasks()
         .where(
             Task.is_active, Status.is_archived,
-            Period.date.year == now_date.year,
-            Period.date.month == now_date.month
+            # Period.date.year == now_date.year,
+            # Period.date.month == now_date.month
         )
     )
 
@@ -252,7 +273,7 @@ def delete_or_restore(key, idx):
 
 def get_period(idx=None):
     if idx:
-        return Period[idx]
+        return Period.get_by_id(idx)
     return None
 
 
