@@ -24,15 +24,14 @@ def get_personal_table_result(worker, month):
     return exel.save(f'{worker.surname}_{month.number:02}')
 
 
-def get_month_timesheet(month: Month, corp=None, unit=None):
+def get_month_timesheet(month: Month, unit=None):
     query = get_query_for_timesheet(month.number)
     start, mean, end = month.get_border_dates()
     ts = TimeSheet()
-    corp = corp if corp else 'ООО ЭНЕРГОЭРА'
-    unit = unit if unit else 'аутсорсинг ОО СК Дельта'
+
     sheet = 0
-    ts.fill(1, 8, corp)
-    ts.fill(1, 22, unit)
+    ts.fill(1, 8, 'ООО ЭНЕРГОЭРА')
+    ts.fill(1, 22, '  ')
     ts.fill(4, 16, month.lower())
     addr = ts.link_title
     idx = 0

@@ -162,8 +162,7 @@ delete_button_setting = {
 }
 
 frame_setting = {
-    'pad': ((0, 0), (0, 15)),
-    # 'pad': 0,
+    'pad': 0,
     'expand_x': True,
     'expand_y': True,
     'grab': True,

@@ -29,7 +29,12 @@ def get_main_window():
             f'Параметры...{sg.MENU_KEY_SEPARATOR}-SETTING-',
         ]]
     ]
-    menu_right_button = ["", ['Найти...::-FIND-', '---', 'Добавить...::-ADD-', 'Обновить...::-UPDATE-', ]]
+    menu_right_button = [
+        "", ['Найти...::-FIND-', '---', 'Добавить...::-ADD-', 'Обновить...::-UPDATE-', '---', 'Отчеты', [
+             f'Работы за месяц...{sg.MENU_KEY_SEPARATOR}-EXEL-',
+             f'Общий табель за месяц...{sg.MENU_KEY_SEPARATOR}-MONTH-',
+         ]]]
+
     layout = [
         [
             #     sg.Titlebar('Учет работ ЭнергоЭра', icon=logo_w, **title_bar_setting)
@@ -70,7 +75,7 @@ def get_main_window():
                      resizable=True,
                      finalize=True,
                      return_keyboard_events=True,
-                     right_click_menu= menu_right_button,
+                     right_click_menu=menu_right_button,
                      icon=logo_b,
                      )
 
@@ -87,7 +92,7 @@ def get_card_window(form):
             sg.Titlebar(title, icon=logo_w, **title_bar_setting)
         ], [
             sg.Col([], key='body', expand_y=True)
-        # ], [sg.VPush()
+            # ], [sg.VPush()
         ], [
             sg.Push(),
             sg.Button('Сохранить', key='-SAVE-', focus=True, bind_return_key=True, pad=((0, 5), (0, 20))),
@@ -162,11 +167,9 @@ def popup_get_period(parent, period=None):
 
 def popup_choice_worker_for_exel(parent):
     workers = get_workers_for_list()
-    layout = [
-        [
-            sg.Titlebar('Отчет Exel...', icon=logo_w, **title_bar_setting)
-        ], [
-            sg.Frame('', [[sg.Col([[
+    layout = [[
+        sg.Frame('', [[
+            sg.Col([[
                 sg.T('Работник:', font='_ 10'),
                 sg.Push(),
                 sg.Combo(
@@ -179,18 +182,23 @@ def popup_choice_worker_for_exel(parent):
                     [Month(num) for num in range(1, 13)],
                     default_value=Month(datetime.datetime.now().month),
                     key='-month-', **drop_down_read_only_setting),
-            ]], pad=15, vertical_alignment='center')]], relief=sg.RELIEF_SOLID, border_width=0, **frame_setting)
-        ], [
-            sg.Push(), sg.Button('Создать...', key='-CREATE-', size=(15, 1), pad=((0, 0), (0, 10))), sg.Push()
-        ]
-    ]
-    window = sg.Window('Отчет Exel...', layout, finalize=True, margins=(20, 20), modal=True)
+            ], [
+                sg.Push(),
+                sg.Button('Создать...', key='-CREATE-', size=(10, 1), pad=((10, 10), (10, 0))),
+                sg.Button('Выход', key='-CANCEL-', size=(10, 1), pad=((10, 10), (10, 0))),
+                sg.Push()
+
+            ]], pad=15, vertical_alignment='center')]], **frame_setting)
+    ]]
+    window = sg.Window('Отчет Exel...', layout, finalize=True, modal=True, grab_anywhere=True,
+                       return_keyboard_events=True, no_titlebar=True, margins=(0, 0),
+                       )
     move_window(parent, window)
-    parent.alpha_channel = .95
+    # parent.alpha_channel = .95
     while True:
         ev, val = window.read()
         print(f'popup_choice_worker_for_exel {ev=} {val=}')
-        if ev == sg.WIN_CLOSED:
+        if ev in ['-CANCEL-', sg.WIN_CLOSED, 'Escape:27']:
             window.close()
             return
         if ev == '-worker-' and isinstance(val[ev], str):
@@ -212,8 +220,6 @@ def popup_choice_worker_for_exel(parent):
 def popup_choice_month_for_exel(parent):
     layout = [[
         sg.Frame('', [[
-            sg.Titlebar('Отчет Exel...', icon=logo_w, **title_bar_setting)
-        ], [
             sg.Col([[
                 sg.T('Отчетный месяц:', font='_ 10'),
                 sg.Push(),
@@ -223,13 +229,21 @@ def popup_choice_month_for_exel(parent):
                     key='-MONTH-', **drop_down_read_only_setting),
             ]], pad=15, vertical_alignment='center')
         ], [
-            sg.Push(), sg.Button('Создать...', key='-CREATE-', size=(15, 1), pad=((0, 0), (0, 10))), sg.Push()
+            sg.Push(),
+            sg.Button('Создать...', key='-CREATE-', size=(10, 1), pad=((0, 10), (0, 15))),
+            sg.Button('Отмена', key='-CANCEL-', size=(10, 1), pad=((10, 0), (0, 15))),
+            sg.Push()
         ]], **frame_padding_0_setting)
     ]]
-    window = sg.Window('Отчет Exel...', layout, finalize=True, modal=True)
+    window = sg.Window('Отчет Exel...', layout, finalize=True, modal=True,
+                       return_keyboard_events=True, no_titlebar=True, margins=(0, 0),
+                       )
     move_window(parent, window)
     ev, val = window.read(close=True)
-    return val['-MONTH-']
+    if ev in ['-CANCEL-', sg.WIN_CLOSED, 'Escape:27']:
+        window.close()
+        return
+    return {'month': val['-MONTH-']}
 
 
 def popup_find_string(parent):

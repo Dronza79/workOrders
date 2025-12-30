@@ -26,7 +26,7 @@ def validation_data(raw_data, idx=None):
                 if key not in ['second_name', 'ordinal'] and len(raw_data[key].strip()) < 3:
                     errors.append(f'Ошибка:\nПоле {dep[key]} не заполнено! (мин. 3 буквы)\n')
                 elif key in ['surname', 'name'] or (key == 'second_name' and raw_data['second_name'].strip()):
-                    if not re.findall(r'\b[А-Яа-я]+\b', raw_data[key].strip()):
+                    if not re.findall(r'^[А-Яа-я-]+$', raw_data[key].strip()):
                         errors.append(f'Ошибка:\nПоле {dep[key]} допускаются только русские буквы!\n')
                     else:
                         if (idx and getattr(worker, key).lower() != raw_data[key].strip().lower()) or not idx:
@@ -66,17 +66,17 @@ def validation_data(raw_data, idx=None):
         for key in ['no', 'type_obj', 'title', 'article']:
             if len(raw_data[key]) < 3:
                 errors.append(f'Ошибка:\nПоле {dep[key]} не заполнено!\n')
-            elif key in ['type_obj', 'title'] and not re.findall(r'\b[^A-z]+\b', raw_data[key]):
-                errors.append(f'Ошибка:\nПоле {dep[key]} допускаются только русские буквы!\n')
+            elif key in ['type_obj', 'title'] and not re.findall(r'^[^A-z]+$', raw_data[key]):
+                errors.append(f'Ошибка:\nПоле {dep[key]} - латиница не допустима!\n')
             elif key == 'article':
-                if not re.findall(r'\b[^А-я]+\b', raw_data[key]):
+                if not re.findall(r'^[^А-я]+$', raw_data[key]):
                 # if not re.findall(r'\b[A-Za-z]{3}\d{2}[_-]\d{3}[_-]\d{2}[_-]\d{3}[_-]\d{2}', raw_data[key]):
-                    errors.append(f'Ошибка:\nПоле {dep[key]} допускается только латиница!\n')
+                    errors.append(f'Ошибка:\nПоле {dep[key]} - кириллица не допустима!\n')
                 else:
                     if (idx and getattr(order, key) != raw_data[key]) or not idx:
                         valid_data[key] = raw_data[key].strip().upper()
             elif key == 'no':
-                if not re.findall(r'\d+', raw_data[key]):
+                if not re.findall(r'^\d+$', raw_data[key]):
                     errors.append(f'Ошибка:\nПоле {dep[key]} допускаются только цифры!\n')
                 elif not idx or order.to_order != raw_data['no']:
                     # print('Проверка номера=', Order.get_or_none(Order.no == int(re.findall(r'\d+', raw_data['no']).pop())))

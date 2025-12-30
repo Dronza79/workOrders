@@ -238,7 +238,7 @@ class StartMainWindow:
             ev, val = self.window.read()
             ev = ev if isinstance(ev, tuple) or ev == sg.WIN_CLOSED else ev.split(sg.MENU_KEY_SEPARATOR)[-1]
             print(f'MainWindow {ev=} {val=}')
-            if ev == sg.WIN_CLOSED:
+            if ev in ['-CANCEL-', sg.WIN_CLOSED]:
                 break
             else:
                 table_key = self.mapping[val['-TG-']]
@@ -249,9 +249,7 @@ class StartMainWindow:
                 self.sorting_list(ev[0], ev[2][1])
             # elif value or ev in ['-CLOSE-', '-ADD-']:
             elif (value and ev == '\r') or ev in ['-CLOSE-', '-ADD-']:
-                # print(f'{self.table=}')
                 idx = self.table[table_key][val[table_key].pop()][-1] if val.get(table_key) else None
-                # print(f'{idx=}')
                 StartWindowCard(
                     idx=idx if idx else None,
                     key=val.get('-TG-'),
@@ -261,17 +259,15 @@ class StartMainWindow:
                 if sg.main_global_pysimplegui_settings():
                     self.window.close()
                     StartMainWindow()
-            elif ev == '-EXEL-':
-                valid_data = popup_choice_worker_for_exel(self.window)
-                # popup_output()
-                if file_path := get_personal_table_result(**valid_data):
+            elif ev in ['-EXEL-', '-MONTH-']:
+                inter_func = popup_choice_worker_for_exel if ev == '-EXEL-' else popup_choice_month_for_exel
+                get_file_path = get_personal_table_result if ev == '-EXEL-' else get_month_timesheet
+                valid_data = inter_func(self.window)
+                if not valid_data:
+                    continue
+                if file_path := get_file_path(**valid_data):
                     sg.popup_timed('Исполнено', **info_popup_setting)
                     os.startfile(file_path, 'open')
-            elif ev == '-MONTH-':
-                month = popup_choice_month_for_exel(self.window)
-                if file_name := get_month_timesheet(month, unit=' '):
-                    sg.popup_timed('Исполнено', **info_popup_setting)
-                    os.startfile(file_name, 'open')
 
             elif ev in ['-FIND-', '??:70', 'f:70']:
                 key_table = self.mapping.get(val.get('-TG-'))

@@ -19,18 +19,10 @@ def main():
     if not Path(path.get_path).exists():
         apply_migrations()
     ver: ProgramSetting = get_program_setting()
-    if ver.patch != 1:
-        ver.patch = 1
+    if ver.patch != 2:
+        ver.patch = 2
         ver.save()
 
-    # with open('log.txt', 'a+', encoding='utf8') as file:
-    #     system = platform.system()  # Название ОС
-    #     release = platform.release()  # Версия ОС
-    #     version = platform.version()  # Полная версия ОС
-    #     architecture = platform.architecture()
-    #     user = os.getlogin()
-    #     file.write(f'{datetime.now()}\n{user=}\n{system=}\n{release=}\n'
-    #                f'{version=}\n{architecture=}\nlocale={locale.getlocale()}\n{"*" * 30}\n')
     StartMainWindow()
 
 
