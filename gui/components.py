@@ -1,11 +1,4 @@
-import PySimpleGUI as sg
-
-from .templates_settings import (
-    table_setting, input_setting, drop_down_setting, text_setting, multiline_setting,
-    delete_button_setting, table_period_setting, frame_setting, table_tasks_setting,
-    drop_down_type_task_setting, search_drop_down_setting, input_readonly_setting,
-    drop_down_read_only_setting, ord_setting, table_frame_setting, horizontal_col_setting, card_setting
-)
+from .templates_settings import *
 
 
 def get_sector_workers(code=''):
@@ -86,14 +79,13 @@ def get_card_worker(data):
     tasks = data.get('tasks')
     table_heads = ['№', 'Тип', 'Норма', 'Вып.', 'ПРка', 'Объект', 'Артикул', 'Коммент', 'Статус']
     width_cols = [3, 8, 3, 3, 8, 12, 20, 10, 8]
-    rcm = [
-        '', [
-            f'Добавить задачу...::-ADD-TASK-',
-            f'Найти...::-FIND-',
-            'Внимание!...', [
-                f'Удалить::-DELETE-'
-            ]
-        ]]
+    rcm = ['', [
+        f'Добавить задачу...::-ADD-TASK-',
+        f'Найти...::-FIND-',
+        'Внимание!...', [
+            f'Удалить::-DELETE-'
+        ]
+    ]]
     if worker:
         buttons = ([[
             sg.Button(
@@ -128,43 +120,6 @@ def get_card_worker(data):
         buttons = []
         table = []
 
-    # return [sg.pin(sg.Col([[
-    #     sg.Frame('Персональные данные:', [[sg.Col([
-    #         [
-    #             sg.Input('worker', key='type', visible=False),
-    #             sg.T("Фамилия:", **text_setting),
-    #             sg.Push(),
-    #             sg.Input(worker.surname.upper() if worker else '', key='surname', **input_setting)
-    #         ], [
-    #             sg.Text("Имя:", **text_setting),
-    #             sg.Push(),
-    #             sg.Input(worker.name if worker else '', key='name', **input_setting)
-    #         ], [
-    #             sg.T("Отчество:", **text_setting),
-    #             sg.Push(),
-    #             sg.Input(worker.second_name if worker else '', key='second_name', **input_setting)
-    #         ],
-    #         # ], pad=15, vertical_alignment='center')]], **frame_setting)], [
-    #     ], pad=15, vertical_alignment='center')]], **frame_setting),
-    #     sg.Push(),
-    #     sg.Frame('Служебные данные:', [[
-    #         sg.Col([[
-    #             sg.T('Табельный номер:', **text_setting),
-    #             # sg.Push(),
-    #             # sg.Input(worker.table_num if worker else '', key='table_num', **input_setting)
-    #             sg.Input(worker.table_num if worker else '', key='table_num', **ord_setting),
-    #             sg.T('Ординар:', **text_setting),
-    #             sg.Input(worker.ordinal if worker and worker.ordinal else '', key='ordinal', **ord_setting),
-    #         ], [
-    #             sg.T('Должность:', **text_setting),
-    #             sg.Push(),
-    #             sg.Combo(
-    #                 job_list,
-    #                 key='function',
-    #                 default_value=worker.function if worker else 'Не выбрано',
-    #                 readonly=True,
-    #                 **drop_down_setting)
-    #         ]] + buttons, pad=10)]], **frame_setting)],
     return [sg.Col([[sg.Col([[
         sg.Frame('Персональные данные:', [[sg.Col([
             [
@@ -181,14 +136,11 @@ def get_card_worker(data):
                 sg.Push(),
                 sg.Input(worker.second_name if worker else '', key='second_name', **input_setting)
             ],
-            # ], pad=15, vertical_alignment='center')]], **frame_setting)], [
         ], pad=15, vertical_alignment='center')]], **frame_setting),
         sg.Push(),
         sg.Frame('Служебные данные:', [[
             sg.Col([[
                 sg.T('Табельный номер:', **text_setting),
-                # sg.Push(),
-                # sg.Input(worker.table_num if worker else '', key='table_num', **input_setting)
                 sg.Input(worker.table_num if worker else '', key='table_num', **ord_setting),
                 sg.T('Ординар:', **text_setting),
                 sg.Input(worker.ordinal if worker and worker.ordinal else '', key='ordinal', **ord_setting),

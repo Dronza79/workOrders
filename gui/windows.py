@@ -1,46 +1,18 @@
 import datetime
 
-import PySimpleGUI as sg
-
 from database.models import Month
 from database.queries import get_all_workers, get_workers_for_list
 from database.utils import validation_data_for_exel
 from .components import get_sector_workers, get_sector_tasks, get_sector_orders
-from .templates_settings import (
-    tab_setting, error_popup_setting,
-    frame_setting, tab_group_setting, input_setting, drop_down_read_only_setting, search_drop_down_setting, logo_w,
-    title_bar_setting, menu_bar_setting, get_data_popup_setting, calendar_button_setting, frame_padding_0_setting,
-    logo_b, menu_setting
-)
+from .templates_settings import *
 
 
 def get_main_window():
-    menu_def = [[
-        'Отчеты Exel', [
-            f'Работы за месяц...{sg.MENU_KEY_SEPARATOR}-EXEL-',
-            f'Общий табель за месяц...{sg.MENU_KEY_SEPARATOR}-MONTH-',
-        ]], [
-        'Настройки', [
-            'База данных', [
-                f'Сделать бекап{sg.MENU_KEY_SEPARATOR}-BACKUP-',
-                f'Выбрать файл базы{sg.MENU_KEY_SEPARATOR}-SET-DB-'
-            ],
-            f'Выбрать тему...{sg.MENU_KEY_SEPARATOR}-THEME-',
-            f'Параметры...{sg.MENU_KEY_SEPARATOR}-SETTING-',
-        ]]
-    ]
-    menu_right_button = [
-        "", ['Найти...::-FIND-', '---', 'Добавить...::-ADD-', 'Обновить...::-UPDATE-', '---', 'Отчеты', [
-             f'Работы за месяц...{sg.MENU_KEY_SEPARATOR}-EXEL-',
-             f'Общий табель за месяц...{sg.MENU_KEY_SEPARATOR}-MONTH-',
-         ]]]
+    menu_def = [['Отчеты Exel', MENU_REPORTS]] + [["База данных", MENU_BD]]
+    menu_right_button = ["", (MENU_RIGHT_MOUSE + ['---'] + ['Отчеты', MENU_REPORTS])]
 
     layout = [
         [
-            #     sg.Titlebar('Учет работ ЭнергоЭра', icon=logo_w, **title_bar_setting)
-            # ], [
-            #     sg.MenubarCustom(menu_def, key='-MENU-', **menu_bar_setting)
-            # ], [
             sg.Menu(menu_def, key='-MENU-', **menu_setting)
         ], [
             sg.TabGroup([[
@@ -74,6 +46,7 @@ def get_main_window():
     return sg.Window('Учет работ ЭнергоЭра', layout,
                      resizable=True,
                      finalize=True,
+                     keep_on_top=True,
                      return_keyboard_events=True,
                      right_click_menu=menu_right_button,
                      icon=logo_b,
@@ -83,7 +56,7 @@ def get_main_window():
 def get_card_window(form):
     title = (
         'Карточка работника' if form in ['-WRK-', '-DSMS-']
-        else "Карточка задачи" if form in ['-CLS-', '-TSK-']
+        else "Карточка работы" if form in ['-CLS-', '-TSK-']
         else "Карточка заказа"
     )
     rbm = ['', ['Осторожно!...', [f'Удалить{sg.MENU_KEY_SEPARATOR}-DELETE-']]]
@@ -95,8 +68,8 @@ def get_card_window(form):
             # ], [sg.VPush()
         ], [
             sg.Push(),
-            sg.Button('Сохранить', key='-SAVE-', focus=True, bind_return_key=True, pad=((0, 5), (0, 20))),
-            sg.Button('Отменить', key='-CANCEL-', pad=((5, 0), (0, 20))),
+            sg.Button('Сохранить', key='-SAVE-', focus=True, bind_return_key=True, pad=((0, 5), (10, 10))),
+            sg.Button('Отменить', key='-CANCEL-', pad=((5, 0), (10, 10))),
             sg.Push(),
         ], [sg.Push(), sg.Sizegrip()]
     ], **frame_padding_0_setting)]]

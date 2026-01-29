@@ -1,3 +1,4 @@
+import importlib
 import locale
 import os
 import platform
@@ -15,6 +16,8 @@ from gui.views import StartMainWindow
 def main():
     # print(f'{path.get_path=}')
     # print(locale.getlocale())
+    sg = importlib.import_module('PySimpleGUI')
+    sg.theme('Default1')
     locale.setlocale(locale.LC_ALL, '')
     if not Path(path.get_path).exists():
         apply_migrations()

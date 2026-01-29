@@ -82,7 +82,7 @@ class StartWindowCard:
                         if update_delete_period(valid_data, ev_per):
                             sg.popup_timed('Сохранено', location=self.get_location(), **info_popup_setting)
                             self.actualizing_passed_period()
-                            self.window.force_focus()
+                            # self.window.force_focus()
                         else:
                             sg.popup_timed('Изменения не вносились!', location=self.get_location(), **info_popup_setting)
             elif ev == '-VIEW-ORDER-':
@@ -93,7 +93,7 @@ class StartWindowCard:
                     parent=self.window,
                 )
                 self.window.un_hide()
-                self.window.force_focus()
+                # self.window.force_focus()
             elif ev in ['-DOUBLE-TASKS-', '-ADD-TASK-']:
                 if self.value['type'] == 'worker':
                     entity = get_worker_data(int(self.value.get('id'))).get('tasks')
@@ -119,7 +119,7 @@ class StartWindowCard:
                     prefill=prefill
                 )
                 self.window.un_hide()
-                self.window.force_focus()
+                # self.window.force_focus()
                 if self.value['type'] == 'worker':
                     entity = get_worker_data(int(self.value.get('id'))).get('tasks')
                 else:
@@ -205,7 +205,7 @@ class StartWindowCard:
         passed = data.get('passed_order') if data.get('passed_order') else data.get('passed_task')
         self.window['-PASSED-'].update(passed)
         self.window['-TIME-WORKED-'].update(time_worked)
-        self.window.force_focus()
+        # self.window.force_focus()
         self.window.refresh()
 
 
@@ -273,7 +273,7 @@ class StartMainWindow:
                 key_table = self.mapping.get(val.get('-TG-'))
                 if search := popup_find_string(self.window):
                     self.filter_list(key_table, search)
-            self.window.force_focus()
+            # self.window.force_focus()
         self.window.close()
 
     def sorting_list(self, key_table, column):
