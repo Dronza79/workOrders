@@ -3,6 +3,8 @@ from operator import itemgetter
 
 import PySimpleGUI as sg
 
+from database.damp_db import create_dump_db
+from database.migrations import change_database
 from database.queries import (
     get_all_workers, get_open_tasks,
     get_close_tasks, get_worker_data,
@@ -12,6 +14,7 @@ from database.queries import (
     get_period, update_delete_period,
     delete_or_restore
 )
+from database.settings import path
 from database.utils import validation_data, validation_period_data
 from tablesExcel.processor import get_personal_table_result, get_month_timesheet
 from .components import (
@@ -19,7 +22,7 @@ from .components import (
     get_card_order, get_list_task_for_worker,
     get_list_task_for_order
 )
-from .templates_settings import error_popup_setting, info_popup_setting
+from .templates_settings import error_popup_setting, info_popup_setting, set_popup_get_new_base, set_popup_timed
 from .windows import (
     get_main_window, get_card_window,
     popup_get_period, popup_choice_worker_for_exel,
@@ -260,6 +263,7 @@ class StartMainWindow:
                     self.window.close()
                     StartMainWindow()
             elif ev in ['-EXEL-', '-MONTH-']:
+                self.window.keep_on_top_clear()
                 inter_func = popup_choice_worker_for_exel if ev == '-EXEL-' else popup_choice_month_for_exel
                 get_file_path = get_personal_table_result if ev == '-EXEL-' else get_month_timesheet
                 valid_data = inter_func(self.window)
@@ -273,7 +277,20 @@ class StartMainWindow:
                 key_table = self.mapping.get(val.get('-TG-'))
                 if search := popup_find_string(self.window):
                     self.filter_list(key_table, search)
-            # self.window.force_focus()
+
+            elif ev == '-SET-DB-':
+                self.window.keep_on_top_clear()
+                if new_path := sg.popup_get_file('', **set_popup_get_new_base):
+                    path.get_path = new_path
+                    change_database()
+                    self.actualizing()
+
+            elif ev == '-BACKUP-':
+                self.window.keep_on_top_clear()
+                filename = create_dump_db()
+                sg.popup_timed(f'Дамп сохранен в файле dump-{filename}.sql', **set_popup_timed)
+
+            self.window.keep_on_top_set()
         self.window.close()
 
     def sorting_list(self, key_table, column):

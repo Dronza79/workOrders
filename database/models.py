@@ -215,3 +215,6 @@ class ProgramSetting(BaseModel):
     head_name = CharField(verbose_name='Фамилия и инициалы руководителя', column_name='leader_name', null=True)
     # username = CharField(verbose_name='Пользователь', unique=True)
     # password = CharField(verbose_name='Пароль авторизации')
+
+
+models = [ProgramSetting, Vacancy, Worker, Status, Order, TypeTask, Task, Period]

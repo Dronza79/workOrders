@@ -9,8 +9,10 @@ MENU_REPORTS = [
 ]
 
 MENU_BD = [
-    f'Сделать бекап::-BACKUP-',
     f'Выбрать файл базы::-SET-DB-',
+    '---',
+    f'Сделать бекап::-BACKUP-',
+
 ]
 
 MENU_SETTINGS = [
@@ -62,6 +64,17 @@ table_period_setting = {
     'enable_click_events': True,
     'pad': 0,
 }
+
+set_popup_timed = {
+    'button_type': 5,
+    'auto_close': True,
+    'auto_close_duration': 3,
+    'grab_anywhere': True,
+    'keep_on_top': True,
+    'image': None,
+    'modal': True
+}
+
 
 table_tasks_setting = {
     'auto_size_columns': False,
@@ -203,6 +216,11 @@ horizontal_col_setting = {
     'justification': 'c',
     'element_justification': 'c',
     'vertical_alignment': 'c'
+}
+
+set_popup_get_new_base = {
+    'no_window': True,
+    'file_types': (('SQLite3', '.sqlite3'), ('DB', '.db'), )
 }
 
 

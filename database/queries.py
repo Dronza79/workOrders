@@ -180,7 +180,7 @@ def get_task_data(idx=None):
         query['passed_fitter'] = sum(passed_order.where(Vacancy.is_fitter) if order else [])
         query['time_worked'] = periods.where(Period.task == task).iterator()
     else:
-        query['workers'] = Worker.select(Worker, Vacancy.post).join(Vacancy)
+        query['workers'] = Worker.select(Worker, Vacancy.post).join(Vacancy).where(Worker.is_active)
         query['all_orders'] = (
             Order.select(Order, peewee.fn.SUM(Period.value).alias('passed'))
             .join_from(Order, Period, peewee.JOIN.LEFT_OUTER)

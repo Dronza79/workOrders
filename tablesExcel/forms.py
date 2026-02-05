@@ -43,18 +43,20 @@ class PersonalMonthExelTable:
             cell.value = num
             cell.font = Font(size='9')
         print(f'fill_data {worker=} {worker.function=}')
-        self._worksheet.cell(4, 28).value = target
-        self._worksheet.cell(4, 28).alignment = Alignment(horizontal='center', vertical='center')
+
         self._worksheet.cell(1, 18).value = str(month).lower()
+        self._worksheet.cell(4, 28).value = target
         self._worksheet.cell(4, 4).value = worker.get_short_name()
-        self._worksheet.cell(4, 4).alignment = Alignment(horizontal='center', vertical='center')
         self._worksheet.cell(4, 12).value = worker.table_num
-        self._worksheet.cell(4, 12).alignment = Alignment(horizontal='center', vertical='center')
         self._worksheet.cell(4, 17).value = worker.function.post
-        self._worksheet.cell(4, 17).alignment = Alignment(horizontal='center', vertical='center')
         self._worksheet.cell(28, 13).value = worker.get_short_name()
         self._worksheet.cell(21, 30).value = sum(calc.get('first_half', 0))
         self._worksheet.cell(23, 30).value = sum(calc.get('second_half', 0))
+
+        self._worksheet.cell(4, 4).alignment = Alignment(horizontal='center', vertical='center')
+        self._worksheet.cell(4, 12).alignment = Alignment(horizontal='center', vertical='center')
+        self._worksheet.cell(4, 17).alignment = Alignment(horizontal='center', vertical='center')
+        self._worksheet.cell(4, 28).alignment = Alignment(horizontal='center', vertical='center')
         for i, task in enumerate(data_task):
             self._worksheet.cell(9 + offset + i, 1).value = i + 1
             data_string = f'{task.is_type} '

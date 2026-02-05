@@ -1,3 +1,5 @@
+import importlib
+
 from .models import (
     Worker, Task, Period, Vacancy, Status, Order, TypeTask,
     FUNC_VARIABLES, STATUS_VARIABLES, TYPE_VARIABLES, ProgramSetting
@@ -28,11 +30,16 @@ def apply_migrations():
             TypeTask.insert_many(TYPE_VARIABLES).execute()
 
 
-def reconnect_database():
-    for model in models:
-        model._meta.database.close()
+# def reconnect_database():
+#     for model in models:
+#         model._meta.database.close()
+#         model._meta.database = get_database()
+#         model._meta.database.connect()
+
+
+def change_database():
+    for model in importlib.import_module('database.models').models:
         model._meta.database = get_database()
-        model._meta.database.connect()
 
 
 def get_program_setting():
