@@ -75,7 +75,6 @@ set_popup_timed = {
     'modal': True
 }
 
-
 table_tasks_setting = {
     'auto_size_columns': False,
     'justification': 'left',
@@ -141,18 +140,19 @@ drop_down_setting = {
 }
 
 drop_down_read_only_setting = {
-    'size': (22, 1),
-    'pad': ((0, 0), (5, 5)),
+    'size': (8, 1),
+    'pad': ((5, 5), (5, 5)),
     'readonly': True,
     'font': ('_', 12),
 }
 
 search_drop_down_setting = {
-    'size': (22, 1),
+    'size': (20, 1),
     'bind_return_key': True,
     'enable_events': True,
     'pad': ((0, 0), (5, 5)),
     'font': ('_', 12),
+    'readonly': True,
 }
 
 drop_down_type_task_setting = {
@@ -209,7 +209,6 @@ frame_setting = {
     'vertical_alignment': 'center',
 }
 
-
 horizontal_col_setting = {
     'expand_x': True,
     'pad': 0,
@@ -220,9 +219,8 @@ horizontal_col_setting = {
 
 set_popup_get_new_base = {
     'no_window': True,
-    'file_types': (('SQLite3', '.sqlite3'), ('DB', '.db'), )
+    'file_types': (('SQLite3', '.sqlite3'), ('DB', '.db'),)
 }
-
 
 card_setting = {
     'expand_y': True,
@@ -232,7 +230,6 @@ card_setting = {
     'element_justification': 'c',
     'vertical_alignment': 'c'
 }
-
 
 table_frame_setting = {
     'pad': ((0, 0), (0, 15)),

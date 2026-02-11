@@ -1,5 +1,5 @@
 import calendar
-import datetime
+from datetime import datetime as dd
 import re
 
 from peewee import *
@@ -29,8 +29,8 @@ FUNC_VARIABLES = [
 
 
 class BaseModel(Model):
-    create_at = DateTimeField(default=datetime.datetime.now, verbose_name='Дата создания')
-    update_at = DateTimeField(default=datetime.datetime.now, verbose_name='Дата изменения')
+    create_at = DateTimeField(default=dd.now, verbose_name='Дата создания')
+    update_at = DateTimeField(default=dd.now, verbose_name='Дата изменения')
     is_active = BooleanField(verbose_name='Отслеживается', default=True)
 
     class Meta:
@@ -38,7 +38,7 @@ class BaseModel(Model):
         only_save_dirty = True
 
     def save(self, **kwargs):
-        self.update_at = datetime.datetime.now()
+        self.update_at = dd.now()
         super().save(**kwargs)
 
 
@@ -127,7 +127,7 @@ class Period(BaseModel):
     worker = ForeignKeyField(Worker, verbose_name='Работник', backref='time_worked', on_delete='CASCADE')
     task = ForeignKeyField(Task, backref='time_worked', verbose_name='Задача', on_delete='CASCADE')
     order = ForeignKeyField(Order, backref='time_worked', null=True, verbose_name='Задача', on_delete='CASCADE')
-    date = DateField(default=datetime.datetime.now().date, verbose_name='Дата')
+    date = DateField(default=dd.now().date, verbose_name='Дата')
     value = SmallIntegerField(verbose_name="Продолжительность")
 
     def __str__(self):
@@ -147,7 +147,7 @@ class Period(BaseModel):
 
 
 class Month:
-    __slots__ = ['__number', '__name', '__days', '__mean', '__start_idx']
+    __slots__ = ['__number', '__name', '__days', '__mean', '__start_idx', '__year']
     __ratio = {
         1: 'Январь', 2: 'Февраль', 3: 'Март',
         4: 'Апрель', 5: 'Май', 6: 'Июнь',
@@ -155,7 +155,7 @@ class Month:
         10: 'Октябрь', 11: 'Ноябрь', 12: 'Декабрь',
     }
 
-    def __init__(self, number):
+    def __init__(self, number, year=dd.now().year):
         error = None
         if not isinstance(number, int):
             error = f"'{self.__class__.__name__}' объект должен иметь значение в виде целого числа"
@@ -164,11 +164,15 @@ class Month:
         if error:
             raise AttributeError(error)
         self.__number = number
+        self.__year = year
         self.__name = self.__ratio.get(number)
-        self.__start_idx, self.__days = calendar.monthrange(datetime.datetime.now().year, number)
+        self.__start_idx, self.__days = calendar.monthrange(self.__year, number)
 
     def __str__(self):
         return self.__name
+
+    def __repr__(self):
+        return f'{self.__str__()} {self.__year} г.'
 
     @property
     def number(self):
@@ -179,8 +183,18 @@ class Month:
         return self.__days
 
     @property
+    def year(self):
+        return self.__year
+
+    @property
     def start_day_idx(self):
-        return self.__start_idx
+        """
+        Номер дня недели:
+        - понедельник -> 1
+        - воскресение -> 7
+        :return: int
+        """
+        return self.__start_idx + 1
 
     def get_means(self):
         return int(self.__days) // 2
@@ -197,9 +211,9 @@ class Month:
         :return:
         """
         return (
-            datetime.datetime(datetime.datetime.now().year, self.__number, 1).date(),
-            datetime.datetime(datetime.datetime.now().year, self.__number, self.get_means()).date(),
-            datetime.datetime(datetime.datetime.now().year, self.__number, self.__days).date(),
+            dd(self.__year, self.__number, 1).date(),
+            dd(self.__year, self.__number, self.get_means()).date(),
+            dd(self.__year, self.__number, self.__days).date(),
         )
 
 

@@ -1,7 +1,7 @@
 import re
 from datetime import datetime as dt
 
-from database.models import Worker, Vacancy, Order, Task, Status, Period, TypeTask
+from database.models import Worker, Vacancy, Order, Task, Status, Period, TypeTask, Month
 
 
 def validation_data(raw_data, idx=None):
@@ -168,7 +168,7 @@ def validation_data_for_exel(raw_data):
         errors.append('Ошибка.\nВы не выбрали работника)!')
     else:
         valid_data['worker'] = raw_data['-worker-']
-    valid_data['month'] = raw_data['-month-']
+    valid_data['month'] = Month(raw_data['-month-'].number, raw_data['-year-'])
 
     return errors, valid_data
 

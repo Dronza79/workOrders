@@ -1,7 +1,7 @@
 import datetime
 
 from database.models import Month
-from database.queries import get_all_workers, get_workers_for_list
+from database.queries import get_all_workers, get_workers_for_list, get_list_years
 from database.utils import validation_data_for_exel
 from .components import get_sector_workers, get_sector_tasks, get_sector_orders
 from .templates_settings import *
@@ -140,6 +140,7 @@ def popup_get_period(parent, period=None):
 
 def popup_choice_worker_for_exel(parent):
     workers = get_workers_for_list()
+    list_years = get_list_years()
     layout = [[
         sg.Frame('', [[
             sg.Col([[
@@ -149,12 +150,13 @@ def popup_choice_worker_for_exel(parent):
                     [worker for worker in workers],
                     key='-worker-', **search_drop_down_setting),
             ], [
-                sg.T('Отчетный месяц:', font='_ 10'),
+                sg.T('Отчетный период:', font='_ 10'),
                 sg.Push(),
-                sg.Combo(
-                    [Month(num) for num in range(1, 13)],
+                sg.Combo([Month(num) for num in range(1, 13)],
                     default_value=Month(datetime.datetime.now().month),
                     key='-month-', **drop_down_read_only_setting),
+                sg.Combo(list_years, default_value=list_years[-1],
+                         key='-year-', **drop_down_read_only_setting),
             ], [
                 sg.Push(),
                 sg.Button('Создать...', key='-CREATE-', size=(10, 1), pad=((10, 10), (10, 0))),
@@ -167,7 +169,6 @@ def popup_choice_worker_for_exel(parent):
                        return_keyboard_events=True, no_titlebar=True, margins=(0, 0),
                        )
     move_window(parent, window)
-    # parent.alpha_channel = .95
     while True:
         ev, val = window.read()
         print(f'popup_choice_worker_for_exel {ev=} {val=}')
@@ -191,16 +192,21 @@ def popup_choice_worker_for_exel(parent):
 
 
 def popup_choice_month_for_exel(parent):
+    list_years = get_list_years()
     layout = [[
         sg.Frame('', [[
             sg.Col([[
                 sg.T('Отчетный месяц:', font='_ 10'),
                 sg.Push(),
-                sg.Combo(
-                    [Month(num) for num in range(1, 13)],
+                sg.Combo([Month(num) for num in range(1, 13)],
                     default_value=Month(datetime.datetime.now().month),
                     key='-MONTH-', **drop_down_read_only_setting),
-            ]], pad=15, vertical_alignment='center')
+            ], [
+                sg.T('Отчетный год:', font='_ 10'),
+                sg.Push(),
+                sg.Combo(list_years, default_value=list_years[-1],
+                         key='-YEAR-', **drop_down_read_only_setting),
+            ]], pad=15, vertical_alignment='c')
         ], [
             sg.Push(),
             sg.Button('Создать...', key='-CREATE-', size=(10, 1), pad=((0, 10), (0, 15))),
@@ -216,7 +222,7 @@ def popup_choice_month_for_exel(parent):
     if ev in ['-CANCEL-', sg.WIN_CLOSED, 'Escape:27']:
         window.close()
         return
-    return {'month': val['-MONTH-']}
+    return {'month': Month(val['-MONTH-'].number, val['-YEAR-'])}
 
 
 def popup_find_string(parent):

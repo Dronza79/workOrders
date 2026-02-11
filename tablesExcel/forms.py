@@ -5,6 +5,7 @@ from openpyxl.styles import Side, Border, Alignment, Font, PatternFill
 from openpyxl.utils import get_column_interval
 from openpyxl.worksheet.worksheet import Worksheet
 
+from database.models import Month
 from .template_text import TEMPLATE_ALIGNMENT_RIGHT, TEMPLATE_CLARIFICATION, TEMPLATE_TABLE, TIMESHEET_HEADER, \
     TIMESHEET_TAB_HEADER, TIMESHEET_FOOTER, REPEATING_LINES
 from .utils import global_print_setting, check_path_new_file
@@ -42,8 +43,9 @@ class PersonalMonthExelTable:
                 cell = self._worksheet.cell(8, num - 2)
             cell.value = num
             cell.font = Font(size='9')
-        print(f'fill_data {worker=} {worker.function=}')
+        # print(f'fill_data {worker=} {worker.function=}')
 
+        self._worksheet.cell(1, 20).value = f'{month.year} года'
         self._worksheet.cell(1, 18).value = str(month).lower()
         self._worksheet.cell(4, 28).value = target
         self._worksheet.cell(4, 4).value = worker.get_short_name()
@@ -135,7 +137,6 @@ class PersonalMonthExelTable:
             cell.value = TEMPLATE_ALIGNMENT_RIGHT[-1]
             cell.alignment = Alignment(horizontal='right', vertical='center')
         self._worksheet['T1'].alignment = Alignment(horizontal='left', vertical='center')
-        self._worksheet['T1'].value = f'{datetime.datetime.now().year} года'
         self._worksheet['T1'].font = Font(size='14')
 
         # заполнение надстрочных пояснений
@@ -178,7 +179,8 @@ class TimeSheet:
     _bottom_border = Border(bottom=__style_border)
     _circle_border = Border(top=__style_border, bottom=__style_border, left=__style_border, right=__style_border)
 
-    def __init__(self):
+    def __init__(self, month: Month):
+        self.month = month
         self._book: Workbook = Workbook()
         self._worksheet: Worksheet = self._book.active
         self.__set_default_value_cells()
@@ -222,7 +224,7 @@ class TimeSheet:
             self._worksheet[addr].alignment = Alignment(horizontal='right', vertical='center')
         self._worksheet['W3'].font = Font(size='14')
         self._worksheet['S4'].alignment = Alignment(horizontal='left', vertical='center')
-        self._worksheet['S4'].value = f'{datetime.datetime.now().year} года'
+        # self._worksheet['S4'].value = f'{datetime.datetime.now().year} года'
 
         for range_cell in ['H1:M1', 'V1:AD1', 'P4:R4']:
             self._worksheet.merge_cells(range_cell)
@@ -242,12 +244,14 @@ class TimeSheet:
         for i, addr in enumerate(['A5', 'C5', 'J5', 'M5', 'AC5', 'AC6', 'AE6', 'AG5', 'AI5']):
             self._worksheet[addr].value = TIMESHEET_TAB_HEADER[i]
         self._worksheet['AC7'].value = self._worksheet['AG7'].value = 'дни/часы'
-        for val in range(1, 32):
-            if val <= 15:
+        for val in range(1, self.month.days + 1):
+            print(f'{val=}')
+            if val <= self.month.get_means():
                 cell = self._worksheet.cell(6, 12 + val)
             else:
-                cell = self._worksheet.cell(7, val - 3)
+                cell = self._worksheet.cell(7, 12 + val - self.month.get_means())
                 cell.fill = PatternFill(fill_type='solid', fgColor="DDDDDD")
+            print(f'{cell=}')
             cell.value = val
             cell.font = Font(size='9')
         for i, addr in enumerate(['A8', 'C8', 'J8', 'M8', 'AC8', 'AE8', 'AG8', 'AI8']):

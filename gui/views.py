@@ -267,6 +267,7 @@ class StartMainWindow:
                 inter_func = popup_choice_worker_for_exel if ev == '-EXEL-' else popup_choice_month_for_exel
                 get_file_path = get_personal_table_result if ev == '-EXEL-' else get_month_timesheet
                 valid_data = inter_func(self.window)
+                print(f'{valid_data=}')
                 if not valid_data:
                     continue
                 if file_path := get_file_path(**valid_data):

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime as dd
 
 import peewee
 
@@ -6,13 +6,10 @@ from .models import (
     Worker, Vacancy, Task, Status, Period, Order, TypeTask, Month
 )
 
-now_date = datetime.now().date()
+now_date = dd.now()
 
 
 def get_subquery_worker(active=True):
-    month = Month(now_date.month)
-    start, mean, end = month.get_border_dates()
-
     return Worker.raw(
     "SELECT "
         "worker.id, worker.surname, worker.name, worker.second_name, worker.ordinal, "
@@ -25,9 +22,7 @@ def get_subquery_worker(active=True):
         "FROM period "
         "JOIN task ON period.task_id = task.id "
         "JOIN status ON task.status_id = status.id "
-        # f"WHERE date >= '{now_date.year}-{now_date.month - 1}-01' AND status.is_archived = 0 "
         f"WHERE status.is_archived = 0 "
-        # f"AND date <= '{now_date.year}-{month.number}-{month.days}'"
     ") sub ON sub.'worker_id' = worker.id AND sub.rn = 1 "
     "LEFT JOIN period ON period.task_id = sub.task_id "
     "LEFT OUTER JOIN 'order' ON period.order_id = 'order'.id "
@@ -37,53 +32,6 @@ def get_subquery_worker(active=True):
     "GROUP BY worker.id "
     "ORDER BY worker.ordinal, worker.surname, worker.name, worker.second_name"
     )
-"""
-SELECT worker.id, worker.surname, worker.name, worker.second_name, worker.ordinal, worker.table_num, vacancy.post, typetask.title AS type_task, task.deadline AS dltask, 'order'.no AS order_num, sum(period.value) AS sum_period 
-FROM worker 
-JOIN vacancy ON worker.function_id = vacancy.id
-LEFT JOIN (
-	SELECT *, row_number() OVER(PARTITION BY period.'worker_id' ORDER BY date DESC) AS rn
-	FROM period 
-	JOIN task ON period.task_id = task.id
-	JOIN status ON task.status_id = status.id
-	WHERE date >= '2025-10-01' AND status.is_archived = 0 AND date <= '2025-10-31'
-	) sub ON sub.'worker_id' = worker.id AND sub.rn = 1 
-LEFT JOIN period ON period.task_id = sub.task_id
-LEFT OUTER JOIN 'order' ON period.order_id = 'order'.id 
-LEFT JOIN task ON period.task_id = task.id
-LEFT JOIN typetask ON task.is_type_id = typetask.id
-WHERE worker.is_active = 1
-GROUP BY worker.id
-ORDER BY worker.ordinal, worker.surname, worker.name, worker.second_name
-"""
-    # sub = (
-    #     Period.select(
-    #         Period, peewee.fn.RANK().over(
-    #             order_by=[Period.date.desc()],
-    #             partition_by=[Period.worker_id],
-    #         ).alias('rk'))
-    #     .join(Task).join(Status)
-    #     .where(~Status.is_archived, Period.date >= start, Period.date <= end)
-    # )
-    # return (
-    #     Worker.select(
-    #         Worker.id, Worker.surname, Worker.name, Worker.second_name, Worker.table_num,
-    #         Vacancy.post,
-    #         TypeTask.title.alias('type_task'),
-    #         Task.deadline.alias('dltask'),
-    #         Order.no.alias('order_num'),
-    #         peewee.fn.SUM(Period.value).alias('sum_period'), Period.date)
-    #     .join(Vacancy)
-    #     .join(sub, peewee.JOIN.LEFT_OUTER, on=(sub.c.worker_id == Worker.id & sub.c.rk == 1))
-    #     .join(Period, peewee.JOIN.LEFT_OUTER, on=(sub.c.task_id == Period.task_id))
-    #     .join(Task, peewee.JOIN.LEFT_OUTER, on=(Period.task_id == Task.id))
-    #     .join(TypeTask, on=(Task.is_type_id == TypeTask.id))
-    #     .join(Order, peewee.JOIN.LEFT_OUTER, on=(Task.order_id == Order.id))
-    #     # .where(sub.c.rk == 1)
-    #     .group_by(Worker.id)
-    #     .order_by(Worker.surname)
-    #     .objects()
-    # )
 
 
 def get_workers_for_list():
@@ -92,12 +40,10 @@ def get_workers_for_list():
 
 def get_all_workers():
     return get_subquery_worker()
-    # return get_subquery_worker().where(Worker.is_active)
 
 
 def get_all_dismiss():
     return get_subquery_worker(active=False)
-    # return get_subquery_worker().where(~Worker.is_active)
 
 
 def get_all_orders():
@@ -138,10 +84,8 @@ def get_worker_data(idx=None):
             .join_from(Task, Worker)
             .join_from(Task, Period, peewee.JOIN.LEFT_OUTER)
             .join_from(Task, Order, peewee.JOIN.LEFT_OUTER)
-            # .where(Worker.id == idx, ~Status.is_archived)
             .where(Worker.id == idx)
             .group_by(Task.id)
-            # .order_by(-Status.is_positive, -peewee.fn.MAX(Period.date))
             .order_by(Status.is_archived, -Status.is_positive, -peewee.fn.MAX(Period.date))
         )
     else:
@@ -234,8 +178,6 @@ def get_close_tasks():
         get_all_tasks()
         .where(
             Task.is_active, Status.is_archived,
-            # Period.date.year == now_date.year,
-            # Period.date.month == now_date.month
         )
     )
 
@@ -278,7 +220,6 @@ def get_period(idx=None):
 
 
 def update_delete_period(data, action):
-    print(f'update_delete_period {data=}')
     idx = int(data.pop('period_id'))
     if action == '-SAVE-PER-':
         if data:
@@ -291,22 +232,22 @@ def update_delete_period(data, action):
 def get_query_for_exel(worker, month):
     current_periods = (
         Period.select(Period, Task).join(Task)
-        .where(Period.date.year == now_date.year, Period.date.month == month.number)
+        .where(Period.date.year == month.year, Period.date.month == month.number)
         .order_by(Period.date)
     )
     prev_periods = (
         Period.select(Period, Task).join(Task)
-        .where(Period.date.year == now_date.year, Period.date.month < month.number)
+        .where(Period.date.year == month.year, Period.date.month < month.number)
         .order_by(Period.date)
     )
 
     worker_periods = (
         Period.select(Period, Worker).join(Worker)
-        .where(Period.worker == worker, Period.date.year == now_date.year, Period.date.month == month.number)
+        .where(Period.worker == worker, Period.date.year == month.year, Period.date.month == month.number)
         .order_by(Period.date)
     )
 
-    sub = Period.select(Period.task).where(Period.date.year == now_date.year, Period.date.month == month.number)
+    sub = Period.select(Period.task).where(Period.date.year == month.year, Period.date.month == month.number)
 
     tasks = (
         Task.select(Task, Order, Status, Worker, TypeTask)
@@ -327,12 +268,19 @@ def get_query_for_exel(worker, month):
     }
 
 
-def get_query_for_timesheet(month):
-    month = Month(month)
+def get_query_for_timesheet(month: Month):
     start, mean, end = month.get_border_dates()
+    print(f'{start=} {mean=} {end=}')
     w = Worker.select(Worker, Vacancy).join(Vacancy).order_by(Worker.surname, Worker.name, Worker.second_name)
     p = (
         Period.select(
             Period, peewee.fn.SUM(Period.value).over(partition_by=[Period.worker, Period.date]).alias('sum_val'))
         .where(Period.date >= start, Period.date <= end).order_by(Period.date))
     return peewee.prefetch(w, p)
+
+
+def get_list_years():
+    return [year for year in range(
+        Period.select().order_by(Period.date).limit(1).get().date.year,
+        now_date.year + 1
+    )]

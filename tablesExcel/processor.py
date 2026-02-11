@@ -7,6 +7,7 @@ from .forms import PersonalMonthExelTable, TimeSheet
 
 def get_personal_table_result(worker, month):
     query = get_query_for_exel(worker, month)
+    print(f'{query=}')
     current_task = query.pop('current_task')
     prev_task = query.pop('prev_task')
     len_pages = len(current_task) // 6 + (1 if len(current_task) % 6 else 0)
@@ -24,15 +25,17 @@ def get_personal_table_result(worker, month):
     return exel.save(f'{worker.surname}_{month.number:02}')
 
 
-def get_month_timesheet(month: Month, unit=None):
-    query = get_query_for_timesheet(month.number)
+def get_month_timesheet(month: Month):
+    # query = get_query_for_timesheet(month.number)
+    query = get_query_for_timesheet(month)
     start, mean, end = month.get_border_dates()
-    ts = TimeSheet()
+    ts = TimeSheet(month)
 
     sheet = 0
     ts.fill(1, 8, 'ООО ЭНЕРГОЭРА')
     ts.fill(1, 22, '  ')
     ts.fill(4, 16, month.lower())
+    ts.fill(4, 19, f'{month.year} года')
     addr = ts.link_title
     idx = 0
 
@@ -64,7 +67,7 @@ def get_month_timesheet(month: Month, unit=None):
         for period in subquery:
             if period.date.day > month.get_means():
                 row = addr[idx] + 2
-                col = period.date.day - 3
+                col = period.date.day + 12 - month.get_means()
             else:
                 row = addr[idx]
                 col = period.date.day + 12
