@@ -207,7 +207,7 @@ class Month:
 
     def get_border_dates(self):
         """
-        Возвращает три даты в формате datetime.date() начало месяца, серидина и конец
+        Возвращает три даты в формате datetime.date() начало месяца, середина и конец
         :return:
         """
         return (
@@ -232,3 +232,4 @@ class ProgramSetting(BaseModel):
 
 
 models = [ProgramSetting, Vacancy, Worker, Status, Order, TypeTask, Task, Period]
+
