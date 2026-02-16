@@ -16,7 +16,7 @@ from database.queries import (
 )
 from database.settings import path
 from database.utils import validation_data, validation_period_data
-from tablesExcel.processor import get_personal_table_result, get_month_timesheet
+from tablesExcel.processor import get_personal_table_result, get_month_timesheet, get_month_kpi
 from .components import (
     get_card_worker, get_card_task,
     get_card_order, get_list_task_for_worker,
@@ -262,10 +262,12 @@ class StartMainWindow:
                 if sg.main_global_pysimplegui_settings():
                     self.window.close()
                     StartMainWindow()
-            elif ev in ['-EXEL-', '-MONTH-']:
+            elif ev in ['-EXEL-', '-MONTH-', '-KPI-']:
                 self.window.keep_on_top_clear()
                 inter_func = popup_choice_worker_for_exel if ev == '-EXEL-' else popup_choice_month_for_exel
                 get_file_path = get_personal_table_result if ev == '-EXEL-' else get_month_timesheet
+                if ev == '-KPI-':
+                    get_file_path = get_month_kpi
                 valid_data = inter_func(self.window)
                 print(f'{valid_data=}')
                 if not valid_data:

@@ -6,7 +6,6 @@ from peewee import *
 
 from .settings import get_database
 
-
 STATUS_VARIABLES = [
     {'state': 'В работе', },
     {'state': 'Приостановлен', 'is_positive': False},
@@ -68,10 +67,10 @@ class Worker(BaseModel):
             f'{self.surname} '
             f'{self.name[:1]}.'
             # f'{self.second_name[:1]+"." if self.second_name else ""} ({self.function.post})')
-            f'{self.second_name[:1]+"." if self.second_name else ""} ({self.table_num})')
+            f'{self.second_name[:1] + "." if self.second_name else ""} ({self.table_num})')
 
     def get_short_name(self):
-        return f'{self.surname} {self.name[:1]}.{self.second_name[:1]+"." if self.second_name else ""}'
+        return f'{self.surname} {self.name[:1]}.{self.second_name[:1] + "." if self.second_name else ""}'
 
 
 class Status(BaseModel):
@@ -187,33 +186,25 @@ class Month:
         return self.__year
 
     @property
-    def start_day_idx(self):
+    def start_day_week(self):
         """
         Номер дня недели:
-        - понедельник -> 1
-        - воскресение -> 7
+        - понедельник -> 0
+        - воскресение -> 6
         :return: int
         """
-        return self.__start_idx + 1
+        return self.__start_idx
 
     def get_means(self):
         return int(self.__days) // 2
 
-    def lower(self):
+    def get_lower(self):
         return self.__name.lower()
 
-    def capitalize(self):
-        return self.__name.capitalize()
-
-    def get_border_dates(self):
-        """
-        Возвращает три даты в формате datetime.date() начало месяца, середина и конец
-        :return:
-        """
+    def get_between(self):
         return (
             dd(self.__year, self.__number, 1).date(),
-            dd(self.__year, self.__number, self.get_means()).date(),
-            dd(self.__year, self.__number, self.__days).date(),
+            dd(self.__year, self.__number, self.__days).date()
         )
 
 
@@ -227,9 +218,22 @@ class ProgramSetting(BaseModel):
     resp_name = CharField(verbose_name='Фамилия и инициалы ответственного', column_name='name_responsible', null=True)
     head_post = CharField(verbose_name='Должность руководителя подразделения', column_name='leader_post', null=True)
     head_name = CharField(verbose_name='Фамилия и инициалы руководителя', column_name='leader_name', null=True)
+
     # username = CharField(verbose_name='Пользователь', unique=True)
     # password = CharField(verbose_name='Пароль авторизации')
 
+    @property
+    def version(self):
+        return f"ver: {self.major}.{self.minor}.{self.patch}"
+
+    @version.setter
+    def version(self, ver: str):
+        pattern = re.compile(r'^\d+\.\d+\.\d+$')
+        if not re.search(pattern, ver):
+            raise DataError('Ошибка данных. Значение должно быть вида 1.2.3')
+        else:
+            self.major, self.minor, self.patch = map(lambda x: int(x), ver.split('.'))
+            self.save()
+
 
 models = [ProgramSetting, Vacancy, Worker, Status, Order, TypeTask, Task, Period]
-

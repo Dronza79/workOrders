@@ -26,5 +26,5 @@ python setup.py install
 # Создание самозапускаемого файла с помощью pyinstaller
 1. Инсталировани
 ```bash
-pyinstaller -F --windowed -i logo.ico -n timesheet_EE_win7 main.py 
+pyinstaller -F --windowed -i logo.ico -n regworkapp main.py 
 ```

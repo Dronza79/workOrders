@@ -11,26 +11,26 @@ now_date = dd.now()
 
 def get_subquery_worker(active=True):
     return Worker.raw(
-    "SELECT "
+        "SELECT "
         "worker.id, worker.surname, worker.name, worker.second_name, worker.ordinal, "
         "worker.table_num, vacancy.post, typetask.title AS type_task, "
         "task.deadline AS dltask, 'order'.no AS order_num, sum(period.value) AS sum_period "
-    "FROM worker "
-    "JOIN vacancy ON worker.function_id = vacancy.id "
-    "LEFT JOIN ("
+        "FROM worker "
+        "JOIN vacancy ON worker.function_id = vacancy.id "
+        "LEFT JOIN ("
         "SELECT *, row_number() OVER(PARTITION BY period.'worker_id' ORDER BY date DESC) AS rn "
         "FROM period "
         "JOIN task ON period.task_id = task.id "
         "JOIN status ON task.status_id = status.id "
         f"WHERE status.is_archived = 0 "
-    ") sub ON sub.'worker_id' = worker.id AND sub.rn = 1 "
-    "LEFT JOIN period ON period.task_id = sub.task_id "
-    "LEFT OUTER JOIN 'order' ON period.order_id = 'order'.id "
-    "LEFT JOIN task ON period.task_id = task.id "
-    "LEFT JOIN typetask ON task.is_type_id = typetask.id "
-    f"WHERE worker.is_active = {active} "
-    "GROUP BY worker.id "
-    "ORDER BY worker.ordinal, worker.surname, worker.name, worker.second_name"
+        ") sub ON sub.'worker_id' = worker.id AND sub.rn = 1 "
+        "LEFT JOIN period ON period.task_id = sub.task_id "
+        "LEFT OUTER JOIN 'order' ON period.order_id = 'order'.id "
+        "LEFT JOIN task ON period.task_id = task.id "
+        "LEFT JOIN typetask ON task.is_type_id = typetask.id "
+        f"WHERE worker.is_active = {active} "
+        "GROUP BY worker.id "
+        "ORDER BY worker.ordinal, worker.surname, worker.name, worker.second_name"
     )
 
 
@@ -212,7 +212,6 @@ def delete_or_restore(key, idx):
         return model.get(model.id == idx).delete_instance(recursive=True)
 
 
-
 def get_period(idx=None):
     if idx:
         return Period.get_by_id(idx)
@@ -269,8 +268,8 @@ def get_query_for_exel(worker, month):
 
 
 def get_query_for_timesheet(month: Month):
-    start, mean, end = month.get_border_dates()
-    print(f'{start=} {mean=} {end=}')
+    start, mean, end = month.get_between()
+    # print(f'{start=} {mean=} {end=}')
     w = Worker.select(Worker, Vacancy).join(Vacancy).order_by(Worker.surname, Worker.name, Worker.second_name)
     p = (
         Period.select(
@@ -284,3 +283,15 @@ def get_list_years():
         Period.select().order_by(Period.date).limit(1).get().date.year,
         now_date.year + 1
     )]
+
+
+def get_query_kpi(month: Month):
+    st, ed = month.get_between()
+    workers = Worker.select(Worker, Vacancy).join(Vacancy)
+    periods = Period.select().where(Period.date.between(st, ed))
+    tasks = Task.select()
+    # tasks = (
+    #     Task.select(Task, Period)
+    #     .join(Period, peewee.JOIN.LEFT_OUTER)
+    #     .where(Period.date.between(st, ed)))
+    return peewee.prefetch(workers, tasks, periods)

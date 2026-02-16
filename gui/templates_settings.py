@@ -1,11 +1,13 @@
-import PySimpleGUI as sg
+import PySimpleGUI as sg  # передача импорта в файлы windows.py и components.py
 
 ALTERNATIVE_BACKGROUND_COLOR = '#D1D1D1'
 SELECTED_ROW_COLORS = ('white', '#4A6984')
 
 MENU_REPORTS = [
-    f'Работы за месяц...::-EXEL-',
-    f'Общий табель за месяц...::-MONTH-',
+    'Персональные работы за месяц...::-EXEL-',
+    '---',
+    'Общий табель за месяц...::-MONTH-',
+    'Коэффициент КПУ за месяц...::-KPI-',
 ]
 
 MENU_BD = [

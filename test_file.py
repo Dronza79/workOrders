@@ -18,7 +18,7 @@ def main():
     locale.setlocale(locale.LC_ALL, '')
     ws: Worksheet = Workbook().active
     month = Month(9)
-    start, mean, end = month.get_border_dates()
+    mean = month.get_means()
     query = get_query_for_timesheet(month.number)
 
     for i, worker in enumerate(query):

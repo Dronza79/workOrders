@@ -1,8 +1,7 @@
 from database.models import Month
-from database.queries import get_query_for_exel, get_query_for_timesheet
+from database.queries import get_query_for_exel, get_query_for_timesheet, get_query_kpi
 from database.utils import remove_duplicate_period_date
 from .forms import PersonalMonthExelTable, TimeSheet
-# from tablesExcel.processor import get_month_timesheet
 
 
 def get_personal_table_result(worker, month):
@@ -28,13 +27,13 @@ def get_personal_table_result(worker, month):
 def get_month_timesheet(month: Month):
     # query = get_query_for_timesheet(month.number)
     query = get_query_for_timesheet(month)
-    start, mean, end = month.get_border_dates()
+    mean = month.get_means()
     ts = TimeSheet(month)
 
     sheet = 0
     ts.fill(1, 8, 'ООО ЭНЕРГОЭРА')
     ts.fill(1, 22, '  ')
-    ts.fill(4, 16, month.lower())
+    ts.fill(4, 16, month.get_lower())
     ts.fill(4, 19, f'{month.year} года')
     addr = ts.link_title
     idx = 0
@@ -85,4 +84,16 @@ def get_month_timesheet(month: Month):
         ts.fill(addr[idx], 35, sat[0] if sat[0] else '-')
         ts.fill(addr[idx] + 2, 35, sat[1] if sat[1] else '-')
         idx += 1
-    return ts.save(f'табель_{month.lower()}')
+    return ts.save(f'табель_{month.get_lower()}')
+
+
+def get_month_kpi(month: Month):
+    query = get_query_kpi(month)
+    filename = f'kpi-{month.number}-{month.year}.txt'
+    with open(filename, 'w', encoding='utf-8') as file:
+        file.write(f'kpi-{month.get_lower()} {month.year} г.\n')
+        for worker in query:
+            file.write(
+                f'{worker}\t\tплан: {sum([dl for dl in worker.sum_deadline])} ч.\t факт: {worker.sum_periods} ч.\t '
+                f'kpi: {worker.sum_periods / worker.sum_deadline:.2f}\n')
+    return filename

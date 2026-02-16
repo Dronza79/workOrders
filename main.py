@@ -21,10 +21,8 @@ def main():
     locale.setlocale(locale.LC_ALL, '')
     if not Path(path.get_path).exists():
         apply_migrations()
-    ver: ProgramSetting = get_program_setting()
-    if ver.patch != 2:
-        ver.patch = 2
-        ver.save()
+    setting: ProgramSetting = get_program_setting()
+    setting.version = '1.4.0'
 
     StartMainWindow()
 
