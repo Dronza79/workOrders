@@ -1,6 +1,7 @@
 from datetime import datetime as dd
 
 import peewee
+from peewee import fn, Case, JOIN
 
 from .models import (
     Worker, Vacancy, Task, Status, Period, Order, TypeTask, Month
@@ -35,7 +36,7 @@ def get_subquery_worker(active=True):
 
 
 def get_workers_for_list():
-    return Worker.select(Worker, Vacancy).join(Vacancy).where(Worker.is_active)
+    return Worker.select(Worker, Vacancy).join(Vacancy).where(Worker.is_active).order_by(Worker.ordinal)
 
 
 def get_all_workers():
@@ -268,8 +269,7 @@ def get_query_for_exel(worker, month):
 
 
 def get_query_for_timesheet(month: Month):
-    start, mean, end = month.get_between()
-    # print(f'{start=} {mean=} {end=}')
+    start, end = month.get_between()
     w = Worker.select(Worker, Vacancy).join(Vacancy).order_by(Worker.surname, Worker.name, Worker.second_name)
     p = (
         Period.select(
@@ -287,11 +287,46 @@ def get_list_years():
 
 def get_query_kpi(month: Month):
     st, ed = month.get_between()
-    workers = Worker.select(Worker, Vacancy).join(Vacancy)
-    periods = Period.select().where(Period.date.between(st, ed))
-    tasks = Task.select()
-    # tasks = (
-    #     Task.select(Task, Period)
-    #     .join(Period, peewee.JOIN.LEFT_OUTER)
-    #     .where(Period.date.between(st, ed)))
-    return peewee.prefetch(workers, tasks, periods)
+
+    P1 = Period.alias()
+    P2 = Period.alias()
+    P3 = Period.alias()
+
+    sum_current = (P1.select(fn.SUM(P1.value))
+                   .where((P1.task == Task.id) & (P1.date.between(st, ed))))
+    sum_before = (P2.select(fn.SUM(P2.value))
+                  .where((P2.task == Task.id) & (P2.date < st)))
+    has_future = (P3.select(fn.COUNT(P3.id))
+                  .where((P3.task == Task.id) & (P3.date > ed)))
+
+    part_deadline = Task.deadline.cast('REAL') * .3
+
+    task_kpi = Case(None, [
+        ((has_future > 0) | (Status.state != 'Завершен'), fn.COALESCE(sum_current, 0)),
+        # ((Status.state == 'Завершен') & (fn.COALESCE(sum_current, 0) * 5 < Task.deadline), fn.COALESCE(sum_current, 0)),
+        (fn.COALESCE(sum_current, 0) <= part_deadline, fn.COALESCE(sum_current, 0)),
+    ], (Task.deadline - fn.COALESCE(sum_before, 0)))
+
+    task_subquery = (
+        Task.select(
+            Task.worker.alias('worker_id'),
+            task_kpi.alias('kpi_val'),
+            fn.COALESCE(sum_current, 0).alias('hours_val')
+        )
+        .join(Status)
+        .where(Task.id << Period.select(Period.task).where(Period.date.between(st, ed)))
+        .alias('task_sub'))
+
+    query = (
+        Worker.select(
+            Worker,
+            fn.COALESCE(fn.SUM(task_subquery.c.kpi_val), 0).alias('total_plan'),
+            fn.COALESCE(fn.SUM(task_subquery.c.hours_val), 0).alias('total_fact')
+        )
+        .join(task_subquery, JOIN.LEFT_OUTER, on=(Worker.id == task_subquery.c.worker_id))
+        .where(Worker.is_active)
+        .group_by(Worker.id)
+        .order_by(Worker.ordinal)
+    )
+
+    return query

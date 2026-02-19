@@ -89,11 +89,16 @@ def get_month_timesheet(month: Month):
 
 def get_month_kpi(month: Month):
     query = get_query_kpi(month)
+    # print(query)
     filename = f'kpi-{month.number}-{month.year}.txt'
     with open(filename, 'w', encoding='utf-8') as file:
-        file.write(f'kpi-{month.get_lower()} {month.year} г.\n')
-        for worker in query:
+        file.write(f'{f"KPI {month.get_lower()} {month.year} г.":^56}\n\n\n')
+        for i, worker in enumerate(query):
+            kpi = 0
+            if worker.total_fact:
+                kpi = worker.total_plan / worker.total_fact
             file.write(
-                f'{worker}\t\tплан: {sum([dl for dl in worker.sum_deadline])} ч.\t факт: {worker.sum_periods} ч.\t '
-                f'kpi: {worker.sum_periods / worker.sum_deadline:.2f}\n')
+                f" {i + 1}. {worker.get_short_name()}\t\t| План: {worker.total_plan}\t"
+                f"| Факт: {worker.total_fact}\t| KPI: {kpi:.2f}\n\n")
+
     return filename

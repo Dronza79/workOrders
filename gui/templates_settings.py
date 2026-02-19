@@ -13,7 +13,10 @@ MENU_REPORTS = [
 MENU_BD = [
     f'Выбрать файл базы::-SET-DB-',
     '---',
-    f'Сделать бекап::-BACKUP-',
+    'Работа с бекапом...', [
+        f'Сделать бекап::-BACKUP-',
+        f'Восстановить из бекапа::-RECOVERY-',
+    ]
 
 ]
 
@@ -150,7 +153,7 @@ drop_down_read_only_setting = {
 
 search_drop_down_setting = {
     'size': (20, 1),
-    'bind_return_key': True,
+    # 'bind_return_key': True,
     'enable_events': True,
     'pad': ((0, 0), (5, 5)),
     'font': ('_', 12),
@@ -222,6 +225,11 @@ horizontal_col_setting = {
 set_popup_get_new_base = {
     'no_window': True,
     'file_types': (('SQLite3', '.sqlite3'), ('DB', '.db'),)
+}
+
+set_popup_get_dump = {
+    'no_window': True,
+    'file_types': (('Дамп БД', '.sql'),)
 }
 
 card_setting = {

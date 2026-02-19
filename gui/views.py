@@ -1,19 +1,9 @@
 import os
 from operator import itemgetter
 
-import PySimpleGUI as sg
-
-from database.damp_db import create_dump_db
+from database.damp_db import create_dump_db, restore_from_dump
 from database.migrations import change_database
-from database.queries import (
-    get_all_workers, get_open_tasks,
-    get_close_tasks, get_worker_data,
-    get_task_data, get_all_orders,
-    create_new_period, get_order_data,
-    create_or_update_entity, get_all_dismiss,
-    get_period, update_delete_period,
-    delete_or_restore
-)
+from database.queries import *
 from database.settings import path
 from database.utils import validation_data, validation_period_data
 from tablesExcel.processor import get_personal_table_result, get_month_timesheet, get_month_kpi
@@ -22,12 +12,7 @@ from .components import (
     get_card_order, get_list_task_for_worker,
     get_list_task_for_order
 )
-from .templates_settings import error_popup_setting, info_popup_setting, set_popup_get_new_base, set_popup_timed
-from .windows import (
-    get_main_window, get_card_window,
-    popup_get_period, popup_choice_worker_for_exel,
-    popup_find_string, popup_choice_month_for_exel, popup_output
-)
+from .windows import *
 
 
 class StartWindowCard:
@@ -274,7 +259,10 @@ class StartMainWindow:
                     continue
                 if file_path := get_file_path(**valid_data):
                     sg.popup_timed('Исполнено', **info_popup_setting)
-                    os.startfile(file_path, 'open')
+                    try:
+                        os.startfile(file_path, 'open')
+                    except Exception as exc:
+                        print(exc)
 
             elif ev in ['-FIND-', '??:70', 'f:70']:
                 key_table = self.mapping.get(val.get('-TG-'))
@@ -290,10 +278,16 @@ class StartMainWindow:
 
             elif ev == '-BACKUP-':
                 self.window.keep_on_top_clear()
-                filename = create_dump_db()
+                filename = create_dump_db(sg.popup_get_folder("", no_window=True))
                 sg.popup_timed(f'Дамп сохранен в файле dump-{filename}.sql', **set_popup_timed)
 
-            self.window.keep_on_top_set()
+            elif ev == '-RECOVERY-':
+                if dump_path := sg.popup_get_file('', **set_popup_get_dump):
+                    restore_from_dump(dump_path)
+                    print(path.get_path)
+                    self.actualizing()
+
+            # self.window.keep_on_top_set()
         self.window.close()
 
     def sorting_list(self, key_table, column):

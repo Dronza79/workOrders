@@ -14,22 +14,20 @@ from gui.views import StartMainWindow
 
 # @add_logger_peewee
 def main():
-    # print(f'{path.get_path=}')
-    # print(locale.getlocale())
     sg = importlib.import_module('PySimpleGUI')
     sg.theme('Default1')
     locale.setlocale(locale.LC_ALL, '')
     if not Path(path.get_path).exists():
         apply_migrations()
     setting: ProgramSetting = get_program_setting()
-    setting.version = '1.4.0'
+    setting.version = '1.5.0'
 
     StartMainWindow()
 
 
 # TODO 
 # [*]    Выбор года вывода данных в таблицу
-# []    Добавить вывод таблицы KPI (Ключевые показатели эффективности)
+# [*]    Добавить вывод таблицы KPI (Ключевые показатели эффективности)
 # [*]    ДОбавить переключение на другой файл базы данных, создание дампа для MySQL
 # [*]    Откорректировать список работников (исключить уволенных)
 # []	Добавить настройки предзаполнения эксель таблиц (Ответственный, руководитель, организация подразделение)
