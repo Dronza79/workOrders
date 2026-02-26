@@ -218,6 +218,7 @@ class ProgramSetting(BaseModel):
     resp_name = CharField(verbose_name='Фамилия и инициалы ответственного', column_name='name_responsible', null=True)
     head_post = CharField(verbose_name='Должность руководителя подразделения', column_name='leader_post', null=True)
     head_name = CharField(verbose_name='Фамилия и инициалы руководителя', column_name='leader_name', null=True)
+    m_theme = CharField(verbose_name='Тема оформления')
 
     # username = CharField(verbose_name='Пользователь', unique=True)
     # password = CharField(verbose_name='Пароль авторизации')
@@ -232,8 +233,17 @@ class ProgramSetting(BaseModel):
         if not re.search(pattern, ver):
             raise DataError('Ошибка данных. Значение должно быть вида 1.2.3')
         else:
-            self.major, self.minor, self.patch = map(lambda x: int(x), ver.split('.'))
+            self.major, self.minor, self.patch = map(lambda x: int(x), re.findall(r'\d+', ver))
             self.save()
+
+    @property
+    def theme(self):
+        return self.m_theme
+
+    @theme.setter
+    def theme(self, value):
+        self.m_theme = value
+        self.save()
 
 
 models = [ProgramSetting, Vacancy, Worker, Status, Order, TypeTask, Task, Period]

@@ -73,3 +73,19 @@ def migrations_v1_1_0():
         print(f'{ex=}')
 
 
+def migrations_v2_0_0():
+
+    db = get_database()
+    try:
+        from peewee import CharField
+        from playhouse.migrate import SqliteMigrator, migrate
+
+        if 'm_theme' not in [col.name for col in db.get_columns('programsetting')]:
+            migrator = SqliteMigrator(db)
+            new_col = CharField(null=True)
+            with db.atomic():
+                migrate(migrator.add_column('programsetting', 'm_theme', new_col))
+    except Exception as ex:
+        print(f'{ex=}')
+
+

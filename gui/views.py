@@ -2,7 +2,7 @@ import os
 from operator import itemgetter
 
 from database.damp_db import create_dump_db, restore_from_dump
-from database.migrations import change_database
+from database.migrations import change_database, get_program_setting
 from database.queries import *
 from database.settings import path
 from database.utils import validation_data, validation_period_data
@@ -198,6 +198,7 @@ class StartWindowCard:
 
 
 class StartMainWindow:
+    tree_tasks = {}
     table = {
         '-WORKERS-': [],
         '-ORDERS-': [],
@@ -208,8 +209,10 @@ class StartMainWindow:
     mapping = {
         '-WRK-': '-WORKERS-',
         '-DSMS-': '-DISMISS-',
-        '-TSK-': '-TASKS-',
-        '-CLS-': '-CLOSE-',
+        # '-TSK-': '-TASKS-',
+        '-TSK-': '-TREE-TASKS-',
+        # '-CLS-': '-CLOSE-',
+        '-CLS-': '-TREE-CLOSE-',
         '-ORD-': '-ORDERS-'
     }
     sort = False
@@ -237,7 +240,10 @@ class StartMainWindow:
                 self.sorting_list(ev[0], ev[2][1])
             # elif value or ev in ['-CLOSE-', '-ADD-']:
             elif (value and ev == '\r') or ev in ['-CLOSE-', '-ADD-']:
-                idx = self.table[table_key][val[table_key].pop()][-1] if val.get(table_key) else None
+                if table_key not in ['-TREE-TASKS-', '-TREE-CLOSE-']:
+                    idx = self.table[table_key][val[table_key].pop()][-1] if val.get(table_key) else None
+                else:
+                    idx = val.get(table_key)[0]
                 StartWindowCard(
                     idx=idx if idx else None,
                     key=val.get('-TG-'),
@@ -246,6 +252,7 @@ class StartMainWindow:
             elif ev == '-THEME-':
                 if sg.main_global_pysimplegui_settings():
                     self.window.close()
+                    get_program_setting().theme = sg.theme()
                     StartMainWindow()
             elif ev in ['-EXEL-', '-MONTH-', '-KPI-']:
                 self.window.keep_on_top_clear()
@@ -312,7 +319,8 @@ class StartMainWindow:
         self.get_format_list_workers()
         self.get_format_list_orders()
         self.get_format_list_tasks()
-        [self.window[key].update(values=self.table[key]) for key in self.table]
+        [self.window[key].update(values=self.table[key]) for key in self.table if key not in ['-TASKS-', '-CLOSE-']]
+        [self.window[key].update(self.tree_tasks[key]) for key in self.tree_tasks]
 
     @staticmethod
     def _format_list_workers(lst_workers):
@@ -372,13 +380,14 @@ class StartMainWindow:
                 i,
                 str(task.is_type),
                 str(task.status),
-                f'{task.worker.surname} {task.worker.name[:1]}.{task.worker.second_name[:1]}.',
+                f'{task.worker.get_short_name()}',
                 task.deadline,
                 task.passed if task.passed else 0,
                 str(task.order) if task.order else '--',
                 task.order.type_obj if task.order else '--',
                 task.order.title if task.order else '--',
                 task.order.name if task.order and task.order.name else '--',
+                task.max_date.year,
                 task.id,
             ]
             lst.append(formatted_data)
@@ -389,3 +398,21 @@ class StartMainWindow:
         self.table['-CLOSE-'] = []
         self.table['-TASKS-'].extend(self._format_list_task(get_open_tasks()))
         self.table['-CLOSE-'].extend(self._format_list_task(get_close_tasks()))
+        self._format_tree_tasks('-TASKS-')
+        self._format_tree_tasks('-CLOSE-')
+
+    def _format_tree_tasks(self, key):
+        groups = {}
+        tree_data = self.tree_tasks['-TREE' + key] = sg.TreeData()
+        for line in self.table[key]:
+            year = line[-2]
+            obj = line[-4]
+            if year not in groups:
+                tree_data.Insert("", year, year, values=[])
+                groups[year] = set()
+            node_key = f"{year}_{obj}"
+            if node_key not in groups[year]:
+                tree_data.Insert(year, node_key, obj, values=[])
+                groups[year].add(node_key)
+            tree_data.Insert(node_key, line[-1], '', values=line[:-2])
+

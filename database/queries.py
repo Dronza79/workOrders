@@ -164,7 +164,9 @@ def get_all_tasks():
     return (
         Task.select(
             Task, Order, Status, Period, Worker,
-            TypeTask, peewee.fn.SUM(Period.value).alias('passed'))
+            TypeTask, peewee.fn.SUM(Period.value).alias('passed'),
+            peewee.fn.MAX(Period.date).alias('max_date')
+        )
         .join_from(Task, Status)
         .join_from(Task, Worker)
         .join_from(Task, TypeTask)

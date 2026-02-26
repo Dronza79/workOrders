@@ -28,16 +28,27 @@ def get_sector_orders():
     ]]
 
 
+# def get_sector_tasks(code=''):
+#     heads = [
+#         '№', 'Тип работы', 'Статус', "Работник", 'Норма', 'Вып.', 'Номер ПР', 'Тип', 'Объект', "Название"]
+#     width_cols = [2, 8, 8, 10, 3, 3, 8, 11, 12, 12]
+#     return [[
+#         sg.Table(
+#             values=[], headings=heads, key=code,
+#             col_widths=width_cols,
+#             font='_ 12',
+#             **table_setting)
+#     ]]
 def get_sector_tasks(code=''):
     heads = [
         '№', 'Тип работы', 'Статус', "Работник", 'Норма', 'Вып.', 'Номер ПР', 'Тип', 'Объект', "Название"]
-    width_cols = [2, 8, 8, 10, 3, 3, 8, 11, 12, 12]
+    width_cols = [2, 6, 6, 12, 3, 3, 6, 6, 18, 15]
     return [[
-        sg.Table(
-            values=[], headings=heads, key=code,
+        sg.Tree(
+            data=sg.TreeData(), headings=heads, key='-TREE' + code,
             col_widths=width_cols,
             font='_ 12',
-            **table_setting)
+            **tree_setting)
     ]]
 
 
