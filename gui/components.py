@@ -383,9 +383,9 @@ def get_card_order(data):
             ]
 
 
-def vacancy_layout(data=None):
+def vacancy_layout():
     return [
-        [sg.T('Название:'), sg.I(s=20, k='post'), sg.I(k='id', visible=False)],
+        [sg.T('Название:'), sg.I(s=20, k='post'), sg.I(k='vac_id', visible=False)],
         [
             sg.Col([
                 [sg.Checkbox('Подчиненый', k='is_slave')],
@@ -404,7 +404,7 @@ def reg_tab_layout(vacancy, status, type_task, **reg_data):
     return [
         [sg.Frame('Должности:', [[sg.Col([
             [sg.Listbox(vacancy, s=(20, 7), k='VAC', )],
-            [sg.B('Изменить', key='ALT', expand_x=True),],
+            [sg.B('Изменить', key='ALT', expand_x=True)],
         ]),
             sg.Col([
                 [sg.Frame('', vacancy_layout(), vertical_alignment='top', key='title_vac')],

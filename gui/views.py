@@ -5,7 +5,7 @@ from database.damp_db import create_dump_db, restore_from_dump
 from database.migrations import change_database, get_program_setting
 from database.queries import *
 from database.settings import path
-from database.utils import validation_data, validation_period_data
+from database.utils import validation_data, validation_period_data, validation_vacancy_data
 from tablesExcel.processor import get_personal_table_result, get_month_timesheet, get_month_kpi
 from .components import (
     get_card_worker, get_card_task,
@@ -198,6 +198,8 @@ class StartWindowCard:
 
 
 class MenuSettingsWindow:
+    VAC_FIELD = ['post', 'vac_id', 'is_slave', 'is_mounter', 'is_checked', 'is_staff', 'is_fitter', 'is_store']
+
     def __init__(self):
         self.window = get_menu_setting_window()
         self.event = None
@@ -210,18 +212,33 @@ class MenuSettingsWindow:
             print(f'MenuSettingsWindow {self.event=} {self.value=}')
             if self.event in ['-CANCEL-', sg.WIN_CLOSED]:
                 break
+
             elif self.event == 'ALT' and self.value['VAC']:
                 for key, value in self.value['VAC'][0].__data__.items():
+                    key = key if key != 'id' else 'vac_id'
                     self.window[key].update(value)
                 self.window['DEL'].update(disabled=False)
-            elif self.event == 'CLEAR' and self.value['VAC']:
-                for key, value in self.value['VAC'][0].__data__.items():
-                    self.window[key].update('')
-                self.window['VAC'].update(set_to_index=[])
-                # sg.Listbox().s
-                self.window['DEL'].update(disabled=True)
+
+            elif self.event == 'CLEAR':
+                self.clear_fields()
+
+            elif self.event in ['SAVE', 'DEL']:
+                valid_data = validation_vacancy_data(self.value)
+                list_vac = request_post_vacancy(delete=bool(self.event == 'DEL'), **valid_data)
+                self.window['VAC'].update(list_vac)
+                self.clear_fields()
+
+            elif self.event == 'TG' and self.value[self.event] == 'ADM':
+                if not popup_inter_pass():
+                    self.window["REG"].select()
+
         self.window.close()
 
+    def clear_fields(self):
+        for key in self.VAC_FIELD:
+            self.window[key].update('')
+        self.window['VAC'].update(set_to_index=[])
+        self.window['DEL'].update(disabled=True)
 
 
 class StartMainWindow:

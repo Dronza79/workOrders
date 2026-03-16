@@ -58,18 +58,28 @@ def get_menu_setting_window():
     layout = [[
         sg.TabGroup([[
             sg.Tab('Учетные  ', reg_tab_layout(**reg_data), key="REG", **param_tab),
-            sg.Tab('Системные', [[]], key='SYS', **param_tab)
-        ]], **param_grouptab)
+            sg.Tab('Системные', [[]], key='SYS', **param_tab),
+            sg.Tab('Адм.     ', [[]], key='ADM', **param_tab)  # тут удаленные (скрытые вещи)
+        ]], key='TG', **param_grouptab)
     ]]
     return sg.Window(
         'Параметры', layout,
         # resizable=True,
         finalize=True,
         keep_on_top=True,
-        return_keyboard_events=True,
+        # return_keyboard_events=True,
         icon=logo_b,
         margins=(0, 0),
     )
+
+
+def popup_inter_pass():
+    layout = [
+        [sg.I(password_char='*', font='courier', key='PASS')],
+        [sg.Push(), sg.B('OK'), sg.Push()]
+    ]
+    ev, val = sg.Window('', layout, finalize=True, keep_on_top=True, modal=True).read(close=True)
+    return val['PASS'] == '1102'
 
 
 def get_card_window(form):

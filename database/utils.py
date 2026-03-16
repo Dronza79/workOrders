@@ -178,3 +178,10 @@ def remove_duplicate_period_date(query_list):
     for period in query_list:
         d[period.date] = period
     return list(d.values())
+
+
+def validation_vacancy_data(raw_data):
+    result = {}
+    for key in ['post', 'vac_id', 'is_slave', 'is_mounter', 'is_checked', 'is_staff', 'is_fitter', 'is_store']:
+        result[key] = raw_data.get(key)
+    return result

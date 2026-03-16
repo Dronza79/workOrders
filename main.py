@@ -17,14 +17,14 @@ def main():
         apply_migrations()
     migrations_v2_0_0()
     setting: ProgramSetting = get_program_setting()
-    setting.version = '1.6.0'
+    setting.version = '1.7.0'
     if not setting.theme:
         setting.theme = 'Default1'
     sg.theme(setting.theme)
     StartMainWindow()
 
 
-# TODO 
+# TODO
 # [*]    Выбор года вывода данных в таблицу
 # [*]    Добавить вывод таблицы KPI (Ключевые показатели эффективности)
 # [*]    ДОбавить переключение на другой файл базы данных, создание дампа для MySQL
@@ -33,8 +33,6 @@ def main():
 # []	Добавить возможность заведения своих должностей
 # []    Добавить авторизацию по логину и паролю
 # []    ДОбавить возможность выбирать несколько ПРок в в выполняемую задачу
-
-
 
 if __name__ == '__main__':
     main()

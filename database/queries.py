@@ -347,3 +347,15 @@ def get_query_reg():
         'type_task': TypeTask.select(
             TypeTask.id, TypeTask.title, TypeTask.has_extension).where(TypeTask.is_active)
     }
+
+
+def request_post_vacancy(vac_id, delete=False, **valid_data):
+    print(f'{valid_data=}')
+    if not vac_id:
+        Vacancy.create(**valid_data)
+    elif delete:
+        Vacancy.update(is_active=False).where(Vacancy.id == vac_id).execute()
+    else:
+        Vacancy.update(**valid_data).where(Vacancy.id == vac_id).execute()
+    return get_query_reg()['vacancy']
+
