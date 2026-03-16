@@ -2,7 +2,8 @@ from .templates_settings import *
 
 
 def get_sector_workers(code=''):
-    heads = ['№ п/п', 'Фамилия имя отчество', 'Таб.номер', 'Орд.', 'Должность', 'Работа', 'Номер ПР', 'Норматив', 'Отработано']
+    heads = ['№ п/п', 'Фамилия имя отчество', 'Таб.номер', 'Орд.', 'Должность', 'Работа', 'Номер ПР', 'Норматив',
+             'Отработано']
     width_cols = [4, 30, 10, 4, 16, 10, 10, 7, 7]
     return [[
         sg.Table(
@@ -380,3 +381,40 @@ def get_card_order(data):
         ]], pad=10)]], **frame_setting)
     ]] + table, pad=0))
             ]
+
+
+def vacancy_layout(data=None):
+    return [
+        [sg.T('Название:'), sg.I(s=20, k='post'), sg.I(k='id', visible=False)],
+        [
+            sg.Col([
+                [sg.Checkbox('Подчиненый', k='is_slave')],
+                [sg.Checkbox('Монтаж', k='is_mounter')],
+                [sg.Checkbox('Приемка', k='is_checked')]
+            ]),
+            sg.Col([
+                [sg.Checkbox('Персонал', k='is_staff')],
+                [sg.Checkbox('Сборка', k='is_fitter')],
+                [sg.Checkbox('Склад', k='is_store')], ]
+            )],
+    ]
+
+
+def reg_tab_layout(vacancy, status, type_task, **reg_data):
+    return [
+        [sg.Frame('Должности:', [[sg.Col([
+            [sg.Listbox(vacancy, s=(20, 7), k='VAC', )],
+            [sg.B('Изменить', key='ALT', expand_x=True),],
+        ]),
+            sg.Col([
+                [sg.Frame('', vacancy_layout(), vertical_alignment='top', key='title_vac')],
+                [
+                    sg.B('Сохранить', key='SAVE', expand_x=True),
+                    sg.B('Удалить', key='DEL', expand_x=True, disabled=True),
+                    sg.B('Отмена', expand_x=True, k='CLEAR')
+                ]
+            ])
+        ]])],
+        [sg.Frame('Работы:', [[]])],
+        [sg.Frame('Состояния:', [[]])],
+    ]

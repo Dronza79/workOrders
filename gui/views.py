@@ -197,6 +197,33 @@ class StartWindowCard:
         self.window.refresh()
 
 
+class MenuSettingsWindow:
+    def __init__(self):
+        self.window = get_menu_setting_window()
+        self.event = None
+        self.value = None
+        self.run()
+
+    def run(self):
+        while True:
+            self.event, self.value = self.window.read()
+            print(f'MenuSettingsWindow {self.event=} {self.value=}')
+            if self.event in ['-CANCEL-', sg.WIN_CLOSED]:
+                break
+            elif self.event == 'ALT' and self.value['VAC']:
+                for key, value in self.value['VAC'][0].__data__.items():
+                    self.window[key].update(value)
+                self.window['DEL'].update(disabled=False)
+            elif self.event == 'CLEAR' and self.value['VAC']:
+                for key, value in self.value['VAC'][0].__data__.items():
+                    self.window[key].update('')
+                self.window['VAC'].update(set_to_index=[])
+                # sg.Listbox().s
+                self.window['DEL'].update(disabled=True)
+        self.window.close()
+
+
+
 class StartMainWindow:
     tree_tasks = {}
     table = {
@@ -209,9 +236,7 @@ class StartMainWindow:
     mapping = {
         '-WRK-': '-WORKERS-',
         '-DSMS-': '-DISMISS-',
-        # '-TSK-': '-TASKS-',
         '-TSK-': '-TREE-TASKS-',
-        # '-CLS-': '-CLOSE-',
         '-CLS-': '-TREE-CLOSE-',
         '-ORD-': '-ORDERS-'
     }
@@ -238,7 +263,7 @@ class StartMainWindow:
                 self.actualizing()
             elif isinstance(ev, tuple) and ev[2][0] == -1:
                 self.sorting_list(ev[0], ev[2][1])
-            # elif value or ev in ['-CLOSE-', '-ADD-']:
+
             elif (value and ev == '\r') or ev in ['-CLOSE-', '-ADD-']:
                 if table_key not in ['-TREE-TASKS-', '-TREE-CLOSE-']:
                     idx = self.table[table_key][val[table_key].pop()][-1] if val.get(table_key) else None
@@ -248,12 +273,16 @@ class StartMainWindow:
                     idx=idx if idx else None,
                     key=val.get('-TG-'),
                     parent=self.window)
-                # self.actualizing()
+
             elif ev == '-THEME-':
                 if sg.main_global_pysimplegui_settings():
                     self.window.close()
                     get_program_setting().theme = sg.theme()
                     StartMainWindow()
+
+            elif ev == '-PARAM-':
+                MenuSettingsWindow()
+
             elif ev in ['-EXEL-', '-MONTH-', '-KPI-']:
                 self.window.keep_on_top_clear()
                 inter_func = popup_choice_worker_for_exel if ev == '-EXEL-' else popup_choice_month_for_exel

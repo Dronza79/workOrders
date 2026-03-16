@@ -1,9 +1,9 @@
 import datetime
 
 from database.models import Month
-from database.queries import get_all_workers, get_workers_for_list, get_list_years
+from database.queries import get_all_workers, get_workers_for_list, get_list_years, get_query_reg
 from database.utils import validation_data_for_exel
-from .components import get_sector_workers, get_sector_tasks, get_sector_orders
+from .components import get_sector_workers, get_sector_tasks, get_sector_orders, reg_tab_layout
 from .templates_settings import *
 
 
@@ -53,6 +53,25 @@ def get_main_window():
                      )
 
 
+def get_menu_setting_window():
+    reg_data = get_query_reg()
+    layout = [[
+        sg.TabGroup([[
+            sg.Tab('Учетные  ', reg_tab_layout(**reg_data), key="REG", **param_tab),
+            sg.Tab('Системные', [[]], key='SYS', **param_tab)
+        ]], **param_grouptab)
+    ]]
+    return sg.Window(
+        'Параметры', layout,
+        # resizable=True,
+        finalize=True,
+        keep_on_top=True,
+        return_keyboard_events=True,
+        icon=logo_b,
+        margins=(0, 0),
+    )
+
+
 def get_card_window(form):
     title = (
         'Карточка работника' if form in ['-WRK-', '-DSMS-']
@@ -60,20 +79,20 @@ def get_card_window(form):
         else "Карточка заказа"
     )
     rbm = ['', ['Осторожно!...', [f'Удалить{sg.MENU_KEY_SEPARATOR}-DELETE-']]]
-    layout = [[#sg.Frame('', [
+    layout = [[  # sg.Frame('', [
         # [
-            # sg.Titlebar(title, icon=logo_w, **title_bar_setting)
+        # sg.Titlebar(title, icon=logo_w, **title_bar_setting)
         # ], [
-            sg.Col([], key='body', expand_y=True)
-            # ], [sg.VPush()
-        ], [
-            sg.Push(),
-            sg.Button('Сохранить', key='-SAVE-', focus=True, bind_return_key=True, pad=((0, 5), (10, 10))),
-            sg.Button('Отменить', key='-CANCEL-', pad=((5, 0), (10, 10))),
-            sg.Push(),
-        ], [sg.Push(), sg.Sizegrip()]
-    # ], **frame_padding_0_setting)
-               ]#]
+        sg.Col([], key='body', expand_y=True)
+        # ], [sg.VPush()
+    ], [
+        sg.Push(),
+        sg.Button('Сохранить', key='-SAVE-', focus=True, bind_return_key=True, pad=((0, 5), (10, 10))),
+        sg.Button('Отменить', key='-CANCEL-', pad=((5, 0), (10, 10))),
+        sg.Push(),
+    ], [sg.Push(), sg.Sizegrip()]
+        # ], **frame_padding_0_setting)
+    ]  # ]
     return sg.Window(title, layout,
                      resizable=True,
                      return_keyboard_events=True,
@@ -155,8 +174,8 @@ def popup_choice_worker_for_exel(parent):
                 sg.T('Отчетный период:', font='_ 10'),
                 sg.Push(),
                 sg.Combo([Month(num) for num in range(1, 13)],
-                    default_value=Month(datetime.datetime.now().month),
-                    key='-month-', **drop_down_read_only_setting),
+                         default_value=Month(datetime.datetime.now().month),
+                         key='-month-', **drop_down_read_only_setting),
                 sg.Combo(list_years, default_value=list_years[-1],
                          key='-year-', **drop_down_read_only_setting),
             ], [
@@ -168,7 +187,7 @@ def popup_choice_worker_for_exel(parent):
             ]], pad=15, vertical_alignment='center')]], **frame_setting)
     ]]
     window = sg.Window('Отчет Exel...', layout, finalize=True, modal=True, grab_anywhere=True,
-                       return_keyboard_events=True, margins=(0, 0), #no_titlebar=True,
+                       return_keyboard_events=True, margins=(0, 0),  # no_titlebar=True,
                        )
     move_window(parent, window)
     while True:
@@ -201,8 +220,8 @@ def popup_choice_month_for_exel(parent):
                 sg.T('Отчетный месяц:', font='_ 10'),
                 sg.Push(),
                 sg.Combo([Month(num) for num in range(1, 13)],
-                    default_value=Month(datetime.datetime.now().month),
-                    key='-MONTH-', **drop_down_read_only_setting),
+                         default_value=Month(datetime.datetime.now().month),
+                         key='-MONTH-', **drop_down_read_only_setting),
             ], [
                 sg.T('Отчетный год:', font='_ 10'),
                 sg.Push(),
@@ -217,7 +236,7 @@ def popup_choice_month_for_exel(parent):
         ]], **frame_padding_0_setting)
     ]]
     window = sg.Window('Отчет Exel...', layout, finalize=True, modal=True,
-                       return_keyboard_events=True, margins=(0, 0), #no_titlebar=True,
+                       return_keyboard_events=True, margins=(0, 0),  # no_titlebar=True,
                        )
     move_window(parent, window)
     while True:

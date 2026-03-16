@@ -22,7 +22,7 @@ MENU_BD = [
 
 MENU_SETTINGS = [
     f'Выбрать тему...::-THEME-',
-    f'Параметры...::-SETTING-',
+    f'Параметры...::-PARAM-',
 ]
 
 MENU_RIGHT_MOUSE = [
@@ -347,6 +347,45 @@ get_data_popup_setting = {
     'modal': True,
     'keep_on_top': True,
     'margins': (0, 0)
+}
+
+param_grouptab = {
+    'tab_location': 'lefttop',
+    # title_color: str = None,
+    # tab_background_color: str = None,
+    # selected_title_color: str = None,
+    # selected_background_color: str = None,
+    # background_color: str = None,
+    # focus_color: str = None,
+    'font': 'courier 10',
+    'enable_events': True,
+    'pad': 0,
+    # border_width: int = None,
+    # tab_border_width: int = None,
+    # key: Union[str, int, tuple, object] = None,
+    # 'size': (150, 150),
+    # tooltip: str = None,
+    # right_click_menu: List[List[Union[List[str], str]]] = None,
+    # expand_x: bool = False,
+    # expand_y: bool = False,
+    # visible: bool = True,
+}
+
+param_tab = {
+    # title_color: str = None,
+    # background_color: str = None,
+    # pad: Union[Tuple[int, int], Tuple[Tuple[int, int], Tuple[int, int]], Tuple[int, Tuple[int, int]], Tuple[Tuple[int, int], int], int] = None,
+    # disabled: bool = False,
+    # border_width: int = None,
+    # key: Union[str, int, tuple, object] = None,
+    # tooltip: str = None,
+    # right_click_menu: List[List[Union[List[str], str]]] = None,
+    # expand_x: bool = False,
+    # expand_y: bool = False,
+    # visible: bool = True,
+    # element_justification: str = 'left',
+    # image_source: Union[str, bytes, None] = None,
+    # image_subsample: int = None,
 }
 
 # logo_w = b'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAOwgAADsIBFShKgAAAABl0RVh0U29mdHdhcmUAcGFpbnQubmV0IDQuMC4xOdTWsmQAAASfSURBVFhH3Zd7iFVVFIfnYTZkYZkZaE1FY4GkqJRpETIkSNGDpJQwkoqSIAIhKILKLKN/+sOo6MVQRC8KhEpIIyJ6kGWQGVaYlQpWvl9Zvmb6vn3WOfecuffaWNIf/eBjr73W3nudu89+nNvyv1VfX98xvb29p8OdMId6e4T+vRjwBAYcGgyGtgiZuJX4hfAsbKDeR/kxRUc0OTLR0V8yGm6El+Ar2AY7YQ98BxfRrp2yC3pgL6hN8AnMIH4c5SjbxdB/LzqMg8XwC/TSuSJcb8N5cCzcCxvD7wM8DGOodsBt2B/BWuzxMXxz0WgojR+g3AF1IuYvvw/T6Z4AS0FthefhDDgZboY1Wa8kx+uMNI1Fg+Pp9BYcSl36Cf9vFNPAKZ0Lm+EgfAkTw38FfKM/+igfeiHVdol0VdHAp15ip0Yitg6mYJ5E+Vz4DsAjmM6aa+Bl+NOYwt4PL0I3OP5N8BRMjrSZaOsiehLq3rXC/QO4GM+BL0A5G9eBv/pqSKteYZt4OVwMI+AO+BnyWbk7UmfCcSUcSL37Cf8uivGUU8CFpG89nA8uwCdgr36F7azMw3SmpoI7pzI29bGROiUfAu9FrCL8u+AymA7bw7cKnImzYGlqGKL+GeSv6UHYnUVqij61dYDDlbw/C9eE7xDcBc7OzvC5qjspL4ANkF4ZhVP+DKaJR8IH0Gjr7obpkToTjkURrwj/a+Di2RT17eBr8IF+TY0QtttvLmYH5eXwUxapF7GnKQZF6uKk+z5FS8Lnr5uKmc4CbA8Xt9e1sEefwnYtXIo5mPJ2KO+AP8CTsJgJzBsidSYco2BLxJOiwz0UH2ae5HscTL45XPrWwIQYx/ddPJii/iPFmWU/dk9KnAuHx2XlxLMjvBtVtYK673xb1G2zEkZjerDMxy5WObZaC5dEjhmQ1gtyAbam5ArHWEgLLBf1LZDv160U0yjLe/xrik7w7HgM9qUAwnYLvoppPCWibMN3NizGXgG1NYCz7gHKIvYOlF/F53Cafan6morkufB5Uy6BrsgxBpaBO8Crubi+DfpkxdSWhf93MGG6Fyh9512Y/vJbodHWdUesCtvXNAxWpyDCfjNSZ8LnGV5sqbLwe8nkyX0F6SrF9tzw1VSEzwvJ2zCNR+nie4GyuNiwF6TEZeFsegEp4h4yM21L1dtyZRYptAPfK7AIKrco9fIWVN0paVk4rzcS7SoK/3xIC4rqLZAvUGfIY3kmvA9166Es4p4Zw1LSsogNJ5Aumf7Cb4IR0a4N3HLuEo9aPzh9oOIdH06066Go7YBcON0mD0FlFqyjWdEsCbfHrff6ueDn2mF/dS7auaAnxjD1Iuig30b7JOpO2ZBokoTbi8h3ne6HgYr298cQzUWjSVA+7Uzid4Df916xj+qDhuulmWjuqXpipGkuGvkqroLyheI3nzNRd68PRPT7FE6NFAMT/Tx6K6/jSEV/t+7rMDKGHbjo7+f2KeDHoyu+4RdyI9F2H/jxOpvqP/s3lIsBWsE14J8O7/WmK57YRngDZkPatkdNjO+DDGJgt941MA8WgA/mf4Nu4v5PPHp/QP8btbT8Bcysd8LaK8+vAAAAAElFTkSuQmCC'

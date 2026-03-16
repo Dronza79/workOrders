@@ -93,7 +93,7 @@ def get_worker_data(idx=None):
         person = None
         tasks = None
     return {
-        'func_position': Vacancy.select(),
+        'func_position': Vacancy.select().where(Vacancy.is_active),
         'worker': person,
         'tasks': tasks
     }
@@ -332,3 +332,18 @@ def get_query_kpi(month: Month):
     )
 
     return query
+
+
+def get_query_reg():
+    return {
+        'vacancy': Vacancy.select(
+            Vacancy.id, Vacancy.post, Vacancy.is_slave,
+            Vacancy.is_staff, Vacancy.is_mounter,
+            Vacancy.is_fitter, Vacancy.is_checked, Vacancy.is_store
+        ).where(Vacancy.is_active),
+        'status': Status.select(
+            Status.id, Status.state, Status.is_positive,
+            Status.is_archived).where(Status.is_active),
+        'type_task': TypeTask.select(
+            TypeTask.id, TypeTask.title, TypeTask.has_extension).where(TypeTask.is_active)
+    }
