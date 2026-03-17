@@ -237,11 +237,15 @@ class MenuSettingsWindow:
                 self.clear_fields(entity)
 
             elif self.event == 'TG' and self.value[self.event] == 'ADM':
-                # print(f'{self.window["secret"].visible=}')
                 if not self.window['secret'].visible and not popup_inter_pass():
                     self.window["REG"].select()
                 else:
                     self.window['secret'].update(visible=True)
+
+            elif self.event == 'theme':
+                sg.theme(self.value[self.event][0])
+                self.window.close()
+                self.window = get_menu_setting_window()
 
         self.window.close()
 
@@ -302,14 +306,17 @@ class StartMainWindow:
                     key=val.get('-TG-'),
                     parent=self.window)
 
-            elif ev == '-THEME-':
-                if sg.main_global_pysimplegui_settings():
-                    self.window.close()
-                    get_program_setting().theme = sg.theme()
-                    StartMainWindow()
+            # elif ev == '-THEME-':
+            #     if sg.main_global_pysimplegui_settings():
+            #         self.window.close()
+            #         get_program_setting().theme = sg.theme()
+            #         StartMainWindow()
 
             elif ev == '-PARAM-':
                 MenuSettingsWindow()
+                self.window.close()
+                get_program_setting().theme = sg.theme()
+                StartMainWindow()
 
             elif ev in ['-EXEL-', '-MONTH-', '-KPI-']:
                 self.window.keep_on_top_clear()

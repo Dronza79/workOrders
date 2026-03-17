@@ -17,7 +17,7 @@ def main():
         apply_migrations()
     migrations_v2_0_0()
     setting: ProgramSetting = get_program_setting()
-    setting.version = '1.8.0'
+    setting.version = '1.8.1'
     if not setting.theme:
         setting.theme = 'Default1'
     sg.theme(setting.theme)
