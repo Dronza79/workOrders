@@ -1,3 +1,4 @@
+from database.models import ProgramSetting
 from .templates_settings import *
 
 
@@ -383,38 +384,52 @@ def get_card_order(data):
             ]
 
 
-def vacancy_layout():
-    return [
-        [sg.T('Название:'), sg.I(s=20, k='post'), sg.I(k='vac_id', visible=False)],
-        [
-            sg.Col([
-                [sg.Checkbox('Подчиненый', k='is_slave')],
-                [sg.Checkbox('Монтаж', k='is_mounter')],
-                [sg.Checkbox('Приемка', k='is_checked')]
-            ]),
-            sg.Col([
-                [sg.Checkbox('Персонал', k='is_staff')],
-                [sg.Checkbox('Сборка', k='is_fitter')],
-                [sg.Checkbox('Склад', k='is_store')], ]
-            )],
-    ]
+def frame_layout_entity(name_field, check_field, idx, **kwargs):
+    layout = [[sg.T(f'{name_field[1]}:'), sg.I(s=20, k=name_field[0]), sg.I(k=idx, visible=False)]]
+    middle = len(check_field) // 2
+    layout += [[
+        sg.Col([[sg.Checkbox(text, k=key)] for key, text in check_field[:middle]]),
+        sg.Col([[sg.Checkbox(text, k=key)] for key, text in check_field[middle:]]),
+    ]]
+
+    return layout
+
+
+def local_layout_for_entity(query, listbox, **entity):
+    return [[
+        sg.Col([
+            [sg.Listbox(query, s=(20, 5), k=listbox, )],
+            [sg.B('Изменить', key=f'ALT_{listbox}', expand_x=True)],
+        ], vertical_alignment='top'),
+        sg.Col([
+            [sg.Frame('', frame_layout_entity(**entity), vertical_alignment='top')],
+            [
+                sg.B('Сохранить', key=f'SAVE_{listbox}', expand_x=True),
+                sg.B('Удалить', key=f'DEL_{listbox}', expand_x=True, disabled=True),
+                sg.B('Отмена', expand_x=True, k=f'CLEAR_{listbox}')
+            ]
+        ], vertical_alignment='top')]]
 
 
 def reg_tab_layout(vacancy, status, type_task, **reg_data):
     return [
-        [sg.Frame('Должности:', [[sg.Col([
-            [sg.Listbox(vacancy, s=(20, 7), k='VAC', )],
-            [sg.B('Изменить', key='ALT', expand_x=True)],
-        ]),
-            sg.Col([
-                [sg.Frame('', vacancy_layout(), vertical_alignment='top', key='title_vac')],
-                [
-                    sg.B('Сохранить', key='SAVE', expand_x=True),
-                    sg.B('Удалить', key='DEL', expand_x=True, disabled=True),
-                    sg.B('Отмена', expand_x=True, k='CLEAR')
-                ]
-            ])
-        ]])],
-        [sg.Frame('Работы:', [[]])],
-        [sg.Frame('Состояния:', [[]])],
+        [sg.Frame('Должности:', local_layout_for_entity(**vacancy))],
+        [sg.Frame('Работы:', local_layout_for_entity(**type_task))],
+        [sg.Frame('Состояния:', local_layout_for_entity(**status))],
     ]
+
+
+def sys_tab_layout(ps: ProgramSetting):
+    return [[sg.Col([
+        [sg.T('Версия программы:'), sg.T(ps.version)],
+        [sg.T('Название организации'), sg.Push(), sg.I(ps.org, s=25, k=type(ps).org.name)],
+        [sg.T('Название подразделения'), sg.Push(), sg.I(ps.div, s=25, k=type(ps).div.name)],
+        [sg.T('Должность ответственного за учет'), sg.Push(), sg.I(ps.resp_post, s=25, k=type(ps).resp_post.name)],
+        [sg.T('Фамилия и инициалы ответственного'), sg.Push(), sg.I(ps.resp_name, s=25, k=type(ps).resp_name.name)],
+        [sg.T('Должность руководителя подразделения'), sg.Push(), sg.I(ps.head_post, s=25, k=type(ps).head_post.name)],
+        [sg.T('Фамилия и инициалы руководителя'), sg.Push(), sg.I(ps.head_name, s=25, k=type(ps).head_name.name)],
+        [sg.Frame(
+            'Выбрать тему оформления',
+            [[sg.Listbox(sg.theme_list(), key='theme', enable_events=True, s=(20, 10), default_values=[sg.theme()])]]
+        )],
+    ])]]

@@ -5,7 +5,7 @@ from database.damp_db import create_dump_db, restore_from_dump
 from database.migrations import change_database, get_program_setting
 from database.queries import *
 from database.settings import path
-from database.utils import validation_data, validation_period_data, validation_vacancy_data
+from database.utils import validation_data, validation_period_data, validation_param_data
 from tablesExcel.processor import get_personal_table_result, get_month_timesheet, get_month_kpi
 from .components import (
     get_card_worker, get_card_task,
@@ -198,12 +198,16 @@ class StartWindowCard:
 
 
 class MenuSettingsWindow:
-    VAC_FIELD = ['post', 'vac_id', 'is_slave', 'is_mounter', 'is_checked', 'is_staff', 'is_fitter', 'is_store']
+    CLEARFILD = {
+        'VAC': ['post', 'vac_id', 'is_slave', 'is_mounter', 'is_checked', 'is_staff', 'is_fitter', 'is_store'],
+        'TYPE': ['title', 'type_id', 'has_extension'],
+        'STATUS': ['state', 'status_id', 'is_positive', 'is_archived'],
+    }
 
     def __init__(self):
         self.window = get_menu_setting_window()
-        self.event = None
-        self.value = None
+        self.event: str = ''
+        self.value: dict = {}
         self.run()
 
     def run(self):
@@ -213,32 +217,39 @@ class MenuSettingsWindow:
             if self.event in ['-CANCEL-', sg.WIN_CLOSED]:
                 break
 
-            elif self.event == 'ALT' and self.value['VAC']:
-                for key, value in self.value['VAC'][0].__data__.items():
-                    key = key if key != 'id' else 'vac_id'
-                    self.window[key].update(value)
-                self.window['DEL'].update(disabled=False)
+            elif self.event.startswith('ALT') and self.value[self.event.replace('ALT_', '')]:
+                entity = self.event.replace('ALT_', '')
+                for key, value in self.value[entity][0].__data__.items():
+                    key = key if key != 'id' else f"{entity.lower()}_id"
+                    if key in self.value:
+                        self.window[key].update(value)
+                self.window[f'DEL_{entity}'].update(disabled=False)
 
-            elif self.event == 'CLEAR':
-                self.clear_fields()
+            elif self.event.startswith('CLEAR'):
+                entity = self.event.replace('CLEAR_', '')
+                self.clear_fields(entity)
 
-            elif self.event in ['SAVE', 'DEL']:
-                valid_data = validation_vacancy_data(self.value)
-                list_vac = request_post_vacancy(delete=bool(self.event == 'DEL'), **valid_data)
-                self.window['VAC'].update(list_vac)
-                self.clear_fields()
+            elif self.event.startswith('SAVE') or self.event.startswith('DEL'):
+                entity = self.event.split('_')[1]
+                valid_data = validation_param_data(entity, self.value)
+                list_vac = request_post_reg_data(delete=self.event.startswith('DEL'), **valid_data)
+                self.window[entity].update(list_vac)
+                self.clear_fields(entity)
 
             elif self.event == 'TG' and self.value[self.event] == 'ADM':
-                if not popup_inter_pass():
+                # print(f'{self.window["secret"].visible=}')
+                if not self.window['secret'].visible and not popup_inter_pass():
                     self.window["REG"].select()
+                else:
+                    self.window['secret'].update(visible=True)
 
         self.window.close()
 
-    def clear_fields(self):
-        for key in self.VAC_FIELD:
+    def clear_fields(self, entity):
+        for key in self.CLEARFILD[entity]:
             self.window[key].update('')
-        self.window['VAC'].update(set_to_index=[])
-        self.window['DEL'].update(disabled=True)
+        self.window[entity].update(set_to_index=[])
+        self.window[f'DEL_{entity}'].update(disabled=True)
 
 
 class StartMainWindow:
@@ -377,15 +388,15 @@ class StartMainWindow:
         for i, worker in enumerate(lst_workers, start=1):
             formatted_data = (
                 i,
-                f'{worker.surname} {worker.name} {worker.second_name}',
-                worker.table_num,
-                worker.ordinal if worker.ordinal else dash,
-                worker.post,
-                worker.type_task if worker.type_task else dash,
-                f'ПР-{worker.order_num:06}' if worker.order_num else dash,
-                worker.dltask if worker.dltask else dash,
-                worker.sum_period if worker.sum_period else dash,
-                worker.id
+                f'{worker["surname"]} {worker["name"]} {worker["second_name"]}',
+                worker["table_num"],
+                worker["ordinal"] if worker["ordinal"] else dash,
+                worker["post"],
+                worker["type_task"] if worker["type_task"] else dash,
+                f'ПР-{worker["order_num"]:06}' if worker["order_num"] else dash,
+                worker["dltask"] if worker["dltask"] else dash,
+                worker["sum_period"] if worker["sum_period"] else dash,
+                worker["id"]
             )
             lst.append(formatted_data)
         return lst

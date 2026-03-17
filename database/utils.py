@@ -180,8 +180,14 @@ def remove_duplicate_period_date(query_list):
     return list(d.values())
 
 
-def validation_vacancy_data(raw_data):
+def validation_param_data(entity, raw_data):
+    d = {'VAC': Vacancy, 'TYPE': TypeTask, 'STATUS': Status}
     result = {}
-    for key in ['post', 'vac_id', 'is_slave', 'is_mounter', 'is_checked', 'is_staff', 'is_fitter', 'is_store']:
-        result[key] = raw_data.get(key)
+    model = type(raw_data[entity][0]) if raw_data[entity] else d[entity]
+    result['model'] = model
+    for key in model.__dict__:
+        if key == 'id':
+            result['model_id'] = raw_data[f'{entity.lower()}_id']
+        if key in raw_data:
+            result[key] = raw_data.get(key)
     return result

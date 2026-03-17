@@ -4,34 +4,38 @@ import peewee
 from peewee import fn, Case, JOIN
 
 from .models import (
-    Worker, Vacancy, Task, Status, Period, Order, TypeTask, Month
+    Worker, Vacancy, Task, Status, Period, Order, TypeTask, Month, ProgramSetting
 )
 
 now_date = dd.now()
 
 
 def get_subquery_worker(active=True):
-    return Worker.raw(
-        "SELECT "
-        "worker.id, worker.surname, worker.name, worker.second_name, worker.ordinal, "
-        "worker.table_num, vacancy.post, typetask.title AS type_task, "
-        "task.deadline AS dltask, 'order'.no AS order_num, sum(period.value) AS sum_period "
-        "FROM worker "
-        "JOIN vacancy ON worker.function_id = vacancy.id "
-        "LEFT JOIN ("
-        "SELECT *, row_number() OVER(PARTITION BY period.'worker_id' ORDER BY date DESC) AS rn "
-        "FROM period "
-        "JOIN task ON period.task_id = task.id "
-        "JOIN status ON task.status_id = status.id "
-        f"WHERE status.is_archived = 0 "
-        ") sub ON sub.'worker_id' = worker.id AND sub.rn = 1 "
-        "LEFT JOIN period ON period.task_id = sub.task_id "
-        "LEFT OUTER JOIN 'order' ON period.order_id = 'order'.id "
-        "LEFT JOIN task ON period.task_id = task.id "
-        "LEFT JOIN typetask ON task.is_type_id = typetask.id "
-        f"WHERE worker.is_active = {active} "
-        "GROUP BY worker.id "
-        "ORDER BY worker.ordinal, worker.surname, worker.name, worker.second_name"
+    sub_query = (
+        Period.select(
+            Period, Task,
+            fn.row_number().over(partition_by=[Period.worker], order_by=[Period.date.desc()]).alias('rn'))
+        .join(Task, on=(Period.task == Task.id))
+        .join(Status, on=(Task.status == Status.id))
+        .where(~Status.is_archived)
+        .cte('sub'))
+
+    return (
+        Worker.select(
+            Worker.id, Worker.surname, Worker.name, Worker.second_name, Worker.ordinal,
+            Worker.table_num, Vacancy.post, TypeTask.title.alias('type_task'), Task.deadline.alias('dltask'),
+            Order.no.alias('order_num'), fn.SUM(Period.value).alias('sum_period'))
+        .join(Vacancy, on=(Worker.function == Vacancy.id))
+        .join(sub_query, JOIN.LEFT_OUTER, on=((sub_query.c.worker_id == Worker.id) & (sub_query.c.rn == 1)))
+        .join(Period, JOIN.LEFT_OUTER, on=(Period.task == sub_query.c.task_id))
+        .join(Order, JOIN.LEFT_OUTER, on=(Period.order == Order.id))
+        .join(Task, JOIN.LEFT_OUTER, on=(Period.task == Task.id))
+        .join(TypeTask, JOIN.LEFT_OUTER, on=(Task.is_type == TypeTask.id))
+        .where(Worker.is_active == active)
+        .group_by(Worker.id)
+        .order_by(Worker.ordinal, Worker.surname, Worker.name, Worker.second_name)
+        .with_cte(sub_query)
+        .dicts()
     )
 
 
@@ -336,26 +340,62 @@ def get_query_kpi(month: Month):
 
 def get_query_reg():
     return {
-        'vacancy': Vacancy.select(
-            Vacancy.id, Vacancy.post, Vacancy.is_slave,
-            Vacancy.is_staff, Vacancy.is_mounter,
-            Vacancy.is_fitter, Vacancy.is_checked, Vacancy.is_store
-        ).where(Vacancy.is_active),
-        'status': Status.select(
-            Status.id, Status.state, Status.is_positive,
-            Status.is_archived).where(Status.is_active),
-        'type_task': TypeTask.select(
-            TypeTask.id, TypeTask.title, TypeTask.has_extension).where(TypeTask.is_active)
+        'vacancy': {
+            'query': Vacancy.select(
+                Vacancy.id, Vacancy.post, Vacancy.is_slave,
+                Vacancy.is_staff, Vacancy.is_mounter,
+                Vacancy.is_fitter, Vacancy.is_checked, Vacancy.is_store
+            ).where(Vacancy.is_active),
+            'name_field': ['post', 'Должность'],
+            'check_field': [
+                ['is_slave', 'Подчиненый'],
+                ['is_mounter', 'Монтажник'],
+                ['is_checked', 'Приемка'],
+                ['is_staff', 'Персонал'],
+                ['is_fitter', 'Сборщик'],
+                ['is_store', 'Склад']
+            ],
+            'idx': 'vac_id',
+            'listbox': 'VAC',
+        },
+        'status': {
+            'query': Status.select(
+                Status.id, Status.state, Status.is_positive,
+                Status.is_archived).where(Status.is_active),
+            'name_field': ['state', 'Состояние'],
+            'check_field': [
+                ['is_positive', 'Позитивно'],
+                ['is_archived', 'Завершено']
+            ],
+            'idx': 'status_id',
+            'listbox': 'STATUS',
+        },
+        'type_task': {
+            'query': TypeTask.select(
+                TypeTask.id, TypeTask.title, TypeTask.has_extension).where(TypeTask.is_active),
+            'name_field': ['title', 'Тип работы'],
+            'check_field': [
+                ['has_extension', 'Предусмотрена ПРка']
+            ],
+            'idx': 'type_id',
+            'listbox': 'TYPE',
+        }
     }
 
 
-def request_post_vacancy(vac_id, delete=False, **valid_data):
-    print(f'{valid_data=}')
-    if not vac_id:
-        Vacancy.create(**valid_data)
+def request_post_reg_data(model, model_id, delete=False, **valid_data):
+    print(f'{valid_data=}\n{model=}\n{delete=}')
+    if not model_id:
+        model.create(**valid_data)
     elif delete:
-        Vacancy.update(is_active=False).where(Vacancy.id == vac_id).execute()
+        model.update(is_active=False).where(model.id == model_id).execute()
     else:
-        Vacancy.update(**valid_data).where(Vacancy.id == vac_id).execute()
-    return get_query_reg()['vacancy']
+        model.update(**valid_data).where(model.id == model_id).execute()
+    return model.select().where(model.is_active)
 
+
+def get_query_sys():
+    return ProgramSetting.select(
+        ProgramSetting.major, ProgramSetting.minor, ProgramSetting.patch,
+        ProgramSetting.org, ProgramSetting.div, ProgramSetting.resp_post, ProgramSetting.resp_name,
+        ProgramSetting.head_post, ProgramSetting.head_name, ProgramSetting.m_theme).get()

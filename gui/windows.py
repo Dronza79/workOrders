@@ -1,9 +1,9 @@
 import datetime
 
 from database.models import Month
-from database.queries import get_all_workers, get_workers_for_list, get_list_years, get_query_reg
+from database.queries import get_all_workers, get_workers_for_list, get_list_years, get_query_reg, get_query_sys
 from database.utils import validation_data_for_exel
-from .components import get_sector_workers, get_sector_tasks, get_sector_orders, reg_tab_layout
+from .components import get_sector_workers, get_sector_tasks, get_sector_orders, reg_tab_layout, sys_tab_layout
 from .templates_settings import *
 
 
@@ -43,31 +43,31 @@ def get_main_window():
             sg.Push(),
             sg.Sizegrip()
         ]]
-    return sg.Window('Учет работ ЭнергоЭра', layout,
-                     resizable=True,
-                     finalize=True,
-                     # keep_on_top=True,
-                     return_keyboard_events=True,
-                     right_click_menu=menu_right_button,
-                     icon=logo_b,
-                     )
+    return sg.Window(
+        'Учет работ ЭнергоЭра', layout,
+        resizable=True,
+        finalize=True,
+        return_keyboard_events=True,
+        right_click_menu=menu_right_button,
+        icon=logo_b,
+    )
 
 
 def get_menu_setting_window():
     reg_data = get_query_reg()
+    sys_data = get_query_sys()
     layout = [[
         sg.TabGroup([[
             sg.Tab('Учетные  ', reg_tab_layout(**reg_data), key="REG", **param_tab),
-            sg.Tab('Системные', [[]], key='SYS', **param_tab),
-            sg.Tab('Адм.     ', [[]], key='ADM', **param_tab)  # тут удаленные (скрытые вещи)
+            sg.Tab('Системные', sys_tab_layout(sys_data), key='SYS', **param_tab),
+            sg.Tab('Адм.     ', [[sg.Col([[sg.T('все все увидят что им не подложено')]], k='secret', visible=False)]],
+                   key='ADM', **param_tab)  # тут удаленные (скрытые вещи)
         ]], key='TG', **param_grouptab)
     ]]
     return sg.Window(
         'Параметры', layout,
-        # resizable=True,
         finalize=True,
         keep_on_top=True,
-        # return_keyboard_events=True,
         icon=logo_b,
         margins=(0, 0),
     )
@@ -75,11 +75,11 @@ def get_menu_setting_window():
 
 def popup_inter_pass():
     layout = [
-        [sg.I(password_char='*', font='courier', key='PASS')],
-        [sg.Push(), sg.B('OK'), sg.Push()]
+        [sg.I(password_char='*', s=10, font='courier', key='PASS', justification='c')],
+        [sg.B('OK', expand_x=True)],
     ]
     ev, val = sg.Window('', layout, finalize=True, keep_on_top=True, modal=True).read(close=True)
-    return val['PASS'] == '1102'
+    return val['PASS'] == '1102' if ev else None
 
 
 def get_card_window(form):
@@ -89,31 +89,24 @@ def get_card_window(form):
         else "Карточка заказа"
     )
     rbm = ['', ['Осторожно!...', [f'Удалить{sg.MENU_KEY_SEPARATOR}-DELETE-']]]
-    layout = [[  # sg.Frame('', [
-        # [
-        # sg.Titlebar(title, icon=logo_w, **title_bar_setting)
-        # ], [
+    layout = [[
         sg.Col([], key='body', expand_y=True)
-        # ], [sg.VPush()
     ], [
         sg.Push(),
         sg.Button('Сохранить', key='-SAVE-', focus=True, bind_return_key=True, pad=((0, 5), (10, 10))),
         sg.Button('Отменить', key='-CANCEL-', pad=((5, 0), (10, 10))),
         sg.Push(),
     ], [sg.Push(), sg.Sizegrip()]
-        # ], **frame_padding_0_setting)
-    ]  # ]
-    return sg.Window(title, layout,
-                     resizable=True,
-                     return_keyboard_events=True,
-                     finalize=True,
-                     keep_on_top=True,
-                     right_click_menu=rbm,
-                     # margins=(10, 10),
-                     margins=(0, 0),
-                     icon=logo_b
-                     # modal=True
-                     )
+    ]
+    return sg.Window(
+        title, layout, resizable=True,
+        return_keyboard_events=True,
+        finalize=True,
+        keep_on_top=True,
+        right_click_menu=rbm,
+        margins=(0, 0),
+        icon=logo_b
+    )
 
 
 def move_window(parent, window):
@@ -154,15 +147,11 @@ def popup_get_period(parent, period=None):
            [sg.Exit('Отмена', key='-EXIT-', size=(10, 1))]
         ], pad=10)]], **frame_padding_0_setting)]]
     window = sg.Window('Добавить время', layout,
-                       # element_padding=((15, 15), (5, 10)),
-                       # no_titlebar=True,
                        **get_data_popup_setting)
     move_window(parent, window)
     window['-CB-'].calendar_location = window.current_location()
-    # result = window.read(close=True)
     while True:
         ev, result = window.read()
-        # print(f'popup_get_period() {ev=} {result=}')
         if ev in [sg.WIN_CLOSED, 'Escape:27', '-SAVE-PER-', '-DEL-PER-', '-EXIT-']:
             window.close()
             break
@@ -264,21 +253,17 @@ def popup_find_string(parent):
     ]], pad=5)]], **frame_padding_0_setting)]]
 
     window = sg.Window('Найти...', layout,
-                       # no_titlebar=True,
                        **get_data_popup_setting)
     move_window(parent, window)
-    # parent.alpha_channel = .95
     while True:
         button, values = window.read()
         print(f'{button=} {values=}')
-        # if button == 'OK':
         if button == '\r':
             search = values['-IN-']
             break
         elif button in ['Escape:27', 'Cancel']:
             search = None
             break
-    # parent.alpha_channel = 1.0
     window.close()
     return search
 
@@ -292,7 +277,6 @@ def popup_output():
     window = sg.Window('Отображение', layout, return_keyboard_events=True)
     while True:
         ev, val = window.read(timeout=100)
-        # print(f'popup_output {ev=}, {val=}')
         if ev == sg.WIN_CLOSED:
             break
         return

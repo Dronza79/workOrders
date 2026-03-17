@@ -42,6 +42,7 @@ class BaseModel(Model):
 
 
 class Vacancy(BaseModel):
+    id = AutoField()
     post = CharField(verbose_name='Должность')
     is_slave = BooleanField(default=True, verbose_name='Подчиненый')  # подчиненый
     is_staff = BooleanField(default=False, verbose_name='Персонал')  # персонал
@@ -75,8 +76,8 @@ class Worker(BaseModel):
 
 class Status(BaseModel):
     state = CharField(verbose_name='Наименование')
-    is_positive = BooleanField(default=True)
-    is_archived = BooleanField(default=False)
+    is_positive = BooleanField(default=True, verbose_name='Позитивно')
+    is_archived = BooleanField(default=False, verbose_name='Завершено')
 
     def __str__(self):
         return self.state
