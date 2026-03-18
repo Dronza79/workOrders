@@ -1,9 +1,6 @@
 import importlib
 
-from .models import (
-    Worker, Task, Period, Vacancy, Status, Order, TypeTask,
-    FUNC_VARIABLES, STATUS_VARIABLES, TYPE_VARIABLES, ProgramSetting
-)
+from .models import *
 from .settings import get_database
 
 models = (
@@ -30,31 +27,9 @@ def apply_migrations():
             TypeTask.insert_many(TYPE_VARIABLES).execute()
 
 
-# def reconnect_database():
-#     for model in models:
-#         model._meta.database.close()
-#         model._meta.database = get_database()
-#         model._meta.database.connect()
-
-
 def change_database():
     for model in importlib.import_module('database.models').models:
         model._meta.database = get_database()
-
-
-def get_program_setting():
-    setting, created = ProgramSetting.get_or_create(id=1, defaults={
-        'major': 1,
-        'minor': 1,
-        'patch': 0,
-        'org': 'ООО ЭНЕРГОЭРА',
-        'div': 'Участок электромонтажа',
-        'resp_post': '',
-        'resp_name': '',
-        'head_post': '',
-        'head_name': '',
-    })
-    return setting
 
 
 def migrations_v1_1_0():
@@ -74,7 +49,6 @@ def migrations_v1_1_0():
 
 
 def migrations_v2_0_0():
-
     db = get_database()
     try:
         from peewee import CharField

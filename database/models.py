@@ -210,19 +210,28 @@ class Month:
 
 
 class ProgramSetting(BaseModel):
-    major = SmallIntegerField(verbose_name='Версия несовместимых изменений')
-    minor = SmallIntegerField(verbose_name='Версия совместимых изменений и функциональности')
-    patch = SmallIntegerField(verbose_name='Версия исправления ошибок и обратной совместимости')
-    org = CharField(verbose_name='Название организации', column_name='organization', null=True)
-    div = CharField(verbose_name='Название подразделения', column_name='structure_division', null=True)
-    resp_post = CharField(verbose_name='Должность ответственного за учет', column_name='post_responsible', null=True)
-    resp_name = CharField(verbose_name='Фамилия и инициалы ответственного', column_name='name_responsible', null=True)
-    head_post = CharField(verbose_name='Должность руководителя подразделения', column_name='leader_post', null=True)
-    head_name = CharField(verbose_name='Фамилия и инициалы руководителя', column_name='leader_name', null=True)
+    major = SmallIntegerField(default=1, verbose_name='Версия несовместимых изменений')
+    minor = SmallIntegerField(default=1, verbose_name='Версия совместимых изменений и функциональности')
+    patch = SmallIntegerField(default=0, verbose_name='Версия исправления ошибок и обратной совместимости')
+    org = CharField(default='ООО ЭНЕРГОЭРА', verbose_name='Название организации', column_name='organization')
+    div = CharField(default='Участок электромонтажа', verbose_name='Название подразделения',
+                    column_name='structure_division')
+    resp_post = CharField(default='', verbose_name='Должность ответственного', column_name='post_responsible')
+    resp_name = CharField(default='', verbose_name='ФИО ответственного', column_name='name_responsible')
+    head_post = CharField(default='', verbose_name='Должность руководителя', column_name='leader_post')
+    head_name = CharField(default='', verbose_name='ФИО руководителя', column_name='leader_name', null=True)
     m_theme = CharField(verbose_name='Тема оформления')
-
     # username = CharField(verbose_name='Пользователь', unique=True)
     # password = CharField(verbose_name='Пароль авторизации')
+
+    @classmethod
+    def get_setting(cls):
+        obj, create = cls.get_or_create(id=1)
+        return obj
+
+    # @classmethod
+    # def get_presets(cls):
+    #     presets = ['org', 'div', 'resp_post', 'resp_name', 'head_post', 'head_name']
 
     @property
     def version(self):

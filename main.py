@@ -3,10 +3,10 @@ import locale
 from pathlib import Path
 
 from database.app_logger import add_logger_peewee
-from database.migrations import apply_migrations, get_program_setting, migrations_v2_0_0
+from database.migrations import apply_migrations, migrations_v2_0_0
 from database.models import ProgramSetting
 from database.settings import path
-from gui.views import StartMainWindow
+from gui.views import MainAppWindow
 
 
 # @add_logger_peewee
@@ -16,12 +16,12 @@ def main():
     if not Path(path.get_path).exists():
         apply_migrations()
     migrations_v2_0_0()
-    setting: ProgramSetting = get_program_setting()
-    setting.version = '1.8.1'
+    setting = ProgramSetting.get_setting()
+    setting.version = '1.9.0'
     if not setting.theme:
-        setting.theme = 'Default1'
+        setting.theme = 'SystemDefault1'
     sg.theme(setting.theme)
-    StartMainWindow()
+    MainAppWindow()
 
 
 # TODO

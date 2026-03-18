@@ -1,11 +1,4 @@
-from datetime import datetime as dd
-
-import peewee
-from peewee import fn, Case, JOIN
-
-from .models import (
-    Worker, Vacancy, Task, Status, Period, Order, TypeTask, Month, ProgramSetting
-)
+from .models import *
 
 now_date = dd.now()
 
@@ -54,11 +47,11 @@ def get_all_dismiss():
 def get_all_orders():
     orders = (
         Order.select(
-            Order, peewee.fn.SUM(Period.value).alias('passed'),
-            peewee.fn.MAX(Task.deadline).alias('deadline')
+            Order, fn.SUM(Period.value).alias('passed'),
+            fn.MAX(Task.deadline).alias('deadline')
         )
-        .join_from(Order, Period, peewee.JOIN.LEFT_OUTER)
-        .join_from(Order, Task, peewee.JOIN.LEFT_OUTER)
+        .join_from(Order, Period, JOIN.LEFT_OUTER)
+        .join_from(Order, Task, JOIN.LEFT_OUTER)
         .where(
             Order.is_active,
             Order.id.not_in(Task.select(Task.order)) |
@@ -69,7 +62,7 @@ def get_all_orders():
 
     tasks = Task.select(Task, Status).join(Status).where(Task.is_active, ~Status.is_archived)
 
-    return peewee.prefetch(orders, tasks)
+    return prefetch(orders, tasks)
 
 
 def get_worker_data(idx=None):
@@ -83,15 +76,15 @@ def get_worker_data(idx=None):
         tasks = (
             Task.select(
                 Task, Status, Worker, Order, Period,
-                peewee.fn.SUM(Period.value).alias('passed'),
+                fn.SUM(Period.value).alias('passed'),
             )
             .join_from(Task, Status)
             .join_from(Task, Worker)
-            .join_from(Task, Period, peewee.JOIN.LEFT_OUTER)
-            .join_from(Task, Order, peewee.JOIN.LEFT_OUTER)
+            .join_from(Task, Period, JOIN.LEFT_OUTER)
+            .join_from(Task, Order, JOIN.LEFT_OUTER)
             .where(Worker.id == idx)
             .group_by(Task.id)
-            .order_by(Status.is_archived, -Status.is_positive, -peewee.fn.MAX(Period.date))
+            .order_by(Status.is_archived, -Status.is_positive, -fn.MAX(Period.date))
         )
     else:
         person = None
@@ -112,7 +105,7 @@ def get_task_data(idx=None):
         task = (
             Task.select(Task, Status, Worker, Order, TypeTask)
             .join_from(Task, Status)
-            .join_from(Task, Order, peewee.JOIN.LEFT_OUTER)
+            .join_from(Task, Order, JOIN.LEFT_OUTER)
             .join_from(Task, Worker)
             .join_from(Task, TypeTask)
             .where(Task.id == idx)
@@ -131,8 +124,8 @@ def get_task_data(idx=None):
     else:
         query['workers'] = Worker.select(Worker, Vacancy.post).join(Vacancy).where(Worker.is_active)
         query['all_orders'] = (
-            Order.select(Order, peewee.fn.SUM(Period.value).alias('passed'))
-            .join_from(Order, Period, peewee.JOIN.LEFT_OUTER)
+            Order.select(Order, fn.SUM(Period.value).alias('passed'))
+            .join_from(Order, Period, JOIN.LEFT_OUTER)
             .where(
                 Order.id.not_in(Task.select(Task.order)) |
                 Order.id.in_(Task.select(Task.order).join(Status).where(~Status.is_archived))
@@ -150,12 +143,12 @@ def get_order_data(idx=None):
             'tasks': (
                 Task.select(
                     Task, Status, Worker, Order,
-                    peewee.fn.SUM(Period.value).alias('passed')
+                    fn.SUM(Period.value).alias('passed')
                 )
                 .join_from(Task, Status)
                 .join_from(Task, Worker)
-                .join_from(Task, Order, peewee.JOIN.LEFT_OUTER)
-                .join_from(Task, Period, peewee.JOIN.LEFT_OUTER)
+                .join_from(Task, Order, JOIN.LEFT_OUTER)
+                .join_from(Task, Period, JOIN.LEFT_OUTER)
                 .where(Task.order_id == idx)
                 .group_by(Task.id)
             )
@@ -168,14 +161,14 @@ def get_all_tasks():
     return (
         Task.select(
             Task, Order, Status, Period, Worker,
-            TypeTask, peewee.fn.SUM(Period.value).alias('passed'),
-            peewee.fn.MAX(Period.date).alias('max_date')
+            TypeTask, fn.SUM(Period.value).alias('passed'),
+            fn.MAX(Period.date).alias('max_date')
         )
         .join_from(Task, Status)
         .join_from(Task, Worker)
         .join_from(Task, TypeTask)
-        .join_from(Task, Order, peewee.JOIN.LEFT_OUTER)
-        .join_from(Task, Period, peewee.JOIN.LEFT_OUTER)
+        .join_from(Task, Order, JOIN.LEFT_OUTER)
+        .join_from(Task, Period, JOIN.LEFT_OUTER)
         .group_by(Task.id)
     )
 
@@ -267,8 +260,8 @@ def get_query_for_exel(worker, month):
     prev = Task.select().join(Worker).where(Task.worker == worker, Task.id.in_(sub))
 
     return {
-        'current_task': peewee.prefetch(tasks, current_periods),
-        'prev_task': peewee.prefetch(prev, prev_periods),
+        'current_task': prefetch(tasks, current_periods),
+        'prev_task': prefetch(prev, prev_periods),
         'first_half': worker_periods.where(Period.date.day <= month.get_means()),
         'second_half': worker_periods.where(Period.date.day > month.get_means()),
     }
@@ -279,9 +272,9 @@ def get_query_for_timesheet(month: Month):
     w = Worker.select(Worker, Vacancy).join(Vacancy).order_by(Worker.surname, Worker.name, Worker.second_name)
     p = (
         Period.select(
-            Period, peewee.fn.SUM(Period.value).over(partition_by=[Period.worker, Period.date]).alias('sum_val'))
+            Period, fn.SUM(Period.value).over(partition_by=[Period.worker, Period.date]).alias('sum_val'))
         .where(Period.date >= start, Period.date <= end).order_by(Period.date))
-    return peewee.prefetch(w, p)
+    return prefetch(w, p)
 
 
 def get_list_years():
@@ -399,3 +392,10 @@ def get_query_sys():
         ProgramSetting.major, ProgramSetting.minor, ProgramSetting.patch,
         ProgramSetting.org, ProgramSetting.div, ProgramSetting.resp_post, ProgramSetting.resp_name,
         ProgramSetting.head_post, ProgramSetting.head_name, ProgramSetting.m_theme).get()
+
+
+def req_post_program_setting(valid):
+    sett = ProgramSetting.get_setting()
+    for key in valid:
+        setattr(sett, key, valid[key])
+    print(f'{sett.save()=}')

@@ -2,20 +2,20 @@ import os
 from operator import itemgetter
 
 from database.damp_db import create_dump_db, restore_from_dump
-from database.migrations import change_database, get_program_setting
+from database.migrations import change_database
 from database.queries import *
 from database.settings import path
-from database.utils import validation_data, validation_period_data, validation_param_data
 from tablesExcel.processor import get_personal_table_result, get_month_timesheet, get_month_kpi
 from .components import (
     get_card_worker, get_card_task,
     get_card_order, get_list_task_for_worker,
     get_list_task_for_order
 )
+from .validators import *
 from .windows import *
 
 
-class StartWindowCard:
+class InstanceCardWindow:
     value = None
     old_data = None
 
@@ -31,7 +31,7 @@ class StartWindowCard:
         while True:
             ev, self.value = self.window.read()
             ev = ev if isinstance(ev, tuple) or ev == sg.WIN_CLOSED else ev.split(sg.MENU_KEY_SEPARATOR)[-1]
-            print(f'WindowCard {ev=} {self.value=}')
+            print(f'CardWindow {ev=} {self.value=}')
             if ev in [sg.WIN_CLOSED, '-CANCEL-', 'Escape:27']:
                 break
             elif ev in ['order', 'worker']:
@@ -61,7 +61,6 @@ class StartWindowCard:
             elif ev == '-TIME-WORKED-':
                 period = get_period(idx=self.window[ev].Values[self.value.get(ev)[0]][-1])
                 ev_per, val_per = popup_get_period(self.window, period)
-                # print(f'Period {ev_per=} {val_per=} {self.value.get("id")=}')
                 if ev_per in ['-SAVE-PER-', '-DEL-PER-']:
                     errors, valid_data = validation_period_data(val_per, val_per.get('period_id'))
                     if errors:
@@ -70,18 +69,16 @@ class StartWindowCard:
                         if update_delete_period(valid_data, ev_per):
                             sg.popup_timed('Сохранено', location=self.get_location(), **info_popup_setting)
                             self.actualizing_passed_period()
-                            # self.window.force_focus()
                         else:
                             sg.popup_timed('Изменения не вносились!', location=self.get_location(), **info_popup_setting)
             elif ev == '-VIEW-ORDER-':
                 self.window.hide()
-                StartWindowCard(
+                InstanceCardWindow(
                     idx=self.value.get('order_id'),
                     key='-ORD-',
                     parent=self.window,
                 )
                 self.window.un_hide()
-                # self.window.force_focus()
             elif ev in ['-DOUBLE-TASKS-', '-ADD-TASK-']:
                 if self.value['type'] == 'worker':
                     entity = get_worker_data(int(self.value.get('id'))).get('tasks')
@@ -100,20 +97,18 @@ class StartWindowCard:
                     idx = entity[self.value[ev].pop()].id
                     prefill = None
                 self.window.hide()
-                StartWindowCard(
+                InstanceCardWindow(
                     idx=idx,
                     key='-TSK-',
                     parent=self.window,
                     prefill=prefill
                 )
                 self.window.un_hide()
-                # self.window.force_focus()
                 if self.value['type'] == 'worker':
                     entity = get_worker_data(int(self.value.get('id'))).get('tasks')
                 else:
                     entity = get_order_data(int(self.value.get('id'))).get('tasks')
                 self.window['-DOUBLE-TASKS-'].update(list(list_comprehension(entity)))
-                # self.window.refresh()
             elif ev == '-SAVE-':
                 errors, valid_data = validation_data(self.value, self.idx)
                 if errors:
@@ -181,7 +176,6 @@ class StartWindowCard:
 
     def actualizing_passed_period(self):
         data = get_task_data(self.value.get('id'))
-        # print(f'{data=}')
         time_worked = [
             [
                 f'{period.date if period else "":%d.%m.%y}',
@@ -189,11 +183,9 @@ class StartWindowCard:
                 f'{period.value if period else ""} ч.',
                 period.id
             ] for period in data.get('time_worked', [])]
-        # print(f'{time_worked=}')
         passed = data.get('passed_order') if data.get('passed_order') else data.get('passed_task')
         self.window['-PASSED-'].update(passed)
         self.window['-TIME-WORKED-'].update(time_worked)
-        # self.window.force_focus()
         self.window.refresh()
 
 
@@ -213,8 +205,8 @@ class MenuSettingsWindow:
     def run(self):
         while True:
             self.event, self.value = self.window.read()
-            print(f'MenuSettingsWindow {self.event=} {self.value=}')
-            if self.event in ['-CANCEL-', sg.WIN_CLOSED]:
+            print(f'SettWindow {self.event=} {self.value=}')
+            if self.event in ['OUT', sg.WIN_CLOSED]:
                 break
 
             elif self.event.startswith('ALT') and self.value[self.event.replace('ALT_', '')]:
@@ -246,6 +238,11 @@ class MenuSettingsWindow:
                 sg.theme(self.value[self.event][0])
                 self.window.close()
                 self.window = get_menu_setting_window()
+                self.window['SYS'].select()
+
+            elif self.event == 'APPLY':
+                valid = setting_validation(self.value)
+                req_post_program_setting(valid)
 
         self.window.close()
 
@@ -256,7 +253,7 @@ class MenuSettingsWindow:
         self.window[f'DEL_{entity}'].update(disabled=True)
 
 
-class StartMainWindow:
+class MainAppWindow:
     tree_tasks = {}
     table = {
         '-WORKERS-': [],
@@ -301,18 +298,18 @@ class StartMainWindow:
                     idx = self.table[table_key][val[table_key].pop()][-1] if val.get(table_key) else None
                 else:
                     idx = val.get(table_key)[0]
-                StartWindowCard(
+                InstanceCardWindow(
                     idx=idx if idx else None,
                     key=val.get('-TG-'),
                     parent=self.window)
 
             elif ev == '-PARAM-':
                 MenuSettingsWindow()
-                sett = get_program_setting()
+                sett = get_query_sys()
                 if sett.theme != sg.theme():
                     sett.theme = sg.theme()
                     self.window.close()
-                    StartMainWindow()
+                    MainAppWindow()
 
             elif ev in ['-EXEL-', '-MONTH-', '-KPI-']:
                 self.window.keep_on_top_clear()
