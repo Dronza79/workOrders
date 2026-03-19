@@ -302,7 +302,6 @@ def get_query_kpi(month: Month):
 
     task_kpi = Case(None, [
         ((has_future > 0) | (Status.state != 'Завершен'), fn.COALESCE(sum_current, 0)),
-        # ((Status.state == 'Завершен') & (fn.COALESCE(sum_current, 0) * 5 < Task.deadline), fn.COALESCE(sum_current, 0)),
         (fn.COALESCE(sum_current, 0) <= part_deadline, fn.COALESCE(sum_current, 0)),
     ], (Task.deadline - fn.COALESCE(sum_before, 0)))
 

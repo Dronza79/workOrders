@@ -1,7 +1,7 @@
-from database.models import Month
+from database.models import Month, ProgramSetting
 from database.queries import get_query_for_exel, get_query_for_timesheet, get_query_kpi
 from database.utils import remove_duplicate_period_date
-from .forms import PersonalMonthExelTable, TimeSheet
+from .forms import PersonalMonthExelTable, TimeSheet, KPIReport
 
 
 def get_personal_table_result(worker, month):
@@ -21,18 +21,17 @@ def get_personal_table_result(worker, month):
         if len_pages:
             exel.add_worksheet()
 
-    return exel.save(f'{worker.surname}_{month.number:02}')
+    return exel.save_file(f'{worker.surname}_{month.number:02}')
 
 
 def get_month_timesheet(month: Month):
-    # query = get_query_for_timesheet(month.number)
     query = get_query_for_timesheet(month)
     mean = month.get_means()
     ts = TimeSheet(month)
 
     sheet = 0
-    ts.fill(1, 8, 'ООО ЭНЕРГОЭРА')
-    ts.fill(1, 22, '  ')
+    ts.fill(1, 8, ProgramSetting.get_setting().org)
+    ts.fill(1, 22, ProgramSetting.get_setting().div)
     ts.fill(4, 16, month.get_lower())
     ts.fill(4, 19, f'{month.year} года')
     addr = ts.link_title
@@ -45,18 +44,14 @@ def get_month_timesheet(month: Month):
             sheet += 1
             addr = ts.add_other_sheet(sheet)
             idx = 0
-        # print(f'{idx=} {addr=}')
         ts.fill(addr[idx], 1, number)
         data = (f'{worker.surname} {worker.name[:1]}.{f"{worker.second_name[:1]}." if worker.second_name else ""}'
                 f'\n{worker.function}')
         ts.fill(addr[idx], 3, data)
         ts.fill(addr[idx], 10, worker.table_num)
         subquery = remove_duplicate_period_date(worker.time_worked)
-        # first_sub = list(filter(lambda x: x.date <= mean, subquery))
-        first_sub = remove_duplicate_period_date(filter(lambda x: x.date <= mean, subquery))
-        # second_sub = list(filter(lambda x: x.date > mean, subquery))
-        second_sub = remove_duplicate_period_date(filter(lambda x: x.date > mean, subquery))
-        # print(f'{len(subquery)=} {len(first_sub)=} {len(second_sub)=}')
+        first_sub = remove_duplicate_period_date(filter(lambda x: x.date.day <= mean, subquery))
+        second_sub = remove_duplicate_period_date(filter(lambda x: x.date.day > mean, subquery))
         ts.fill(addr[idx], 29, len(first_sub) if first_sub else '-')
         ts.fill(addr[idx] + 1, 29, sum(first_sub) if first_sub else '-')
         ts.fill(addr[idx] + 2, 29, len(second_sub) if second_sub else '-')
@@ -72,11 +67,9 @@ def get_month_timesheet(month: Month):
                 col = period.date.day + 12
             ts.fill(row, col, period.sum_val)
             if period.date.weekday() == 5:
-                # print(period)
                 sat[0] += 1
                 sat[1] += period.sum_val
             if period.sum_val > 8:
-                # print(period)
                 over[0] += 1
                 over[1] += period.sum_val - 8
         ts.fill(addr[idx], 33, over[0] if over[0] else '-')
@@ -84,21 +77,12 @@ def get_month_timesheet(month: Month):
         ts.fill(addr[idx], 35, sat[0] if sat[0] else '-')
         ts.fill(addr[idx] + 2, 35, sat[1] if sat[1] else '-')
         idx += 1
-    return ts.save(f'табель_{month.get_lower()}')
+    return ts.save_file(f'табель_{month.get_lower()}')
 
 
 def get_month_kpi(month: Month):
     query = get_query_kpi(month)
-    # print(query)
-    filename = f'kpi-{month.number}-{month.year}.txt'
-    with open(filename, 'w', encoding='utf-8') as file:
-        file.write(f'{f"KPI {month.get_lower()} {month.year} г.":^56}\n\n\n')
-        for i, worker in enumerate(query):
-            kpi = 0
-            if worker.total_fact:
-                kpi = worker.total_plan / worker.total_fact
-            file.write(
-                f" {i + 1}. {worker.get_short_name()}\t\t| План: {worker.total_plan}\t"
-                f"| Факт: {worker.total_fact}\t| KPI: {kpi:.2f}\n\n")
 
-    return filename
+    report = KPIReport(month)
+    report.fill_data(query)
+    return report.save_file()

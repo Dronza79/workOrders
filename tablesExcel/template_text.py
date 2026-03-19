@@ -1,12 +1,14 @@
+from database.models import ProgramSetting
+
 TEMPLATE_ALIGNMENT_RIGHT = [
     'ТАБЕЛЬ ВЫПОЛНЯЕМЫХ РАБОТ за',
     'Таб. номер:',
     'Должность:',
     'Плановая норма часов:',
     'Ответственный за учет:',
-    '', #'Зайцев А.А.',
+    ProgramSetting.get_setting().resp_name, #'Зайцев А.А.',
     'Руководитель подразделения:',
-    '', #'Малинин Д.Ю.',
+    ProgramSetting.get_setting().head_name, #'Малинин Д.Ю.',
     'Работник:',
 ]
 
@@ -48,11 +50,11 @@ TIMESHEET_TAB_HEADER = [
 
 TIMESHEET_FOOTER = [
     'Ответственное лицо:',
-    '', #'инженер ПРБ',
-    '', #'Зайцев А.А.',
+    ProgramSetting.get_setting().resp_post, #'инженер ПРБ',
+    ProgramSetting.get_setting().resp_name, #'Зайцев А.А.',
     'Руководитель подразделения:',
-    '', #'директор ПУ',
-    '', #'Малинин Д.Ю.',
+    ProgramSetting.get_setting().head_post, #'директор ПУ',
+    ProgramSetting.get_setting().head_name, #'Малинин Д.Ю.',
 ]
 
 REPEATING_LINES = [

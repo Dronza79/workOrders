@@ -1,17 +1,11 @@
-import datetime
-
 from openpyxl import Workbook
 from openpyxl.styles import Side, Border, Alignment, Font, PatternFill
-from openpyxl.utils import get_column_interval
+from openpyxl.utils import get_column_interval, get_column_letter, column_index_from_string
 from openpyxl.worksheet.worksheet import Worksheet
 
 from database.models import Month
-from .template_text import TEMPLATE_ALIGNMENT_RIGHT, TEMPLATE_CLARIFICATION, TEMPLATE_TABLE, TIMESHEET_HEADER, \
-    TIMESHEET_TAB_HEADER, TIMESHEET_FOOTER, REPEATING_LINES
+from .template_text import *
 from .utils import global_print_setting, check_path_new_file
-
-
-# from tablesExcel.forms import TimeSheet
 
 
 class PersonalMonthExelTable:
@@ -21,7 +15,7 @@ class PersonalMonthExelTable:
         self._worksheet.title = '1'
         self.prefill_worksheet()
 
-    def save(self, file_name='test'):
+    def save_file(self, file_name='test'):
         try:
             name = f'{file_name}.xlsx'
             self._book.save(name)
@@ -43,7 +37,6 @@ class PersonalMonthExelTable:
                 cell = self._worksheet.cell(8, num - 2)
             cell.value = num
             cell.font = Font(size='9')
-        # print(f'fill_data {worker=} {worker.function=}')
 
         self._worksheet.cell(1, 20).value = f'{month.year} года'
         self._worksheet.cell(1, 18).value = str(month).lower()
@@ -190,7 +183,7 @@ class TimeSheet:
     def link_title(self):
         return self.__link_title
 
-    def save(self, file_name='test'):
+    def save_file(self, file_name='test'):
         self.__print_setting()
         try:
             name = f'{file_name}.xlsx'
@@ -245,13 +238,11 @@ class TimeSheet:
             self._worksheet[addr].value = TIMESHEET_TAB_HEADER[i]
         self._worksheet['AC7'].value = self._worksheet['AG7'].value = 'дни/часы'
         for val in range(1, self.month.days + 1):
-            print(f'{val=}')
             if val <= self.month.get_means():
                 cell = self._worksheet.cell(6, 12 + val)
             else:
                 cell = self._worksheet.cell(7, 12 + val - self.month.get_means())
                 cell.fill = PatternFill(fill_type='solid', fgColor="DDDDDD")
-            print(f'{cell=}')
             cell.value = val
             cell.font = Font(size='9')
         for i, addr in enumerate(['A8', 'C8', 'J8', 'M8', 'AC8', 'AE8', 'AG8', 'AI8']):
@@ -298,7 +289,6 @@ class TimeSheet:
     def __create_row(self, num_row):
         start_row = num_row * 4 + 1
         end_row = num_row * 4 + 4
-        # print(f'{start_row=} {end_row=}')
         for i_line, line in enumerate(
                 self._worksheet.iter_rows(min_row=start_row,
                                           max_row=end_row,
@@ -342,3 +332,227 @@ class TimeSheet:
     def fill(self, row, column, value):
         self._worksheet.cell(row, column, value)
 
+
+class KPIReport:
+    # Настройки границ
+    __style_border_thin = Side(border_style="thin", color="000000")
+    _bottom_border = Border(bottom=__style_border_thin)
+    _circle_border = Border(top=__style_border_thin, bottom=__style_border_thin,
+                            left=__style_border_thin, right=__style_border_thin)
+
+    # Стили шрифтов
+    _font_bold = Font(bold=True, size=11)
+    _font_small = Font(size=8)
+    _header_fill = PatternFill(start_color="F2F2F2", end_color="F2F2F2", fill_type="solid")
+    _total_fill = PatternFill(start_color="E2EFDA", end_color="E2EFDA", fill_type="solid")
+
+    def __init__(self, month: Month):
+        self.sett: ProgramSetting = ProgramSetting.get_setting()
+        self.month = month
+        self._book = Workbook()
+        self._worksheet = self._book.active
+        self._worksheet.title = f"KPI {self.month.number}-{self.month.year}"
+
+        # Настройка мелкой сетки (как в вашем TimeSheet)
+        for col in range(1, 41):
+            self._worksheet.column_dimensions[get_column_letter(col)].width = 3.0
+
+        self.__create_header()
+
+    def __print_setting(self):
+        self._worksheet = global_print_setting(self._worksheet, left=1, right=1, top=1.05, header=0)
+        self._worksheet.page_setup.fitToHeight = False
+        self._worksheet.oddFooter.center.text = "Страница &[Page] из &N"  # нижний колонтитул
+
+    def __create_header(self):
+        ws = self._worksheet
+
+        # 1. Организация и Подразделение
+        # Строка 1: Организация
+        ws.merge_cells('B1:F1')
+        ws['B1'] = "Организация:"
+        ws['B1'].alignment = Alignment(horizontal='right')
+
+        ws.merge_cells('G1:O1')
+        ws['G1'] = self.sett.org
+        self.__apply_border_range(1, 7, 15, border_type='bottom')
+        ws['G1'].alignment = Alignment(horizontal='center')
+
+        # Строка 1: Подразделение
+        ws.merge_cells('Q1:V1')
+        ws['Q1'] = "Подразделение:"
+        ws['Q1'].alignment = Alignment(horizontal='right')
+
+        ws.merge_cells('W1:AJ1')
+        ws['W1'] = self.sett.div
+        self.__apply_border_range(1, 23, 36, border_type='bottom')
+        ws['W1'].alignment = Alignment(horizontal='center')
+
+        # 2. Заголовок документа
+        ws.merge_cells('A3:AJ3')
+        title = ws['A3']
+        title.value = "ОТЧЕТ ПО ПОКАЗАТЕЛЯМ KPI"
+        title.font = Font(bold=True, size=14)
+        title.alignment = Alignment(horizontal='center')
+
+        ws.merge_cells('A4:AJ4')
+        subtitle = ws['A4']
+        subtitle.value = f"за {self.month.get_lower()} {self.month.year} года"
+        subtitle.alignment = Alignment(horizontal='center')
+
+        # 3. Шапка таблицы (строка 6)
+        mapping = [
+            ('A6:B6', '№'),
+            ('C6:O6', 'Сотрудник'),
+            ('P6:V6', 'План'),
+            ('W6:AC6', 'Факт'),
+            ('AD6:AJ6', 'KPI')
+        ]
+        for cells, text in mapping:
+            ws.merge_cells(cells)
+            cell = ws[cells.split(':')[0]]
+            cell.value = text
+            cell.font = self._font_bold
+            cell.alignment = Alignment(horizontal='center')
+            cell.fill = self._header_fill
+            self.__apply_border_range_by_str(cells, border_type='all')
+
+    def fill_data(self, query):
+        ws = self._worksheet
+        start_row = 7
+        last_row = start_row
+
+        for i, worker in enumerate(query):
+            last_row = start_row + i
+
+            # Расчет KPI
+            kpi = (worker.total_plan / worker.total_fact) if worker.total_fact else 0
+
+            # Данные строки и их соответствие столбцам (начало:конец колонки)
+            row_map = [
+                (1, 2, i + 1),  # №
+                (3, 15, worker.get_short_name()),  # Сотрудник
+                (16, 22, worker.total_plan),  # План
+                (23, 29, worker.total_fact),  # Факт
+                (30, 36, round(kpi, 2))  # KPI
+            ]
+
+            for c_start, c_end, val in row_map:
+                ws.merge_cells(start_row=last_row, end_row=last_row, start_column=c_start, end_column=c_end)
+                cell = ws.cell(row=last_row, column=c_start, value=val)
+                self.__apply_border_range(last_row, c_start, c_end, border_type='all')
+
+                if c_start == 3:  # ФИО
+                    cell.alignment = Alignment(horizontal='left', indent=1)
+                else:
+                    cell.alignment = Alignment(horizontal='center')
+
+        self.__create_total_row(start_row, last_row)
+        self.__create_footer(last_row + 2)
+
+    def __create_total_row(self, start_row, last_row):
+        ws = self._worksheet
+        tr = last_row + 1
+
+        # Итоговая подпись (A:O)
+        ws.merge_cells(start_row=tr, end_row=tr, start_column=1, end_column=15)
+        ws.cell(row=tr, column=1).value = "ИТОГО ПО ПОДРАЗДЕЛЕНИЮ:"
+        ws.cell(row=tr, column=1).font = self._font_bold
+        ws.cell(row=tr, column=1).alignment = Alignment(horizontal='right')
+
+        # Суммы для Плана (P:V) и Факта (W:AC)
+        # Используем column_index_from_string для безопасного получения номера колонки
+        sums = [('P', 'V'), ('W', 'AC')]
+        for s_col, e_col in sums:
+            start_c = column_index_from_string(s_col)
+            end_c = column_index_from_string(e_col)
+
+            ws.merge_cells(start_row=tr, end_row=tr, start_column=start_c, end_column=end_c)
+            cell = ws.cell(row=tr, column=start_c)
+            # Формула SUM(P7:P20)
+            cell.value = f"=SUM({s_col}{start_row}:{s_col}{last_row})"
+            cell.font = self._font_bold
+            self.__apply_border_range(tr, start_c, end_c, border_type='all')
+
+        # Итоговый KPI (AD:AJ)
+        start_kpi = column_index_from_string('AD')
+        end_kpi = column_index_from_string('AJ')
+        ws.merge_cells(start_row=tr, end_row=tr, start_column=start_kpi, end_column=end_kpi)
+
+        cell_kpi = ws.cell(row=tr, column=start_kpi)
+        # Формула План/Факт: P_итого / W_итого
+        cell_kpi.value = f"=IF(W{tr}>0, P{tr}/W{tr}, 0)"
+        cell_kpi.font = self._font_bold
+        cell_kpi.number_format = '0.00'
+        self.__apply_border_range(tr, start_kpi, end_kpi, border_type='all')
+
+    def __create_footer(self, r):
+        r += 1
+        ws = self._worksheet
+        signatures = [
+            ("Ответственное лицо:", self.sett.resp_post, self.sett.resp_name),
+            ("Руководитель подразделения:", self.sett.head_post, self.sett.head_name)
+        ]
+
+        for label, pos, name in signatures:
+            # Метка
+            ws.merge_cells(start_row=r, end_row=r, start_column=1, end_column=12)
+            ws.cell(r, 1, label).alignment = Alignment(horizontal='right')
+
+            # Должность
+            ws.merge_cells(start_row=r, end_row=r, start_column=14, end_column=20)
+            ws.cell(r, 14, pos).alignment = Alignment(horizontal='center')
+            self.__apply_border_range(r, 14, 20, border_type='bottom')
+
+            ws.merge_cells(start_row=r + 1, end_row=r + 1, start_column=14, end_column=20)
+            sub = ws.cell(r + 1, 14, "должность")
+            sub.font = self._font_small
+            sub.alignment = Alignment(horizontal='center', vertical='top')
+
+            # Подпись
+            ws.merge_cells(start_row=r, end_row=r, start_column=22, end_column=26)
+            self.__apply_border_range(r, 22, 26, border_type='bottom')
+
+            ws.merge_cells(start_row=r + 1, end_row=r + 1, start_column=22, end_column=26)
+            sub_p = ws.cell(r + 1, 22, "подпись")
+            sub_p.font = self._font_small
+            sub_p.alignment = Alignment(horizontal='center', vertical='top')
+
+            # Расшифровка
+            ws.merge_cells(start_row=r, end_row=r, start_column=28, end_column=34)
+            ws.cell(r, 28, name).alignment = Alignment(horizontal='center')
+            self.__apply_border_range(r, 28, 34, border_type='bottom')
+
+            ws.merge_cells(start_row=r + 1, end_row=r + 1, start_column=28, end_column=34)
+            sub_r = ws.cell(r + 1, 28, "расшифровка подписи")
+            sub_r.font = self._font_small
+            sub_r.alignment = Alignment(horizontal='center', vertical='top')
+
+            # Дата
+            ws.merge_cells(start_row=r, end_row=r, start_column=36, end_column=40)
+            ws.cell(r, 36, f'"  " _________ 20{str(self.month.year)[2:]} г.').alignment = Alignment(horizontal='left')
+
+            r += 3
+
+    # Вспомогательные методы для границ
+    def __apply_border_range(self, row, c_start, c_end, border_type='all'):
+        border = self._circle_border if border_type == 'all' else self._bottom_border
+        for col in range(c_start, c_end + 1):
+            self._worksheet.cell(row, col).border = border
+
+    def __apply_border_range_by_str(self, range_str, border_type='all'):
+        border = self._circle_border if border_type == 'all' else self._bottom_border
+        for row in self._worksheet[range_str]:
+            for cell in row:
+                cell.border = border
+
+    def save_file(self):
+        self.__print_setting()
+        try:
+            filename = f'kpi-{self.month.number}-{self.month.year}.xlsx'
+            self._book.save(filename)
+        except PermissionError:
+            filename = check_path_new_file(f'kpi-{self.month.number}-{self.month.year}.xlsx')
+            self._book.save(filename)
+
+        return filename
