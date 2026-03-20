@@ -2,8 +2,8 @@ import datetime
 
 from database.models import Month
 from database.queries import get_workers_for_list, get_list_years, get_query_reg, get_query_sys
-from .components import get_sector_workers, get_sector_tasks, get_sector_orders, reg_tab_layout, sys_tab_layout
-from .templates_settings import *
+from .layouts import *
+from .params import *
 from .validators import validation_data_for_exel
 
 

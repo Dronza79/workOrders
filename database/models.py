@@ -4,7 +4,7 @@ import re
 
 from peewee import *
 
-from .settings import get_database
+from .config import get_database
 
 STATUS_VARIABLES = [
     {'state': 'В работе', },

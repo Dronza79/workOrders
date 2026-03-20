@@ -4,7 +4,7 @@ import datetime
 import peewee
 
 from database.models import Task, Order, Status, Period, Worker, Vacancy, TypeTask, Month
-from database.settings import get_database
+from database.config import get_database
 
 # with get_database().atomic():
 #     # Vacancy.insert_many([[func] for func in FUNC_VARIABLES.values()], fields=['post']).execute()

@@ -1,16 +1,11 @@
 import os
 from operator import itemgetter
 
-from database.damp_db import create_dump_db, restore_from_dump
+from database.backups import create_dump_db, restore_from_dump
 from database.migrations import change_database
 from database.queries import *
-from database.settings import path
-from tablesExcel.processor import get_personal_table_result, get_month_timesheet, get_month_kpi
-from .components import (
-    get_card_worker, get_card_task,
-    get_card_order, get_list_task_for_worker,
-    get_list_task_for_order
-)
+from database.config import path
+from tablesExcel.builders import build_personal_table_result, build_month_timesheet, build_month_kpi
 from .validators import *
 from .windows import *
 
@@ -314,9 +309,9 @@ class MainAppWindow:
             elif ev in ['-EXEL-', '-MONTH-', '-KPI-']:
                 self.window.keep_on_top_clear()
                 inter_func = popup_choice_worker_for_exel if ev == '-EXEL-' else popup_choice_month_for_exel
-                get_file_path = get_personal_table_result if ev == '-EXEL-' else get_month_timesheet
+                get_file_path = build_personal_table_result if ev == '-EXEL-' else build_month_timesheet
                 if ev == '-KPI-':
-                    get_file_path = get_month_kpi
+                    get_file_path = build_month_kpi
                 valid_data = inter_func(self.window)
                 print(f'{valid_data=}')
                 if not valid_data:

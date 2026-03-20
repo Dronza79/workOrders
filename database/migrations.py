@@ -1,7 +1,7 @@
 import importlib
 
 from .models import *
-from .settings import get_database
+from .config import get_database
 
 models = (
     Vacancy,

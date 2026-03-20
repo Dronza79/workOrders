@@ -10,7 +10,7 @@ from peewee import fn
 from database.app_logger import add_logger_peewee
 from database.models import Worker, Task, TypeTask, Period, Status, Vacancy, Order, Month
 from database.queries import get_query_for_timesheet
-from database.settings import get_database
+from database.config import get_database
 
 
 @add_logger_peewee

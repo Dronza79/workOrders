@@ -4,7 +4,7 @@ import os
 import sqlite3 as sql
 from pathlib import Path
 
-from database.settings import path, get_database
+from database.config import path, get_database
 
 
 # def create_dump_db():

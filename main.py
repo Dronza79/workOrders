@@ -5,7 +5,7 @@ from pathlib import Path
 from database.app_logger import add_logger_peewee
 from database.migrations import apply_migrations, migrations_v2_0_0
 from database.models import ProgramSetting
-from database.settings import path
+from database.config import path
 from gui.views import MainAppWindow
 
 
@@ -17,7 +17,7 @@ def main():
         apply_migrations()
     migrations_v2_0_0()
     setting = ProgramSetting.get_setting()
-    setting.version = '1.10.0'
+    setting.version = '1.10.1'
     if not setting.theme:
         setting.theme = 'SystemDefault1'
     sg.theme(setting.theme)
