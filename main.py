@@ -3,7 +3,7 @@ import locale
 from pathlib import Path
 
 from database.app_logger import add_logger_peewee
-from database.migrations import apply_migrations, migrations_v2_0_0
+from database.migrations import apply_migrations, migrations_v2_0_0, migrations_v1_1_0
 from database.models import ProgramSetting
 from database.config import path
 from gui.views import MainAppWindow
@@ -15,8 +15,11 @@ def main():
     locale.setlocale(locale.LC_ALL, '')
     if not Path(path.get_path).exists():
         apply_migrations()
-    migrations_v2_0_0()
+    else:
+        migrations_v1_1_0()
+        migrations_v2_0_0()
     setting = ProgramSetting.get_setting()
+    print(f'{setting=}')
     setting.version = '1.10.1'
     if not setting.theme:
         setting.theme = 'SystemDefault1'

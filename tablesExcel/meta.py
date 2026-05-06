@@ -6,9 +6,9 @@ TEMPLATE_ALIGNMENT_RIGHT = [
     'Должность:',
     'Плановая норма часов:',
     'Ответственный за учет:',
-    ProgramSetting.get_setting().resp_name, #'Зайцев А.А.',
+    '', #ProgramSetting.get_setting().resp_name, #'Зайцев А.А.',
     'Руководитель подразделения:',
-    ProgramSetting.get_setting().head_name, #'Малинин Д.Ю.',
+    '', #ProgramSetting.get_setting().head_name, #'Малинин Д.Ю.',
     'Работник:',
 ]
 
@@ -50,11 +50,11 @@ TIMESHEET_TAB_HEADER = [
 
 TIMESHEET_FOOTER = [
     'Ответственное лицо:',
-    ProgramSetting.get_setting().resp_post, #'инженер ПРБ',
-    ProgramSetting.get_setting().resp_name, #'Зайцев А.А.',
+    '', #ProgramSetting.get_setting().resp_post, #'инженер ПРБ',
+    '', #ProgramSetting.get_setting().resp_name, #'Зайцев А.А.',
     'Руководитель подразделения:',
-    ProgramSetting.get_setting().head_post, #'директор ПУ',
-    ProgramSetting.get_setting().head_name, #'Малинин Д.Ю.',
+    '', #ProgramSetting.get_setting().head_post, #'директор ПУ',
+    '', #ProgramSetting.get_setting().head_name, #'Малинин Д.Ю.',
 ]
 
 REPEATING_LINES = [

@@ -220,7 +220,7 @@ class ProgramSetting(BaseModel):
     resp_name = CharField(default='', verbose_name='ФИО ответственного', column_name='name_responsible')
     head_post = CharField(default='', verbose_name='Должность руководителя', column_name='leader_post')
     head_name = CharField(default='', verbose_name='ФИО руководителя', column_name='leader_name', null=True)
-    m_theme = CharField(verbose_name='Тема оформления')
+    m_theme = CharField(default='SystemDefault1', verbose_name='Тема оформления')
     # username = CharField(verbose_name='Пользователь', unique=True)
     # password = CharField(verbose_name='Пароль авторизации')
 

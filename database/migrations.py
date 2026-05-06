@@ -25,6 +25,7 @@ def apply_migrations():
             Status.insert_many(STATUS_VARIABLES).execute()
         if not list(TypeTask.select()):
             TypeTask.insert_many(TYPE_VARIABLES).execute()
+    db.close()
 
 
 def change_database():
